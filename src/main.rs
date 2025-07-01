@@ -1,74 +1,105 @@
-use chrono::NaiveDate;
-use serde::{Deserialize, Serialize};
+use crate::{base_gov::ContractSort, store::save_contract_to_file};
+use governor::{Quota, RateLimiter};
+use log::{error, info};
+use std::{
+    num::NonZeroU32,
+    sync::{Arc, Mutex},
+};
+use tokio::sync::Semaphore;
 
-const URL: &str = "https://www.base.gov.pt/Base4/pt/resultados/";
+pub mod base_gov;
+mod store;
 
-#[derive(Debug, Serialize)]
-struct BaseGovPayload {
-    #[serde(rename = "type")]
-    payload_type: String,
-    version: String,
-    query: String,
-    sort: String,
-    page: usize,
-    size: usize,
-}
-
-#[derive(Debug, Deserialize)]
-struct BaseGovResponse {
-    total: usize,
-    items: Vec<BaseGovItem>,
-}
-
-fn deserialize_date<'de, D>(deserializer: D) -> Result<NaiveDate, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let date_str: String = Deserialize::deserialize(deserializer)?;
-    NaiveDate::parse_from_str(&date_str, "%d-%m-%Y").map_err(serde::de::Error::custom)
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct BaseGovItem {
-    id: usize,
-    contracting_procedure_type: String,
-    #[serde(deserialize_with = "deserialize_date")]
-    publication_date: NaiveDate,
-    #[serde(deserialize_with = "deserialize_date")]
-    signing_date: NaiveDate,
-    ccp: bool,
-    contracted: String,
-    contracting: String,
-    object_brief_description: String,
-    initial_contractual_price: String,
-}
+const MAX_PAGE_SIZE: usize = 50;
+const CONTRACT_SORT_ORDER: ContractSort = base_gov::ContractSort {
+    method: base_gov::ContractSortMethod::Id,
+    order: base_gov::SortOrder::Ascending,
+};
+const MAX_CONCURRENT_REQUESTS: usize = 3;
+const MAX_REQUEST_QUOTA: Quota = Quota::per_minute(NonZeroU32::new(100).unwrap());
 
 #[tokio::main]
 async fn main() {
-    let client = reqwest::Client::builder()
-        .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3")
-        .build()
-        .unwrap();
+    let env = env_logger::Env::default().filter_or("RUST_LOG", "info");
+    env_logger::init_from_env(env);
 
-    let payload = BaseGovPayload {
-        payload_type: "search_contratos".to_string(),
-        version: "127.0".to_string(),
-        query: "tipo=0&tipocontrato=0&pais=0&distrito=0&concelho=0".to_string(),
-        sort: "+initialContractualPrice".to_string(),
-        page: 0,
-        size: 50,
-    };
+    let client = Arc::new(base_gov::BaseGovClient::new());
 
-    let response = client
-        .post(URL)
-        .form(&payload)
-        .send()
-        .await
+    let total_pages = Arc::new(Mutex::new(None));
+    let mut current_page = 0_usize;
+
+    let limiter = Arc::new(RateLimiter::direct(MAX_REQUEST_QUOTA));
+    let semaphore = Arc::new(Semaphore::new(MAX_CONCURRENT_REQUESTS));
+
+    let mut handles = vec![];
+
+    while total_pages
+        .lock()
         .unwrap()
-        .json::<BaseGovResponse>()
-        .await
-        .unwrap();
+        .is_none_or(|total_pages| current_page < total_pages)
+    {
+        if store::is_page_completed(current_page, MAX_PAGE_SIZE) {
+            info!("Page {current_page} is already completed, skipping...");
+            current_page += 1;
+            continue;
+        }
 
-    println!("Total results: {:#?}", response.total);
+        limiter.until_ready().await;
+
+        let permit = semaphore.clone().acquire_owned().await.unwrap();
+
+        let total_pages_str = total_pages
+            .lock()
+            .unwrap()
+            .map(|s| s.to_string())
+            .unwrap_or("?".to_string());
+
+        info!("Fetching page {current_page}/{total_pages_str}...");
+
+        let payload = base_gov::BaseGovPayload::new_search_all_contracts(
+            CONTRACT_SORT_ORDER,
+            current_page,
+            MAX_PAGE_SIZE,
+        );
+
+        let client = Arc::clone(&client);
+        let total_pages = Arc::clone(&total_pages);
+        let task = tokio::spawn(async move {
+            let _permit = permit; // hold permit until task ends
+
+            let response = match client.search_contracts(payload).await {
+                Ok(response) => response,
+                Err(e) => {
+                    error!("Failed to fetch page {current_page}: {}", e);
+                    return;
+                }
+            };
+
+            info!(
+                "Fetched page {current_page} with {} contracts. Saving to disk...",
+                response.items.len()
+            );
+
+            if let Ok(mut total_pages) = total_pages.lock() {
+                let new_total_pages = response.total / MAX_PAGE_SIZE + 1;
+                if total_pages.is_none_or(|total_pages| total_pages < new_total_pages) {
+                    *total_pages = Some(new_total_pages);
+                }
+            }
+
+            for contract in &response.items {
+                if let Err(e) = save_contract_to_file(contract, current_page) {
+                    error!("Failed to save contract {}: {}", contract.id, e);
+                }
+            }
+        });
+
+        handles.push(task);
+
+        current_page += 1;
+    }
+
+    for handle in handles {
+        handle.await.unwrap();
+    }
 }
