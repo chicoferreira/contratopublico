@@ -1,4 +1,3 @@
-use crate::{base_gov::ContractSort, store::save_contract_to_file};
 use governor::{Quota, RateLimiter};
 use log::{error, info};
 use std::{
@@ -6,6 +5,8 @@ use std::{
     sync::{Arc, Mutex},
 };
 use tokio::sync::Semaphore;
+
+use crate::{base_gov::ContractSort, store::save_contracts_page_to_file};
 
 pub mod base_gov;
 mod store;
@@ -87,10 +88,8 @@ async fn main() {
                 }
             }
 
-            for contract in &response.items {
-                if let Err(e) = save_contract_to_file(contract, current_page) {
-                    error!("Failed to save contract {}: {}", contract.id, e);
-                }
+            if let Err(e) = save_contracts_page_to_file(&response.items, current_page) {
+                error!("Failed to save contracts page {current_page}: {}", e);
             }
         });
 
