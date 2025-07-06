@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::base_gov::Contract;
+use common::Contract;
 
 fn get_folder_path(page: usize) -> PathBuf {
     let page_group = format!("group_{:05}", page / 100);
