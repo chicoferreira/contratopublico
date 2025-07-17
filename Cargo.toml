@@ -1,11 +1,7 @@
 [workspace]
 resolver = "3"
 
-members = [
-    "backend",
-    "common", 
-    "scraper"
-]
+members = ["backend", "common", "scraper"]
 
 [workspace.dependencies]
 serde = { version = "1.0.219", features = ["derive"] }
@@ -19,6 +15,7 @@ governor = "0.10.0"
 log = "0.4.27"
 nonzero_ext = "0.3.0"
 reqwest = { version = "0.12.20", features = ["json"] }
-serde_json = "1.0.140" 
+serde_json = "1.0.140"
 meilisearch-sdk = "0.28.0"
 thiserror = "2.0.12"
+clap = { version = "4.5.41", features = ["derive"] }

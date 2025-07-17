@@ -13,4 +13,6 @@ reqwest = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 tokio = { workspace = true }
+meilisearch-sdk = { workspace = true }
+clap = { workspace = true }
 common = { path = "../common" }
