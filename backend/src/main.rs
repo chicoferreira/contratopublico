@@ -7,9 +7,9 @@ use axum::{
     routing::get,
 };
 use common::Contract;
-use log;
 use meilisearch_sdk::client::Client;
 use serde::{Deserialize, Serialize};
+use tracing::{Level, error, event, info};
 
 use crate::state::{AppError, AppState};
 
@@ -17,7 +17,7 @@ mod state;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    tracing_subscriber::fmt::init();
+    tracing_subscriber::fmt::fmt().init();
 
     let meilisearch = Client::new(
         "http://localhost:7700",
@@ -31,6 +31,11 @@ async fn main() -> anyhow::Result<()> {
     let app = Router::new().route("/search", get(search));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    event!(
+        Level::INFO,
+        "Listening on {}",
+        listener.local_addr().unwrap()
+    );
     axum::serve(listener, app.with_state(app_state))
         .await
         .context("Failed to serve axum")
@@ -46,6 +51,7 @@ struct SearchQuery {
 }
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 struct SearchResponse {
     contracts: Vec<Contract>,
     total: Option<usize>,
@@ -54,6 +60,7 @@ struct SearchResponse {
     offset: usize,
 }
 
+#[tracing::instrument(skip(state))]
 #[axum::debug_handler]
 async fn search(
     Query(query): Query<SearchQuery>,
@@ -73,6 +80,8 @@ async fn search(
         .search(&query.query, &filter, &sort, page, offset, HITS_PER_PAGE)
         .await?;
 
+    info!("Returning {} results", results.hits.len());
+
     // TODO: return formatted results
     Ok(Json(SearchResponse {
         contracts: results.hits.into_iter().map(|hit| hit.result).collect(),
@@ -87,7 +96,7 @@ impl IntoResponse for AppError {
     fn into_response(self) -> Response<axum::body::Body> {
         match self {
             AppError::MeilisearchError(e) => {
-                log::error!("Meilisearch error: {}", e);
+                error!("Meilisearch error: {:?}", e);
                 StatusCode::INTERNAL_SERVER_ERROR.into_response()
             }
         }

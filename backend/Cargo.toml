@@ -13,3 +13,4 @@ common = { path = "../common" }
 thiserror = { workspace = true }
 anyhow = { workspace = true }
 log = { workspace = true }
+tracing = { workspace = true }

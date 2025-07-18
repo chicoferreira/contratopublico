@@ -55,6 +55,7 @@ impl AppState {
         Ok(())
     }
 
+    #[tracing::instrument(skip(self))]
     pub async fn search(
         &self,
         query: &str,
