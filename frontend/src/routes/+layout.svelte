@@ -16,7 +16,7 @@
   </div>
 </div>
 
-<div class="bg-base-200">
+<div class="bg-base-200 min-h-screen">
   <main class="container mx-auto">
     <div class="py-4">
       {@render children()}
