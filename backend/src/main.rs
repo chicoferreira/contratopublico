@@ -10,6 +10,7 @@ use clap::Parser;
 use common::Contract;
 use meilisearch_sdk::client::Client;
 use serde::{Deserialize, Serialize};
+use tokio::signal;
 use tracing::{Level, error, event, info};
 
 use crate::state::{AppError, AppState};
@@ -54,7 +55,9 @@ async fn main() -> anyhow::Result<()> {
         "Listening on {}",
         listener.local_addr().unwrap()
     );
+
     axum::serve(listener, app.with_state(app_state))
+        .with_graceful_shutdown(shutdown_signal())
         .await
         .context("Failed to serve axum")
 }
@@ -119,4 +122,30 @@ impl IntoResponse for AppError {
             }
         }
     }
+}
+
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        signal::ctrl_c()
+            .await
+            .expect("failed to install Ctrl+C handler");
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        signal::unix::signal(signal::unix::SignalKind::terminate())
+            .expect("failed to install signal handler")
+            .recv()
+            .await;
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        _ = ctrl_c => {},
+        _ = terminate => {},
+    }
+
+    info!("Shutting down...");
 }
