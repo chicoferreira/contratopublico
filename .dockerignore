@@ -1,0 +1,16 @@
+frontend/node_modules/
+frontend/build/
+frontend/.svelte-kit/
+
+target/
+**/target/
+
+.git/
+
+.env*
+meili_data/
+
+.DS_Store
+
+Dockerfile
+docker-compose*.yml

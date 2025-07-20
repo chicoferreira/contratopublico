@@ -14,3 +14,4 @@ thiserror = { workspace = true }
 anyhow = { workspace = true }
 log = { workspace = true }
 tracing = { workspace = true }
+clap = { workspace = true, features = ["derive", "env"] }

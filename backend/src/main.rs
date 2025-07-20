@@ -6,6 +6,7 @@ use axum::{
     response::IntoResponse,
     routing::get,
 };
+use clap::Parser;
 use common::Contract;
 use meilisearch_sdk::client::Client;
 use serde::{Deserialize, Serialize};
@@ -15,22 +16,39 @@ use crate::state::{AppError, AppState};
 
 mod state;
 
+#[derive(Parser)]
+struct Args {
+    #[clap(long, env, default_value = "http://localhost:7700")]
+    meilisearch_url: String,
+    #[clap(long, env = "MEILI_MASTER_KEY", default_value = "masterKey")]
+    meilisearch_master_key: Option<String>,
+    #[clap(long, env = "BIND_URL", default_value = "0.0.0.0:3000")]
+    bind_url: String,
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::fmt().init();
 
+    let args = Args::parse();
     let meilisearch = Client::new(
-        "http://localhost:7700",
-        Some("MASTER_KEY_TO_CHANGE_IN_PRODUCTION"),
+        &args.meilisearch_url,
+        args.meilisearch_master_key.as_deref(),
     )
-    .expect("Failed to create Meilisearch client");
+    .context("Failed to create Meilisearch client")?;
 
     let app_state = AppState::new(meilisearch);
-    app_state.prepare_indexes().await?;
+    app_state
+        .prepare_indexes()
+        .await
+        .context("Failed to prepare indexes")?;
 
     let app = Router::new().route("/search", get(search));
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    let listener = tokio::net::TcpListener::bind(args.bind_url)
+        .await
+        .context("Failed to bind listener")?;
+
     event!(
         Level::INFO,
         "Listening on {}",

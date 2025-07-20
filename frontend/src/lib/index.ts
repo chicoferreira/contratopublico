@@ -1,8 +1,10 @@
 import type {
-  Contract,
   SearchContractsRequest,
   SearchContractsResponse,
 } from "$lib/types/api";
+import { env } from "$env/dynamic/private";
+
+const BACKEND_URL = env.BACKEND_URL || "http://localhost:3000";
 
 export async function searchContracts(
   data: SearchContractsRequest,
@@ -15,7 +17,7 @@ export async function searchContracts(
   if (data.page) params.append("page", data.page.toString());
   if (data.offset) params.append("offset", data.offset.toString());
 
-  const response = await fetch(`http://localhost:3000/search?${params}`, {
+  const response = await fetch(`${BACKEND_URL}/search?${params}`, {
     method: "GET",
     headers: { "Content-Type": "application/json" },
   });
