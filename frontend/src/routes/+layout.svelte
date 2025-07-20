@@ -1,20 +1,25 @@
 <script>
-    let { children } = $props();
-    import "../app.css";
+  let { children } = $props();
+  import "../app.css";
+
+  import { Building2 } from "@lucide/svelte";
 </script>
 
-<div class="navbar bg-base-100 shadow-sm">
-    <div class="navbar-start"></div>
-    <div class="navbar-center">
-        <a class="btn btn-ghost text-xl" href="/">contratoPúblico</a>
+<div class="navbar bg-neutral text-neutral-content py-5">
+  <div class="container mx-auto">
+    <div class="flex items-center gap-3">
+      <Building2 class="h-8 w-8" />
+      <div>
+        <h1 class="text-3xl font-bold">Contrato Público</h1>
+      </div>
     </div>
-    <div class="navbar-end">
-        <!-- TODO: github link & report issue -->
-    </div>
+  </div>
 </div>
 
-<main class="min-h-screen flex">
-    <div class="container mx-auto px-4">
-        {@render children()}
+<div class="bg-base-200">
+  <main class="container mx-auto">
+    <div class="py-4">
+      {@render children()}
     </div>
-</main>
+  </main>
+</div>

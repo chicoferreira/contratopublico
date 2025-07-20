@@ -1,50 +1,59 @@
 <script lang="ts">
-    import "../app.css";
-    import { Icon, MagnifyingGlass } from "svelte-hero-icons";
-    import type { SearchContractsResponse } from "$lib/types/api";
+  import "../app.css";
+  import type { SearchContractsResponse } from "$lib/types/api";
 
-    let search = $state("");
-    let loading = $state(false);
+  import Search from "../components/Search.svelte";
+  import ContractCard from "../components/ContractCard.svelte";
 
-    let { data } = $props();
-    let searchResults = $state<SearchContractsResponse>(data);
+  let search = $state("");
+  let loading = $state(false);
 
-    $effect(() => {
-        if (search.trim() === "") {
-            searchResults = data;
-            return;
+  let { data } = $props();
+  let searchResults = $state<SearchContractsResponse>(data);
+
+  $effect(() => {
+    if (search.trim() === "") {
+      searchResults = data;
+      return;
+    }
+
+    async function searchContracts(searchTerm: string) {
+      loading = true;
+      try {
+        const response = await fetch(
+          `/api/search?query=${encodeURIComponent(searchTerm)}`,
+        );
+        if (response.ok) {
+          searchResults = await response.json();
+        } else {
+          console.error("Search failed:", response.statusText);
         }
+      } catch (error) {
+        console.error("Search error:", error);
+      } finally {
+        loading = false;
+      }
+    }
 
-        async function searchContracts(searchTerm: string) {
-            loading = true;
-            try {
-                const response = await fetch(
-                    `/api/search?query=${encodeURIComponent(searchTerm)}`,
-                );
-                if (response.ok) {
-                    searchResults = await response.json();
-                } else {
-                    console.error("Search failed:", response.statusText);
-                }
-            } catch (error) {
-                console.error("Search error:", error);
-            } finally {
-                loading = false;
-            }
-        }
-
-        searchContracts(search);
-    });
+    searchContracts(search);
+  });
 </script>
 
-<label class="input w-full">
-    <Icon src={MagnifyingGlass} micro class="h-[1em] w-[1em] opacity-50" />
-    <input
-        type="search"
-        class="grow"
-        placeholder="Procurar"
-        bind:value={search}
-    />
-</label>
+<div class="space-y-4">
+  <div class="text-2xl font-semibold">Procura por contratos públicos</div>
 
-{JSON.stringify(searchResults)}
+  <div class="space-y-1">
+    <Search bind:searchTerm={search}></Search>
+
+    <p class="text-base-content/50">
+      {searchResults.total}
+      {searchResults.total === 1
+        ? "contrato encontrado"
+        : "contratos encontrados"}
+    </p>
+  </div>
+
+  {#each searchResults.contracts as contract}
+    <ContractCard {contract} />
+  {/each}
+</div>
