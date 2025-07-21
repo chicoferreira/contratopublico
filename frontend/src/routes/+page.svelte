@@ -45,7 +45,7 @@
   <div class="space-y-1">
     <Search bind:searchTerm={search}></Search>
 
-    <p class="text-base-content/50">
+    <p class="text-muted-foreground">
       {searchResults.total}
       {searchResults.total === 1
         ? "contrato encontrado"

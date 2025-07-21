@@ -1,10 +1,11 @@
 <script lang="ts">
+  import Input from "$lib/components/ui/input/input.svelte";
   import { Search } from "@lucide/svelte";
   import { onMount } from "svelte";
 
   let { searchTerm = $bindable() } = $props();
 
-  let inputElement: HTMLInputElement;
+  let inputElement = $state<HTMLInputElement | null>(null);
 
   function handleKeyPress(event: KeyboardEvent) {
     if (inputElement) {
@@ -20,13 +21,15 @@
   });
 </script>
 
-<label class="input input-lg w-full border border-neutral-content">
-  <Search class="h-4 w-4" />
-  <input
+<div class="relative">
+  <div
+    class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+    <Search class="text-muted-foreground h-4 w-4" />
+  </div>
+  <Input
+    class="h-12 pl-9 text-lg md:text-lg"
     type="text"
-    class="text-lg"
     placeholder="Procura contratos pela sua descrição..."
     bind:value={searchTerm}
-    bind:this={inputElement}
-  />
-</label>
+    bind:ref={inputElement} />
+</div>

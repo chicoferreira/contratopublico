@@ -5,8 +5,8 @@
   import { Building2 } from "@lucide/svelte";
 </script>
 
-<div class="navbar bg-neutral text-neutral-content py-5">
-  <div class="container mx-auto">
+<div class="bg-primary text-primary-foreground">
+  <div class="container mx-auto px-4 py-5">
     <div class="flex items-center gap-3">
       <Building2 class="h-8 w-8" />
       <div>
@@ -16,9 +16,9 @@
   </div>
 </div>
 
-<div class="bg-base-200 min-h-screen">
+<div class="bg-muted min-h-screen">
   <main class="container mx-auto">
-    <div class="py-4">
+    <div class="px-4 py-5">
       {@render children()}
     </div>
   </main>

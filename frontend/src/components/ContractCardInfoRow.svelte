@@ -5,10 +5,12 @@
 </script>
 
 <div class="flex items-center gap-3">
-  <Icon class="h-5 w-5 text-base-content/60" />
+  <Icon class="text-muted-foreground/70 h-6 w-6 shrink-0" />
   <div>
-    <span class="text-base-content/70">{label}:</span>
-    <div class="font-medium text-base-content">
+    <span class="text-muted-foreground/70 text-sm font-semibold uppercase">
+      {label}
+    </span>
+    <div class="font-medium break-words">
       {value}
     </div>
   </div>

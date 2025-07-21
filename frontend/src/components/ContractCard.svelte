@@ -6,23 +6,19 @@
   let { contract }: { contract: Contract } = $props();
 </script>
 
-<div
-  class="bg-base-100 border border-neutral-content px-6 py-5 rounded-box
-"
->
+<div class="bg-background border-neutral-content rounded-md border px-6 py-5">
   <!-- TODO: SIMPLIFY THIS CSS MESS -->
   <div class="pb-3">
     <div
-      class="flex flex-col md:flex-row md:items-start md:justify-between gap-2"
+      class="flex flex-col gap-2 md:flex-row md:items-start md:justify-between"
     >
       <div class="flex items-baseline gap-2">
-        <h3 class="font-semibold text-lg leading-tight text-base-content">
+        <h3 class="text-base-content text-lg leading-tight font-semibold">
           {contract.objectBriefDescription}
         </h3>
-        <span class="text-xs text-base-content/50 shrink-0">#{contract.id}</span
-        >
+        <span class="text-muted-foreground shrink-0 text-xs">#{contract.id}</span>
       </div>
-      <div class="text-green-700 text-lg font-semibold lg:shrink-0">
+      <div class="text-lg font-semibold text-green-700 lg:shrink-0">
         {contract.initialContractualPrice}
       </div>
     </div>
