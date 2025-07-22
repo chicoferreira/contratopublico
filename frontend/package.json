@@ -18,6 +18,7 @@
     "@sveltejs/adapter-node": "^5.2.13",
     "@sveltejs/kit": "^2.16.0",
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
+    "@types/node": "^24.1.0",
     "bits-ui": "^2.8.11",
     "clsx": "^2.1.1",
     "eslint": "^9.30.1",

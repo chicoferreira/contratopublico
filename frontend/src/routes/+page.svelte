@@ -1,10 +1,14 @@
 <script lang="ts">
   import "../app.css";
-  import type { SearchContractsResponse } from "$lib/types/api";
+  import type {
+    SearchContractsRequest,
+    SearchContractsResponse,
+  } from "$lib/types/api";
   import Search from "../components/Search.svelte";
   import ContractCard from "../components/ContractCard.svelte";
   import SortDropdown from "../components/SortDropdown.svelte";
   import type { Sort } from "$lib/types/api";
+  import { searchContracts } from "$lib";
 
   let search = $state("");
   let loading = $state(false);
@@ -18,25 +22,21 @@
   let searchResults = $state<SearchContractsResponse>(data);
 
   $effect(() => {
-    async function searchContracts(searchTerm: string, sortBy: Sort.SortBy) {
-      loading = true;
+    const request: SearchContractsRequest = {
+      query: search,
+      sort: sortBy,
+    };
+
+    async function run() {
       try {
-        const response = await fetch(
-          `/api/search?query=${encodeURIComponent(searchTerm)}&sort[direction]=${sortBy?.direction}&sort[field]=${sortBy?.field}`,
-        );
-        if (response.ok) {
-          searchResults = await response.json();
-        } else {
-          console.error("Search failed:", response.statusText);
-        }
+        const response = await searchContracts(request);
+        searchResults = response;
       } catch (error) {
-        console.error("Search error:", error);
-      } finally {
-        loading = false;
+        console.error("Error searching contracts:", error);
       }
     }
 
-    searchContracts(search, sortBy);
+    run();
   });
 </script>
 

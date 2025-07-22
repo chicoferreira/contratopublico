@@ -1,3 +1,5 @@
+name: contratopublico
+
 services:
   meilisearch:
     image: getmeili/meilisearch:v1

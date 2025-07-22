@@ -48,7 +48,7 @@ async fn main() -> anyhow::Result<()> {
         .await
         .context("Failed to prepare indexes")?;
 
-    let app = Router::new().route("/search", get(search));
+    let app = Router::new().route("/api/search", get(search));
 
     let listener = tokio::net::TcpListener::bind(args.bind_url)
         .await
