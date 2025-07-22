@@ -3,13 +3,13 @@
   import type { SearchContractsResponse } from "$lib/types/api";
   import Search from "../components/Search.svelte";
   import ContractCard from "../components/ContractCard.svelte";
-  import SortBy from "../components/SortBy.svelte";
-  import type { SortBy as SortByType } from "$lib/types/api";
+  import SortDropdown from "../components/SortDropdown.svelte";
+  import type { Sort } from "$lib/types/api";
 
   let search = $state("");
   let loading = $state(false);
 
-  let sortBy = $state<SortByType>({
+  let sortBy = $state<Sort.SortBy>({
     direction: "descending",
     field: "publicationDate",
   });
@@ -18,10 +18,9 @@
   let searchResults = $state<SearchContractsResponse>(data);
 
   $effect(() => {
-    async function searchContracts(searchTerm: string, sortBy: SortByType) {
+    async function searchContracts(searchTerm: string, sortBy: Sort.SortBy) {
       loading = true;
       try {
-        console.log("searchContracts", searchTerm, sortBy);
         const response = await fetch(
           `/api/search?query=${encodeURIComponent(searchTerm)}&sort[direction]=${sortBy?.direction}&sort[field]=${sortBy?.field}`,
         );
@@ -47,7 +46,7 @@
   <div class="space-y-1">
     <Search bind:searchTerm={search}></Search>
 
-    <SortBy bind:sortBy></SortBy>
+    <SortDropdown bind:sortBy />
 
     <p class="text-muted-foreground">
       {searchResults.total}

@@ -10,13 +10,13 @@
   <!-- TODO: SIMPLIFY THIS CSS MESS -->
   <div class="pb-3">
     <div
-      class="flex flex-col gap-2 md:flex-row md:items-start md:justify-between"
-    >
+      class="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
       <div class="flex items-baseline gap-2">
         <h3 class="text-base-content text-lg leading-tight font-semibold">
           {contract.objectBriefDescription}
         </h3>
-        <span class="text-muted-foreground shrink-0 text-xs">#{contract.id}</span>
+        <span class="text-muted-foreground shrink-0 text-xs"
+          >#{contract.id}</span>
       </div>
       <div class="text-lg font-semibold text-green-700 lg:shrink-0">
         {contract.initialContractualPrice}
@@ -29,28 +29,24 @@
       <ContractCardInfoRow
         Icon={FileText}
         label="Contratante"
-        value={contract.contracting}
-      />
+        value={contract.contracting} />
       <ContractCardInfoRow
         Icon={Building}
         label="Contratado"
-        value={contract.contracted}
-      />
+        value={contract.contracted} />
     </div>
 
     <div class="md:space-y-2">
       <ContractCardInfoRow
         Icon={CalendarDays}
         label="Data de Publicação"
-        value={contract.publicationDate}
-      />
+        value={contract.publicationDate} />
       <ContractCardInfoRow
         Icon={Signature}
         label="Data do Contrato"
         value={contract.signingDate != null
           ? contract.signingDate
-          : "Não informado"}
-      />
+          : "Não informado"} />
     </div>
   </div>
 </div>

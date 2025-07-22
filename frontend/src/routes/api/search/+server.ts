@@ -29,8 +29,6 @@ export const GET: RequestHandler = async ({ url }) => {
     offset,
   };
 
-  console.log("Search request:", request);
-
   try {
     const response = await searchContracts(request);
     return json(response);

@@ -14,13 +14,11 @@ export async function searchContracts(
   params.append("query", data.query);
   if (data.filter) params.append("filter", data.filter);
   if (data.sort) {
-    params.append("sort[field]", data.sort.field);
-    params.append("sort[direction]", data.sort.direction);
+    params.append("sortField", data.sort.field);
+    params.append("sortDirection", data.sort.direction);
   }
   if (data.page) params.append("page", data.page.toString());
   if (data.offset) params.append("offset", data.offset.toString());
-
-  console.log("search url: ", `${BACKEND_URL}/search?${params}`);
 
   const response = await fetch(`${BACKEND_URL}/search?${params}`, {
     method: "GET",
