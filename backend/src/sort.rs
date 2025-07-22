@@ -1,9 +1,10 @@
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize, Default)]
-#[serde(rename_all = "camelCase")]
 pub struct SortBy {
+    #[serde(rename = "sortField")]
     pub field: SortField,
+    #[serde(rename = "sortDirection")]
     pub direction: SortDirection,
 }
 

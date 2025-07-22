@@ -13,7 +13,7 @@ export interface Contract {
 export interface SearchContractsRequest {
   query: string;
   filter?: string | null;
-  sort?: SortBy | null;
+  sort?: Sort.SortBy | null;
   page?: number | null;
   offset?: number | null;
 }
@@ -26,7 +26,20 @@ export interface SearchContractsResponse {
   offset: number;
 }
 
-export interface SortBy {
-  field: "id" | "publicationDate" | "signingDate" | "price";
-  direction: "ascending" | "descending";
+export namespace Sort {
+  export interface SortBy {
+    field: Field;
+    direction: Direction;
+  }
+
+  export const fields = [
+    "id",
+    "publicationDate",
+    "signingDate",
+    "price",
+  ] as const;
+  export type Field = (typeof fields)[number];
+
+  export const directions = ["ascending", "descending"] as const;
+  export type Direction = (typeof directions)[number];
 }

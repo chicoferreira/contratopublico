@@ -70,6 +70,7 @@ async fn main() -> anyhow::Result<()> {
 struct SearchQuery {
     query: String,
     filter: Option<String>,
+    #[serde(flatten)]
     sort: Option<SortBy>,
     page: Option<usize>,
     offset: Option<usize>,
