@@ -8,7 +8,12 @@ import type { RequestHandler } from "./$types";
 export const GET: RequestHandler = async ({ url }) => {
   const query = url.searchParams.get("query") || "";
   const filter = url.searchParams.get("filter") || null;
-  const sort = url.searchParams.get("sort")?.split(",") || null;
+  const sortField = url.searchParams.get("sort[field]");
+  const sortDirection = url.searchParams.get("sort[direction]");
+  const sort =
+    sortField && sortDirection
+      ? { field: sortField as any, direction: sortDirection as any }
+      : null;
   const page = url.searchParams.get("page")
     ? parseInt(url.searchParams.get("page")!)
     : null;
@@ -19,10 +24,12 @@ export const GET: RequestHandler = async ({ url }) => {
   const request: SearchContractsRequest = {
     query,
     filter,
-    sort: sort as [string] | null,
+    sort,
     page,
     offset,
   };
+
+  console.log("Search request:", request);
 
   try {
     const response = await searchContracts(request);

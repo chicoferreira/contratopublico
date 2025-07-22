@@ -13,7 +13,7 @@ export interface Contract {
 export interface SearchContractsRequest {
   query: string;
   filter?: string | null;
-  sort?: [string] | null;
+  sort?: SortBy | null;
   page?: number | null;
   offset?: number | null;
 }
@@ -24,4 +24,9 @@ export interface SearchContractsResponse {
   estimatedTotal: number | null;
   page: number;
   offset: number;
+}
+
+export interface SortBy {
+  field: "id" | "publicationDate" | "signingDate" | "price";
+  direction: "ascending" | "descending";
 }
