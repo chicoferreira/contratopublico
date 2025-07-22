@@ -4,6 +4,8 @@ use anyhow::Context;
 use common::Contract;
 use meilisearch_sdk::{client::Client, search::SearchResults};
 
+use crate::sort::SortField;
+
 pub struct AppState {
     meilisearch: Arc<Client>,
 }
@@ -33,12 +35,7 @@ impl AppState {
         let contracts_index = self.meilisearch.index("contracts");
 
         contracts_index
-            .set_sortable_attributes([
-                "publicationDate",
-                "signingDate",
-                "initialContractualPrice",
-                "id",
-            ])
+            .set_sortable_attributes(SortField::to_meilisearch_all())
             .await
             .context("Failed to set sortable attributes")?;
 

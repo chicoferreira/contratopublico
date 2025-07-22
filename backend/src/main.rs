@@ -13,8 +13,12 @@ use serde::{Deserialize, Serialize};
 use tokio::signal;
 use tracing::{Level, error, event, info};
 
-use crate::state::{AppError, AppState};
+use crate::{
+    sort::SortBy,
+    state::{AppError, AppState},
+};
 
+mod sort;
 mod state;
 
 #[derive(Parser)]
@@ -66,7 +70,7 @@ async fn main() -> anyhow::Result<()> {
 struct SearchQuery {
     query: String,
     filter: Option<String>,
-    sort: Option<Vec<String>>,
+    sort: Option<SortBy>,
     page: Option<usize>,
     offset: Option<usize>,
 }
@@ -88,7 +92,7 @@ async fn search(
     State(state): State<AppState>,
 ) -> Result<Json<SearchResponse>, AppError> {
     let sort = query.sort.unwrap_or_default();
-    let sort: Vec<&str> = sort.iter().map(|x| &**x).collect();
+    let sort: Vec<&str> = vec![sort.to_meilisearch()];
 
     let filter = query.filter.unwrap_or_default();
 

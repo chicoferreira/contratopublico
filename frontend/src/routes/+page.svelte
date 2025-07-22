@@ -1,27 +1,29 @@
 <script lang="ts">
   import "../app.css";
   import type { SearchContractsResponse } from "$lib/types/api";
-
   import Search from "../components/Search.svelte";
   import ContractCard from "../components/ContractCard.svelte";
+  import SortBy from "../components/SortBy.svelte";
+  import type { SortBy as SortByType } from "$lib/types/api";
 
   let search = $state("");
   let loading = $state(false);
+
+  let sortBy = $state<SortByType>({
+    direction: "descending",
+    field: "publicationDate",
+  });
 
   let { data } = $props();
   let searchResults = $state<SearchContractsResponse>(data);
 
   $effect(() => {
-    if (search.trim() === "") {
-      searchResults = data;
-      return;
-    }
-
-    async function searchContracts(searchTerm: string) {
+    async function searchContracts(searchTerm: string, sortBy: SortByType) {
       loading = true;
       try {
+        console.log("searchContracts", searchTerm, sortBy);
         const response = await fetch(
-          `/api/search?query=${encodeURIComponent(searchTerm)}`,
+          `/api/search?query=${encodeURIComponent(searchTerm)}&sort[direction]=${sortBy?.direction}&sort[field]=${sortBy?.field}`,
         );
         if (response.ok) {
           searchResults = await response.json();
@@ -35,7 +37,7 @@
       }
     }
 
-    searchContracts(search);
+    searchContracts(search, sortBy);
   });
 </script>
 
@@ -44,6 +46,8 @@
 
   <div class="space-y-1">
     <Search bind:searchTerm={search}></Search>
+
+    <SortBy bind:sortBy></SortBy>
 
     <p class="text-muted-foreground">
       {searchResults.total}
