@@ -1,0 +1,52 @@
+name: contratopublico
+
+services:
+  meilisearch:
+    restart: unless-stopped
+    image: getmeili/meilisearch:v1
+    # ports:
+    # - "7700:7700"
+    environment:
+      - MEILI_MASTER_KEY
+    volumes:
+      - ../meili_data:/meili_data
+
+  backend:
+    restart: unless-stopped
+    depends_on:
+      - meilisearch
+    build:
+      context: ..
+      dockerfile: ./backend/Dockerfile
+    environment:
+      - MEILISEARCH_URL=http://meilisearch:7700
+      - MEILI_MASTER_KEY
+      - BIND_URL=0.0.0.0:3000
+      - RUST_LOG=tower_http=debug
+
+  frontend:
+    restart: unless-stopped
+    depends_on:
+      - backend
+    build:
+      context: ../frontend
+    environment:
+      ORIGIN: https://contratopublico.chicoferreira.dev
+      BACKEND_URL: http://backend:3000
+
+  rpxy:
+    image: jqtype/rpxy:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - frontend
+      - backend
+    environment:
+      - LOG_LEVEL=warn
+    volumes:
+      # - ../rpxy/log:/rpxy/log:rw
+      # - ../rpxy/cache:/rpxy/cache:rw
+      # - ../rpxy/acme_registry:/rpxy/acme_registry:rw
+      - ../rpxy/config/config.toml:/etc/rpxy.toml:ro

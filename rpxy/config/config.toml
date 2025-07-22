@@ -1,0 +1,12 @@
+listen_port = 80
+
+[apps.contratopublico]
+server_name = 'localhost'
+
+[[apps.contratopublico.reverse_proxy]]
+upstream = [{ location = 'frontend:3000' }]
+upstream_options = ["keep_original_host"]
+
+[[apps.contratopublico.reverse_proxy]]
+path = '/api'
+upstream = [{ location = 'backend:3000' }]
