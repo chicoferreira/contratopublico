@@ -13,13 +13,9 @@
   let search = $state("");
   let loading = $state(false);
 
-  let sortBy = $state<Sort.SortBy>({
-    direction: "descending",
-    field: "publicationDate",
-  });
-
   let { data } = $props();
-  let searchResults = $state<SearchContractsResponse>(data);
+  let searchResults = $state<SearchContractsResponse>(data.contracts);
+  let sortBy = $state<Sort.SortBy>(data.sort);
 
   $effect(() => {
     const request: SearchContractsRequest = {

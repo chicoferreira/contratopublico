@@ -9,7 +9,7 @@ use tokio::sync::Semaphore;
 
 use crate::{
     base_gov::{self, ContractSort},
-    store::{self, save_contracts_page_to_file},
+    store::{self},
 };
 
 const MAX_PAGE_SIZE: usize = 50;
@@ -17,10 +17,10 @@ const CONTRACT_SORT_ORDER: ContractSort = base_gov::ContractSort {
     method: base_gov::ContractSortMethod::Id,
     order: base_gov::SortOrder::Ascending,
 };
-const MAX_CONCURRENT_REQUESTS: usize = 3;
+const MAX_CONCURRENT_REQUESTS: usize = 10;
 const MAX_REQUEST_QUOTA: Quota = Quota::per_minute(NonZeroU32::new(100).unwrap());
 
-pub async fn scrape() {
+pub async fn scrape(store: impl store::Store + 'static) {
     let client = Arc::new(base_gov::BaseGovClient::new());
 
     let total_pages = Arc::new(Mutex::new(None));
@@ -36,11 +36,7 @@ pub async fn scrape() {
         .unwrap()
         .is_none_or(|total_pages| current_page < total_pages)
     {
-        if store::is_page_completed(current_page, MAX_PAGE_SIZE) {
-            info!("Page {current_page} is already completed, skipping...");
-            current_page += 1;
-            continue;
-        }
+        current_page = store.get_next_page_to_query(current_page);
 
         limiter.until_ready().await;
 
@@ -62,19 +58,22 @@ pub async fn scrape() {
 
         let client = Arc::clone(&client);
         let total_pages = Arc::clone(&total_pages);
+
+        let store = store.clone();
+
         let task = tokio::spawn(async move {
             let _permit = permit; // hold permit until task ends
 
             let response = match client.search_contracts(payload).await {
                 Ok(response) => response,
                 Err(e) => {
-                    error!("Failed to fetch page {current_page}: {}", e);
+                    error!("Failed to fetch page {current_page}:\n{:?}", e);
                     return;
                 }
             };
 
             info!(
-                "Fetched page {current_page} with {} contracts. Saving to disk...",
+                "Fetched page {current_page} with {} contracts. Saving...",
                 response.items.len()
             );
 
@@ -85,8 +84,13 @@ pub async fn scrape() {
                 }
             }
 
-            if let Err(e) = save_contracts_page_to_file(&response.items, current_page) {
-                error!("Failed to save contracts page {current_page}: {}", e);
+            let contracts: Vec<_> = response.items.into_iter().map(Into::into).collect();
+
+            if let Err(e) = store
+                .save_contracts_page(&contracts, current_page, MAX_PAGE_SIZE)
+                .await
+            {
+                error!("Failed to save contracts page {current_page}:\n{:?}", e);
             }
         });
 

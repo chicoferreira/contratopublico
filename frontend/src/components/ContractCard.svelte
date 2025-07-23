@@ -4,6 +4,13 @@
   import ContractCardInfoRow from "./ContractCardInfoRow.svelte";
 
   let { contract }: { contract: Contract } = $props();
+
+  function formatMoney(value: number) {
+    return new Intl.NumberFormat("pt-PT", {
+      style: "currency",
+      currency: "EUR",
+    }).format(value / 100);
+  }
 </script>
 
 <div class="bg-background border-neutral-content rounded-md border px-6 py-5">
@@ -19,7 +26,7 @@
           >#{contract.id}</span>
       </div>
       <div class="text-lg font-semibold text-green-700 lg:shrink-0">
-        {contract.initialContractualPrice}
+        {formatMoney(contract.initialContractualPrice)}
       </div>
     </div>
   </div>
@@ -40,12 +47,12 @@
       <ContractCardInfoRow
         Icon={CalendarDays}
         label="Data de Publicação"
-        value={contract.publicationDate} />
+        value={new Date(contract.publicationDate).toLocaleDateString()} />
       <ContractCardInfoRow
         Icon={Signature}
         label="Data do Contrato"
         value={contract.signingDate != null
-          ? contract.signingDate
+          ? new Date(contract.signingDate).toLocaleDateString()
           : "Não informado"} />
     </div>
   </div>

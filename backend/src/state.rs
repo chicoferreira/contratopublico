@@ -31,6 +31,10 @@ impl AppState {
         }
     }
 
+    pub fn get_client(&self) -> Arc<Client> {
+        Arc::clone(&self.meilisearch)
+    }
+
     pub async fn prepare_indexes(&self) -> anyhow::Result<()> {
         let contracts_index = self.meilisearch.index("contracts");
 
