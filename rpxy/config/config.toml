@@ -1,7 +1,7 @@
 listen_port = 80
 
 [apps.contratopublico]
-server_name = 'localhost'
+server_name = 'contratopublico.chicoferreira.dev'
 
 [[apps.contratopublico.reverse_proxy]]
 upstream = [{ location = 'frontend:3000' }]
