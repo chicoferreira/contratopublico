@@ -34,7 +34,7 @@ struct Args {
     bind_url: String,
     #[clap(long, env, default_value = "60")]
     scraper_interval_secs: u64,
-    #[clap(long, env, default_value = "contracts/saved_pages.json")]
+    #[clap(long, env, default_value = "data/scraper/saved_pages.json")]
     saved_pages_path: PathBuf,
 }
 

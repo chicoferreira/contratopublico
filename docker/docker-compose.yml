@@ -9,7 +9,7 @@ services:
     environment:
       - MEILI_MASTER_KEY
     volumes:
-      - ../meili_data:/meili_data
+      - ../data/meili_data:/meili_data
 
   backend:
     restart: unless-stopped
@@ -18,11 +18,14 @@ services:
     build:
       context: ..
       dockerfile: ./backend/Dockerfile
+    volumes:
+      - ../data/scraper:/data/scraper
     environment:
       - MEILISEARCH_URL=http://meilisearch:7700
       - MEILI_MASTER_KEY
       - BIND_URL=0.0.0.0:3000
       - RUST_LOG=tower_http=debug
+      - SAVED_PAGES_PATH=/data/scraper/saved_pages.json
 
   frontend:
     restart: unless-stopped
