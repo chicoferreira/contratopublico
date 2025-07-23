@@ -13,7 +13,7 @@ use common::Contract;
 use meilisearch_sdk::client::Client;
 use scraper::store::meilisearch::MeilisearchStore;
 use serde::{Deserialize, Serialize};
-use tokio::signal;
+use tokio::{signal, time::Instant};
 use tracing::{Level, error, event, info};
 
 use crate::{
@@ -103,6 +103,7 @@ struct SearchResponse {
     estimated_total: Option<usize>,
     page: usize,
     offset: usize,
+    elapsed_millis: u64,
 }
 
 #[tracing::instrument(skip(state))]
@@ -111,6 +112,8 @@ async fn search(
     Query(query): Query<SearchQuery>,
     State(state): State<AppState>,
 ) -> Result<Json<SearchResponse>, AppError> {
+    let instant = Instant::now();
+
     let sort = query.sort.unwrap_or_default();
     let sort: Vec<&str> = vec![sort.to_meilisearch()];
 
@@ -125,7 +128,9 @@ async fn search(
         .search(&query.query, &filter, &sort, page, offset, HITS_PER_PAGE)
         .await?;
 
-    info!("Returning {} results", results.hits.len());
+    let elapsed = instant.elapsed();
+
+    info!("Returning {} results in {elapsed:?}", results.hits.len());
 
     // TODO: return formatted results
     Ok(Json(SearchResponse {
@@ -134,6 +139,7 @@ async fn search(
         offset: results.offset.unwrap_or(0),
         total: results.total_hits,
         estimated_total: results.estimated_total_hits,
+        elapsed_millis: elapsed.as_millis() as u64,
     }))
 }
 

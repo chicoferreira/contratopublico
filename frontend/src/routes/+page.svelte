@@ -49,6 +49,8 @@
       {searchResults.total === 1
         ? "contrato encontrado"
         : "contratos encontrados"}
+
+      em {searchResults.elapsedMillis}ms
     </p>
   </div>
 

@@ -24,6 +24,7 @@ export interface SearchContractsResponse {
   estimatedTotal: number | null;
   page: number;
   offset: number;
+  elapsedMillis: number;
 }
 
 export namespace Sort {
