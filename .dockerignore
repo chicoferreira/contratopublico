@@ -8,7 +8,7 @@ target/
 .git/
 
 .env*
-meili_data/
+data/
 
 .DS_Store
 
