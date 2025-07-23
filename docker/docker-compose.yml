@@ -40,9 +40,9 @@ services:
   rpxy:
     image: jqtype/rpxy:latest
     restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
+    # ports:
+    #   - "80:80"
+    #   - "443:443"
     depends_on:
       - frontend
       - backend
