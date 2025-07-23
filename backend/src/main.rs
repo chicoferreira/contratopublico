@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use anyhow::Context;
 use axum::{
     Json, Router,
@@ -9,6 +11,7 @@ use axum::{
 use clap::Parser;
 use common::Contract;
 use meilisearch_sdk::client::Client;
+use scraper::store::meilisearch::MeilisearchStore;
 use serde::{Deserialize, Serialize};
 use tokio::signal;
 use tracing::{Level, error, event, info};
@@ -27,8 +30,12 @@ struct Args {
     meilisearch_url: String,
     #[clap(long, env = "MEILI_MASTER_KEY", default_value = "masterKey")]
     meilisearch_master_key: Option<String>,
-    #[clap(long, env = "BIND_URL", default_value = "0.0.0.0:3000")]
+    #[clap(long, env, default_value = "0.0.0.0:3000")]
     bind_url: String,
+    #[clap(long, env, default_value = "60")]
+    scraper_interval_secs: u64,
+    #[clap(long, env, default_value = "contracts/saved_pages.json")]
+    saved_pages_path: PathBuf,
 }
 
 #[tokio::main]
@@ -47,6 +54,18 @@ async fn main() -> anyhow::Result<()> {
         .prepare_indexes()
         .await
         .context("Failed to prepare indexes")?;
+
+    let meilisearch = app_state.get_client();
+
+    let scraper_store = MeilisearchStore::new(meilisearch, args.saved_pages_path)
+        .context("Failed to create scraper store")?;
+
+    tokio::spawn(async move {
+        loop {
+            scraper::scraper::scrape(scraper_store.clone()).await;
+            tokio::time::sleep(tokio::time::Duration::from_secs(args.scraper_interval_secs)).await;
+        }
+    });
 
     let app = Router::new().route("/api/search", get(search));
 

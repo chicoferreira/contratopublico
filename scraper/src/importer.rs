@@ -3,6 +3,8 @@ use common::Contract;
 use log::{error, info};
 use meilisearch_sdk::client::Client;
 
+use crate::base_gov::BaseGovContract;
+
 pub async fn import_contracts_to_meilisearch(
     meilisearch_url: String,
     meilisearch_api_key: Option<String>,
@@ -32,9 +34,11 @@ pub async fn import_contracts_to_meilisearch(
                     let content =
                         std::fs::read_to_string(&json_path).context("Failed to read JSON file")?;
 
-                    let contracts: Vec<Contract> =
+                    let contracts: Vec<BaseGovContract> =
                         serde_json::from_str(&content).context("Failed to parse JSON")?;
-                    
+
+                    let contracts: Vec<Contract> = contracts.into_iter().map(Into::into).collect();
+
                     let index = index.clone();
 
                     tokio::spawn(async move {

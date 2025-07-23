@@ -202,6 +202,7 @@ dependencies = [
  "common",
  "log",
  "meilisearch-sdk",
+ "scraper",
  "serde",
  "thiserror 2.0.12",
  "tokio",
@@ -1719,6 +1720,7 @@ name = "scraper"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "chrono",
  "clap",
  "common",
  "env_logger",

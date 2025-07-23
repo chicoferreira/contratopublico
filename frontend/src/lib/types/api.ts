@@ -2,12 +2,12 @@ export interface Contract {
   id: number;
   contractingProcedureType: string;
   publicationDate: string;
-  signingDate: string;
+  signingDate: string | null;
   ccp: boolean;
   contracted: string;
   contracting: string;
   objectBriefDescription: string;
-  initialContractualPrice: string;
+  initialContractualPrice: number;
 }
 
 export interface SearchContractsRequest {

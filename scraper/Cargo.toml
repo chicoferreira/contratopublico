@@ -15,4 +15,5 @@ serde_json = { workspace = true }
 tokio = { workspace = true }
 meilisearch-sdk = { workspace = true }
 clap = { workspace = true }
+chrono = { workspace = true }
 common = { path = "../common" }
