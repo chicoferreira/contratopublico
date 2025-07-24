@@ -11,13 +11,21 @@
   import { searchContracts } from "$lib";
 
   let search = $state("");
-  let loading = $state(false);
 
   let { data } = $props();
   let searchResults = $state<SearchContractsResponse>(data.contracts);
   let sortBy = $state<Sort.SortBy>(data.sort);
 
   $effect(() => {
+    if (
+      search === "" &&
+      sortBy.direction === data.sort.direction &&
+      sortBy.field === data.sort.field
+    ) {
+      searchResults = data.contracts;
+      return;
+    }
+
     const request: SearchContractsRequest = {
       query: search,
       sort: sortBy,

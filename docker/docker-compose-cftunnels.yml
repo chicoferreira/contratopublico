@@ -1,3 +1,5 @@
+name: contratopublico
+
 include: [docker-compose.yml]
 services:
   cloudflared:
