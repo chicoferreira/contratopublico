@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Contract } from "$lib/types/api";
-  import { Building, CalendarDays, Signature, FileText } from "@lucide/svelte";
+  import { Building, CalendarDays, Signature, FileText, ExternalLink } from "@lucide/svelte";
   import ContractCardInfoRow from "./ContractCardInfoRow.svelte";
 
   let { contract }: { contract: Contract } = $props();
@@ -11,6 +11,10 @@
       currency: "EUR",
     }).format(value / 100);
   }
+
+  function getBaseGovUrl(id: number): string {
+    return `https://www.base.gov.pt/Base4/pt/detalhe/?type=contratos&id=${id}`;
+  }
 </script>
 
 <div class="bg-background border-neutral-content rounded-md border px-6 py-5">
@@ -18,12 +22,19 @@
   <div class="pb-3">
     <div
       class="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-      <div class="flex items-baseline gap-2">
+      <div class="space-y-1">
         <h3 class="text-base-content text-lg leading-tight font-semibold">
           {contract.objectBriefDescription}
         </h3>
-        <span class="text-muted-foreground shrink-0 text-xs"
-          >#{contract.id}</span>
+        <a
+          href={getBaseGovUrl(contract.id)}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex items-center gap-[6px] shrink-0 hover:opacity-80 transition-opacity group"
+          title="Ver detalhes no base.gov.pt">
+          <span class="text-muted-foreground text-sm group-hover:text-blue-500 transition-colors">base.gov.pt (#{contract.id})</span>
+          <ExternalLink size={15} class="text-muted-foreground group-hover:text-blue-500 transition-colors" />
+        </a>
       </div>
       <div class="text-lg font-semibold text-green-700 lg:shrink-0">
         {formatMoney(contract.initialContractualPrice)}
