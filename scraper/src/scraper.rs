@@ -17,7 +17,8 @@ const CONTRACT_SORT_ORDER: ContractSort = base_gov::ContractSort {
     method: base_gov::ContractSortMethod::Id,
     order: base_gov::SortOrder::Ascending,
 };
-const MAX_CONCURRENT_REQUESTS: usize = 3;
+// TODO: make this adaptive based on the availability of base gov
+const MAX_CONCURRENT_REQUESTS: usize = 1;
 const MAX_REQUEST_QUOTA: Quota = Quota::per_minute(NonZeroU32::new(100).unwrap());
 
 pub async fn scrape(store: impl store::Store + 'static) {
@@ -73,7 +74,7 @@ pub async fn scrape(store: impl store::Store + 'static) {
             };
 
             info!(
-                "Fetched page {current_page} with {} contracts. Saving...",
+                "Fetched page {current_page} with {} contracts...",
                 response.items.len()
             );
 

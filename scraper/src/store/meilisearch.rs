@@ -5,6 +5,9 @@ use std::{
 };
 
 use anyhow::Context;
+use common::Contract;
+use log::info;
+use ringbuffer::{ConstGenericRingBuffer, RingBuffer};
 
 use crate::store::Store;
 
@@ -16,6 +19,7 @@ pub struct MeilisearchStore {
 #[derive(Debug)]
 struct MeilisearchInner {
     client: Arc<meilisearch_sdk::client::Client>,
+    latest_added_contracts: Mutex<ConstGenericRingBuffer<Contract, 100>>,
     saved_pages: Mutex<Vec<usize>>,
     saved_pages_path: PathBuf,
 }
@@ -51,6 +55,7 @@ impl MeilisearchStore {
                 client,
                 saved_pages,
                 saved_pages_path,
+                latest_added_contracts: Mutex::new(ConstGenericRingBuffer::new()),
             }),
         })
     }
@@ -87,10 +92,30 @@ impl Store for MeilisearchStore {
     ) -> Result<(), Self::SaveError> {
         let index = self.inner.client.index("contracts");
 
-        index
-            .add_documents(contracts, Some("id"))
-            .await
-            .context("Failed to save contracts")?;
+        // filter the contracts that have been added recently to avoid reindexing in the meilisearch
+        let filtered_contracts = {
+            let latest_added_contracts = self.inner.latest_added_contracts.lock().unwrap();
+
+            contracts
+                .iter()
+                .filter(|contract| !latest_added_contracts.contains(contract))
+                .collect::<Vec<_>>()
+        };
+
+        let filtered_contracts_len = filtered_contracts.len();
+
+        if filtered_contracts_len != 0 {
+            info!("Saving {filtered_contracts_len} contracts to meilisearch");
+            index
+                .add_documents(&filtered_contracts, Some("id"))
+                .await
+                .context("Failed to save contracts")?;
+
+            let mut added_contracts = self.inner.latest_added_contracts.lock().unwrap();
+            for contract in filtered_contracts.into_iter() {
+                added_contracts.enqueue(contract.clone());
+            }
+        }
 
         if contracts.len() == contracts_per_page {
             self.save_page_as_completed(page)?;

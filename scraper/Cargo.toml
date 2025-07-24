@@ -17,3 +17,4 @@ meilisearch-sdk = { workspace = true }
 clap = { workspace = true }
 chrono = { workspace = true }
 common = { path = "../common" }
+ringbuffer = { workspace = true }
