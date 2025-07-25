@@ -36,7 +36,7 @@
           href={getBaseGovUrl(contract.id)}
           target="_blank"
           rel="noopener noreferrer"
-          class="group flex shrink-0 items-center gap-[6px] transition-opacity hover:opacity-80"
+          class="group flex w-fit shrink-0 items-center gap-[6px] transition-opacity hover:opacity-80"
           title="Ver detalhes no base.gov.pt">
           <span
             class="text-muted-foreground text-sm transition-colors group-hover:text-blue-500 hover:underline">
