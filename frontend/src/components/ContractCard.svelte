@@ -39,8 +39,9 @@
           class="group flex shrink-0 items-center gap-[6px] transition-opacity hover:opacity-80"
           title="Ver detalhes no base.gov.pt">
           <span
-            class="text-muted-foreground text-sm transition-colors group-hover:text-blue-500"
-            >base.gov.pt (#{contract.id})</span>
+            class="text-muted-foreground text-sm transition-colors group-hover:text-blue-500 hover:underline">
+            base.gov.pt (#{contract.id})
+          </span>
           <ExternalLink
             size={15}
             class="text-muted-foreground transition-colors group-hover:text-blue-500" />
@@ -58,7 +59,7 @@
         Icon={FileText}
         label="Contratante"
         value={contract.contracting}>
-        {#snippet tooltipContent()}
+        {#snippet popoverContent()}
           <p>Órgão público que celebra e regista o contrato no BASE.</p>
           <p>
             Também conhecido como
@@ -70,7 +71,7 @@
         Icon={Building}
         label="Contratado"
         value={contract.contracted}>
-        {#snippet tooltipContent()}
+        {#snippet popoverContent()}
           <p>Entidade vencedora do concurso que será contratada.</p>
           <p>
             Também conhecido como
@@ -85,7 +86,7 @@
         Icon={CalendarDays}
         label="Data de Publicação"
         value={new Date(contract.publicationDate).toLocaleDateString()}>
-        {#snippet tooltipContent()}
+        {#snippet popoverContent()}
           <p>Data em que o contrato foi publicado no BASE.</p>
         {/snippet}
       </ContractCardInfoRow>
@@ -95,7 +96,7 @@
         value={contract.signingDate != null
           ? new Date(contract.signingDate).toLocaleDateString()
           : "Não informado"}>
-        {#snippet tooltipContent()}
+        {#snippet popoverContent()}
           <p>Data em que o contrato foi assinado/celebrado.</p>
         {/snippet}
       </ContractCardInfoRow>
