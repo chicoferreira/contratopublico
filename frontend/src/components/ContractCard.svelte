@@ -1,6 +1,12 @@
 <script lang="ts">
   import type { Contract } from "$lib/types/api";
-  import { Building, CalendarDays, Signature, FileText, ExternalLink } from "@lucide/svelte";
+  import {
+    Building,
+    CalendarDays,
+    Signature,
+    FileText,
+    ExternalLink,
+  } from "@lucide/svelte";
   import ContractCardInfoRow from "./ContractCardInfoRow.svelte";
 
   let { contract }: { contract: Contract } = $props();
@@ -30,10 +36,14 @@
           href={getBaseGovUrl(contract.id)}
           target="_blank"
           rel="noopener noreferrer"
-          class="flex items-center gap-[6px] shrink-0 hover:opacity-80 transition-opacity group"
+          class="group flex shrink-0 items-center gap-[6px] transition-opacity hover:opacity-80"
           title="Ver detalhes no base.gov.pt">
-          <span class="text-muted-foreground text-sm group-hover:text-blue-500 transition-colors">base.gov.pt (#{contract.id})</span>
-          <ExternalLink size={15} class="text-muted-foreground group-hover:text-blue-500 transition-colors" />
+          <span
+            class="text-muted-foreground text-sm transition-colors group-hover:text-blue-500"
+            >base.gov.pt (#{contract.id})</span>
+          <ExternalLink
+            size={15}
+            class="text-muted-foreground transition-colors group-hover:text-blue-500" />
         </a>
       </div>
       <div class="text-lg font-semibold text-green-700 lg:shrink-0">
@@ -47,24 +57,48 @@
       <ContractCardInfoRow
         Icon={FileText}
         label="Contratante"
-        value={contract.contracting} />
+        value={contract.contracting}>
+        {#snippet tooltipContent()}
+          <p>Órgão público que celebra e regista o contrato no BASE.</p>
+          <p>
+            Também conhecido como
+            <strong class="font-semibold">Entidade adjudicante</strong>.
+          </p>
+        {/snippet}
+      </ContractCardInfoRow>
       <ContractCardInfoRow
         Icon={Building}
         label="Contratado"
-        value={contract.contracted} />
+        value={contract.contracted}>
+        {#snippet tooltipContent()}
+          <p>Entidade vencedora do concurso que será contratada.</p>
+          <p>
+            Também conhecido como
+            <strong class="font-semibold">Entidade adjudicatária</strong>.
+          </p>
+        {/snippet}
+      </ContractCardInfoRow>
     </div>
 
     <div class="md:space-y-2">
       <ContractCardInfoRow
         Icon={CalendarDays}
         label="Data de Publicação"
-        value={new Date(contract.publicationDate).toLocaleDateString()} />
+        value={new Date(contract.publicationDate).toLocaleDateString()}>
+        {#snippet tooltipContent()}
+          <p>Data em que o contrato foi publicado no BASE.</p>
+        {/snippet}
+      </ContractCardInfoRow>
       <ContractCardInfoRow
         Icon={Signature}
         label="Data do Contrato"
         value={contract.signingDate != null
           ? new Date(contract.signingDate).toLocaleDateString()
-          : "Não informado"} />
+          : "Não informado"}>
+        {#snippet tooltipContent()}
+          <p>Data em que o contrato foi assinado/celebrado.</p>
+        {/snippet}
+      </ContractCardInfoRow>
     </div>
   </div>
 </div>
