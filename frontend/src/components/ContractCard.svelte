@@ -21,6 +21,14 @@
   function getBaseGovUrl(id: number): string {
     return `https://www.base.gov.pt/Base4/pt/detalhe/?type=contratos&id=${id}`;
   }
+
+  function formatDate(dateString: string): string {
+    return new Date(dateString).toLocaleDateString("pt-PT", {
+      year: "numeric",
+      month: "2-digit", 
+      day: "2-digit"
+    });
+  }
 </script>
 
 <div class="bg-background border-neutral-content rounded-md border px-6 py-5">
@@ -85,7 +93,7 @@
       <ContractCardInfoRow
         Icon={CalendarDays}
         label="Data de Publicação"
-        value={new Date(contract.publicationDate).toLocaleDateString()}>
+        value={formatDate(contract.publicationDate)}>
         {#snippet popoverContent()}
           <p>Data em que o contrato foi publicado no BASE.</p>
         {/snippet}
@@ -94,7 +102,7 @@
         Icon={Signature}
         label="Data do Contrato"
         value={contract.signingDate != null
-          ? new Date(contract.signingDate).toLocaleDateString()
+          ? formatDate(contract.signingDate)
           : "Não informado"}>
         {#snippet popoverContent()}
           <p>Data em que o contrato foi assinado/celebrado.</p>
