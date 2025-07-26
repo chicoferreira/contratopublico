@@ -35,7 +35,6 @@
       variant: isActive ? "outline" : "ghost",
       size,
     }),
-    "hover:bg-muted-foreground/20 dark:hover:bg-muted-foreground/30",
     className,
   )}
   children={children || Fallback}
