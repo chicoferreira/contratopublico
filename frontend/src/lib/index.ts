@@ -5,7 +5,7 @@ import type {
 
 export async function searchContracts(
   data: SearchContractsRequest,
-  baseURL: string = '',
+  baseURL: string = "",
 ): Promise<SearchContractsResponse> {
   const params = new URLSearchParams();
 
@@ -16,7 +16,6 @@ export async function searchContracts(
     params.append("sortDirection", data.sort.direction);
   }
   if (data.page) params.append("page", data.page.toString());
-  if (data.offset) params.append("offset", data.offset.toString());
 
   const response = await fetch(`${baseURL}/api/search?${params}`, {
     method: "GET",

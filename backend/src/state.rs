@@ -2,9 +2,12 @@ use std::sync::Arc;
 
 use anyhow::Context;
 use common::Contract;
-use meilisearch_sdk::{client::Client, search::SearchResults};
+use meilisearch_sdk::{
+    client::Client,
+    settings::{PaginationSetting, Settings},
+};
 
-use crate::sort::SortField;
+use crate::{SearchResponse, sort::SortField};
 
 pub struct AppState {
     meilisearch: Arc<Client>,
@@ -35,23 +38,26 @@ impl AppState {
         Arc::clone(&self.meilisearch)
     }
 
-    pub async fn prepare_indexes(&self) -> anyhow::Result<()> {
+    pub async fn prepare_settings(&self) -> anyhow::Result<()> {
         let contracts_index = self.meilisearch.index("contracts");
 
-        contracts_index
-            .set_sortable_attributes(SortField::to_meilisearch_all())
-            .await
-            .context("Failed to set sortable attributes")?;
-
-        contracts_index
-            .set_filterable_attributes([
+        let settings = Settings::new()
+            .with_sortable_attributes(SortField::to_meilisearch_all())
+            .with_filterable_attributes([
                 "contractingProcedureType",
                 "ccp",
                 "contracted",
                 "contracting",
             ])
+            .with_pagination(PaginationSetting {
+                // this is not recommended by meilisearch docs but it is having good performance for now and it is essential for UX
+                max_total_hits: 3000000,
+            });
+
+        contracts_index
+            .set_settings(&settings)
             .await
-            .context("Failed to set filterable attributes")?;
+            .context("Failed to set settings")?;
 
         Ok(())
     }
@@ -63,20 +69,28 @@ impl AppState {
         filter: &str,
         sort: &[&str],
         page: usize,
-        offset: usize,
         hits_per_page: usize,
-    ) -> AppResult<SearchResults<Contract>> {
-        self.meilisearch
+    ) -> AppResult<SearchResponse> {
+        let results = self
+            .meilisearch
             .index("contracts")
             .search()
             .with_query(query)
-            .with_page(page)
-            .with_offset(offset)
             .with_filter(filter)
             .with_sort(sort)
+            .with_page(page)
             .with_hits_per_page(hits_per_page)
             .execute::<Contract>()
             .await
-            .map_err(AppError::MeilisearchError)
+            .map_err(AppError::MeilisearchError)?;
+
+        Ok(SearchResponse {
+            contracts: results.hits.into_iter().map(|hit| hit.result).collect(),
+            page: results.page.unwrap_or(0),
+            total: results.total_hits.unwrap_or(0),
+            total_pages: results.total_pages.unwrap_or(0),
+            elapsed_millis: results.processing_time_ms as u64,
+            hits_per_page,
+        })
     }
 }

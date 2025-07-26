@@ -15,16 +15,15 @@ export interface SearchContractsRequest {
   filter?: string | null;
   sort?: Sort.SortBy | null;
   page?: number | null;
-  offset?: number | null;
 }
 
 export interface SearchContractsResponse {
   contracts: Contract[];
-  total: number | null;
-  estimatedTotal: number | null;
+  total: number;
   page: number;
-  offset: number;
+  totalPages: number;
   elapsedMillis: number;
+  hitsPerPage: number;
 }
 
 export namespace Sort {

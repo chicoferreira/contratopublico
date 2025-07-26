@@ -9,18 +9,22 @@
   import SortDropdown from "../components/SortDropdown.svelte";
   import type { Sort } from "$lib/types/api";
   import { searchContracts } from "$lib";
-
-  let search = $state("");
+  import ContractPagination from "../components/ContractPagination.svelte";
 
   let { data } = $props();
-  let searchResults = $state<SearchContractsResponse>(data.contracts);
+
+  let search = $state("");
   let sortBy = $state<Sort.SortBy>(data.sort);
+  let page = $state<number>(data.page);
+
+  let searchResults = $state<SearchContractsResponse>(data.contracts);
 
   $effect(() => {
     if (
       search === "" &&
       sortBy.direction === data.sort.direction &&
-      sortBy.field === data.sort.field
+      sortBy.field === data.sort.field &&
+      page === data.page
     ) {
       searchResults = data.contracts;
       return;
@@ -29,6 +33,7 @@
     const request: SearchContractsRequest = {
       query: search,
       sort: sortBy,
+      page: page,
     };
 
     async function run() {
@@ -41,6 +46,12 @@
     }
 
     run();
+  });
+
+  $effect(() => {
+    if (searchResults.totalPages > 0 && page > searchResults.totalPages) {
+      page = searchResults.totalPages;
+    }
   });
 </script>
 
@@ -58,11 +69,17 @@
         ? "contrato encontrado"
         : "contratos encontrados"}
 
-      em {searchResults.elapsedMillis}ms
+      ({searchResults.totalPages}
+      {searchResults.totalPages === 1 ? "página" : "páginas"}) em {searchResults.elapsedMillis}ms
     </p>
   </div>
 
   {#each searchResults.contracts as contract}
     <ContractCard {contract} />
   {/each}
+
+  <ContractPagination
+    bind:page
+    bind:total={searchResults.total}
+    bind:hitsPerPage={searchResults.hitsPerPage} />
 </div>

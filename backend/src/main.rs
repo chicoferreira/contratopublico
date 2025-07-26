@@ -13,7 +13,7 @@ use common::Contract;
 use meilisearch_sdk::client::Client;
 use scraper::store::meilisearch::MeilisearchStore;
 use serde::{Deserialize, Serialize};
-use tokio::{signal, time::Instant};
+use tokio::signal;
 use tracing::{Level, error, event, info};
 
 use crate::{
@@ -51,7 +51,7 @@ async fn main() -> anyhow::Result<()> {
 
     let app_state = AppState::new(meilisearch);
     app_state
-        .prepare_indexes()
+        .prepare_settings()
         .await
         .context("Failed to prepare indexes")?;
 
@@ -92,18 +92,17 @@ struct SearchQuery {
     #[serde(flatten)]
     sort: Option<SortBy>,
     page: Option<usize>,
-    offset: Option<usize>,
 }
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct SearchResponse {
     contracts: Vec<Contract>,
-    total: Option<usize>,
-    estimated_total: Option<usize>,
+    total: usize,
     page: usize,
-    offset: usize,
+    total_pages: usize,
     elapsed_millis: u64,
+    hits_per_page: usize,
 }
 
 #[tracing::instrument(skip(state))]
@@ -112,35 +111,23 @@ async fn search(
     Query(query): Query<SearchQuery>,
     State(state): State<AppState>,
 ) -> Result<Json<SearchResponse>, AppError> {
-    let instant = Instant::now();
-
     let sort = query.sort.unwrap_or_default();
     let sort: Vec<&str> = vec![sort.to_meilisearch()];
 
     let filter = query.filter.unwrap_or_default();
 
     let page = query.page.unwrap_or(1);
-    let offset = query.offset.unwrap_or(0);
 
-    const HITS_PER_PAGE: usize = 50;
+    const HITS_PER_PAGE: usize = 20;
 
-    let results = state
-        .search(&query.query, &filter, &sort, page, offset, HITS_PER_PAGE)
+    let response = state
+        .search(&query.query, &filter, &sort, page, HITS_PER_PAGE)
         .await?;
 
-    let elapsed = instant.elapsed();
-
-    info!("Returning {} results in {elapsed:?}", results.hits.len());
+    info!("Returning {} results", response.contracts.len());
 
     // TODO: return formatted results
-    Ok(Json(SearchResponse {
-        contracts: results.hits.into_iter().map(|hit| hit.result).collect(),
-        page: results.page.unwrap_or(0),
-        offset: results.offset.unwrap_or(0),
-        total: results.total_hits,
-        estimated_total: results.estimated_total_hits,
-        elapsed_millis: elapsed.as_millis() as u64,
-    }))
+    Ok(Json(response))
 }
 
 impl IntoResponse for AppError {

@@ -9,9 +9,12 @@ export const load: PageServerLoad = async () => {
     direction: "descending",
   };
 
+  const defaultPage = 1;
+
   const defaultRequest: SearchContractsRequest = {
     query: "",
     sort: defaultSort,
+    page: defaultPage,
   };
 
   const backendURL = env.BACKEND_URL || "http://localhost:3000";
@@ -19,5 +22,6 @@ export const load: PageServerLoad = async () => {
   return {
     contracts: await searchContracts(defaultRequest, backendURL),
     sort: defaultSort,
+    page: defaultPage,
   };
 };
