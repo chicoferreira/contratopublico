@@ -1,6 +1,7 @@
 <script lang="ts">
   import * as Popover from "$lib/components/ui/popover/index.js";
   import { Info } from "@lucide/svelte";
+  import type { Snippet } from "svelte";
 
   let {
     Icon,
@@ -10,8 +11,8 @@
   }: {
     Icon: any;
     label: string;
-    value: string;
-    popoverContent: () => any;
+    value: Snippet<[]>;
+    popoverContent: Snippet<[]>;
   } = $props();
 </script>
 
@@ -36,7 +37,7 @@
       </Popover.Content>
     </Popover.Root>
     <div class="font-medium break-words">
-      {value}
+      {@render value()}
     </div>
   </div>
 </div>

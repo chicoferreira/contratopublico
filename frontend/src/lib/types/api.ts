@@ -18,7 +18,7 @@ export interface SearchContractsRequest {
 }
 
 export interface SearchContractsResponse {
-  contracts: Contract[];
+  contracts: (Contract & MatchingRanges)[];
   total: number;
   page: number;
   totalPages: number;
@@ -42,4 +42,15 @@ export namespace Sort {
 
   export const directions = ["ascending", "descending"] as const;
   export type Direction = (typeof directions)[number];
+}
+
+export interface MatchingRanges {
+  matchingRanges: {
+    [key: string]: MatchingRange[];
+  };
+}
+
+export interface MatchingRange {
+  start: number;
+  end: number;
 }

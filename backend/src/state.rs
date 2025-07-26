@@ -7,7 +7,10 @@ use meilisearch_sdk::{
     settings::{PaginationSetting, Settings},
 };
 
-use crate::{SearchResponse, sort::SortField};
+use crate::{
+    search::{SearchResponse, SearchedContract},
+    sort::SortField,
+};
 
 pub struct AppState {
     meilisearch: Arc<Client>,
@@ -80,12 +83,27 @@ impl AppState {
             .with_sort(sort)
             .with_page(page)
             .with_hits_per_page(hits_per_page)
+            .with_show_matches_position(true)
             .execute::<Contract>()
             .await
             .map_err(AppError::MeilisearchError)?;
 
+        let contracts = results
+            .hits
+            .into_iter()
+            .map(|hit| SearchedContract {
+                contract: hit.result,
+                matching_ranges: hit
+                    .matches_position
+                    .unwrap_or_default()
+                    .into_iter()
+                    .map(|(field, ranges)| (field, ranges.into_iter().map(Into::into).collect()))
+                    .collect(),
+            })
+            .collect();
+
         Ok(SearchResponse {
-            contracts: results.hits.into_iter().map(|hit| hit.result).collect(),
+            contracts,
             page: results.page.unwrap_or(0),
             total: results.total_hits.unwrap_or(0),
             total_pages: results.total_pages.unwrap_or(0),

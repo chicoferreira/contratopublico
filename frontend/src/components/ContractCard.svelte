@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Contract } from "$lib/types/api";
+  import type { Contract, MatchingRanges } from "$lib/types/api";
   import {
     Building,
     CalendarDays,
@@ -8,8 +8,18 @@
     ExternalLink,
   } from "@lucide/svelte";
   import ContractCardInfoRow from "./ContractCardInfoRow.svelte";
+  import Highlighted from "./Highlighted.svelte";
 
-  let { contract }: { contract: Contract } = $props();
+  let { contract }: { contract: Contract & MatchingRanges } = $props();
+
+  function renderHighlightedField(
+    field: keyof Contract & keyof MatchingRanges["matchingRanges"],
+  ) {
+    return {
+      content: contract[field]?.toString(),
+      ranges: contract.matchingRanges[field],
+    };
+  }
 
   function formatMoney(value: number) {
     return new Intl.NumberFormat("pt-PT", {
@@ -25,8 +35,8 @@
   function formatDate(dateString: string): string {
     return new Date(dateString).toLocaleDateString("pt-PT", {
       year: "numeric",
-      month: "2-digit", 
-      day: "2-digit"
+      month: "2-digit",
+      day: "2-digit",
     });
   }
 </script>
@@ -38,7 +48,7 @@
       class="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
       <div class="space-y-1">
         <h3 class="text-base-content text-lg leading-tight font-semibold">
-          {contract.objectBriefDescription}
+          <Highlighted {...renderHighlightedField("objectBriefDescription")} />
         </h3>
         <a
           href={getBaseGovUrl(contract.id)}
@@ -48,7 +58,7 @@
           title="Ver detalhes no base.gov.pt">
           <span
             class="text-muted-foreground text-sm transition-colors group-hover:text-blue-500 group-hover:underline">
-            base.gov.pt (#{contract.id})
+            base.gov.pt (#<Highlighted {...renderHighlightedField("id")} />)
           </span>
           <ExternalLink
             size={15}
@@ -63,10 +73,7 @@
 
   <div class="grid grid-cols-1 md:grid-cols-2">
     <div class="md:space-y-2">
-      <ContractCardInfoRow
-        Icon={FileText}
-        label="Contratante"
-        value={contract.contracting}>
+      <ContractCardInfoRow Icon={FileText} label="Contratante">
         {#snippet popoverContent()}
           <p>Órgão público que celebra e regista o contrato no BASE.</p>
           <p>
@@ -74,11 +81,12 @@
             <strong class="font-semibold">Entidade adjudicante</strong>.
           </p>
         {/snippet}
+
+        {#snippet value()}
+          <Highlighted {...renderHighlightedField("contracting")} />
+        {/snippet}
       </ContractCardInfoRow>
-      <ContractCardInfoRow
-        Icon={Building}
-        label="Contratado"
-        value={contract.contracted}>
+      <ContractCardInfoRow Icon={Building} label="Contratado">
         {#snippet popoverContent()}
           <p>Entidade vencedora do concurso que será contratada.</p>
           <p>
@@ -86,26 +94,31 @@
             <strong class="font-semibold">Entidade adjudicatária</strong>.
           </p>
         {/snippet}
+        {#snippet value()}
+          <Highlighted {...renderHighlightedField("contracted")} />
+        {/snippet}
       </ContractCardInfoRow>
     </div>
 
     <div class="md:space-y-2">
-      <ContractCardInfoRow
-        Icon={CalendarDays}
-        label="Data de Publicação"
-        value={formatDate(contract.publicationDate)}>
+      <ContractCardInfoRow Icon={CalendarDays} label="Data de Publicação">
         {#snippet popoverContent()}
           <p>Data em que o contrato foi publicado no BASE.</p>
         {/snippet}
+        {#snippet value()}
+          {contract.publicationDate != null
+            ? formatDate(contract.publicationDate)
+            : "Não informado"}
+        {/snippet}
       </ContractCardInfoRow>
-      <ContractCardInfoRow
-        Icon={Signature}
-        label="Data do Contrato"
-        value={contract.signingDate != null
-          ? formatDate(contract.signingDate)
-          : "Não informado"}>
+      <ContractCardInfoRow Icon={Signature} label="Data do Contrato">
         {#snippet popoverContent()}
           <p>Data em que o contrato foi assinado/celebrado.</p>
+        {/snippet}
+        {#snippet value()}
+          {contract.signingDate != null
+            ? formatDate(contract.signingDate)
+            : "Não informado"}
         {/snippet}
       </ContractCardInfoRow>
     </div>

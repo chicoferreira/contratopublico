@@ -1,26 +1,19 @@
-use std::path::PathBuf;
-
+use crate::state::{AppError, AppState};
 use anyhow::Context;
 use axum::{
-    Json, Router,
-    extract::{Query, State},
+    Router,
     http::{Response, StatusCode},
     response::IntoResponse,
     routing::get,
 };
 use clap::Parser;
-use common::Contract;
 use meilisearch_sdk::client::Client;
 use scraper::store::meilisearch::MeilisearchStore;
-use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
 use tokio::signal;
 use tracing::{Level, error, event, info};
 
-use crate::{
-    sort::SortBy,
-    state::{AppError, AppState},
-};
-
+mod search;
 mod sort;
 mod state;
 
@@ -67,7 +60,7 @@ async fn main() -> anyhow::Result<()> {
         }
     });
 
-    let app = Router::new().route("/api/search", get(search));
+    let app = Router::new().route("/api/search", get(search::search));
 
     let listener = tokio::net::TcpListener::bind(args.bind_url)
         .await
@@ -83,51 +76,6 @@ async fn main() -> anyhow::Result<()> {
         .with_graceful_shutdown(shutdown_signal())
         .await
         .context("Failed to serve axum")
-}
-
-#[derive(Debug, Deserialize)]
-struct SearchQuery {
-    query: String,
-    filter: Option<String>,
-    #[serde(flatten)]
-    sort: Option<SortBy>,
-    page: Option<usize>,
-}
-
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-struct SearchResponse {
-    contracts: Vec<Contract>,
-    total: usize,
-    page: usize,
-    total_pages: usize,
-    elapsed_millis: u64,
-    hits_per_page: usize,
-}
-
-#[tracing::instrument(skip(state))]
-#[axum::debug_handler]
-async fn search(
-    Query(query): Query<SearchQuery>,
-    State(state): State<AppState>,
-) -> Result<Json<SearchResponse>, AppError> {
-    let sort = query.sort.unwrap_or_default();
-    let sort: Vec<&str> = vec![sort.to_meilisearch()];
-
-    let filter = query.filter.unwrap_or_default();
-
-    let page = query.page.unwrap_or(1);
-
-    const HITS_PER_PAGE: usize = 20;
-
-    let response = state
-        .search(&query.query, &filter, &sort, page, HITS_PER_PAGE)
-        .await?;
-
-    info!("Returning {} results", response.contracts.len());
-
-    // TODO: return formatted results
-    Ok(Json(response))
 }
 
 impl IntoResponse for AppError {
