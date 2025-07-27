@@ -1,51 +1,77 @@
 <script lang="ts">
   import "../app.css";
-  import type {
-    SearchContractsRequest,
-    SearchContractsResponse,
-  } from "$lib/types/api";
+  import type { SearchContractsRequest } from "$lib/types/api";
   import Search from "../components/Search.svelte";
   import ContractCard from "../components/ContractCard.svelte";
   import SortDropdown from "../components/SortDropdown.svelte";
-  import type { Sort } from "$lib/types/api";
-  import { searchContracts } from "$lib";
+  import { searchContracts, DEFAULT_SEARCH_REQUEST } from "$lib";
   import ContractPagination from "../components/ContractPagination.svelte";
+  import { goto } from "$app/navigation";
 
   let { data } = $props();
 
-  let search = $state("");
-  let sortBy = $state<Sort.SortBy>(data.sort);
-  let page = $state<number>(data.page);
-
-  let searchResults = $state<SearchContractsResponse>(data.contracts);
+  let search = $state(data.query);
+  let sortBy = $state(data.sort);
+  let page = $state(data.page);
+  let searchResults = $state(data.contracts);
 
   $effect(() => {
-    if (
-      search === "" &&
-      sortBy.direction === data.sort.direction &&
+    search = data.query;
+    sortBy = data.sort;
+    page = data.page;
+  });
+
+  const searchRequest = $derived<SearchContractsRequest>({
+    query: search,
+    sort: sortBy,
+    page: page,
+  });
+
+  const isServerData = $derived(
+    search === data.query &&
       sortBy.field === data.sort.field &&
-      page === data.page
+      sortBy.direction === data.sort.direction &&
+      page === data.page,
+  );
+
+  $effect(() => {
+    const params = new URLSearchParams();
+
+    if (search) {
+      params.set("query", search);
+    }
+
+    if (
+      sortBy.field !== DEFAULT_SEARCH_REQUEST.sort!.field ||
+      sortBy.direction !== DEFAULT_SEARCH_REQUEST.sort!.direction
     ) {
+      params.set("sortField", sortBy.field);
+      params.set("sortDirection", sortBy.direction);
+    }
+
+    if (page > DEFAULT_SEARCH_REQUEST.page!) {
+      params.set("page", page.toString());
+    }
+
+    goto(`?${params.toString()}`, {
+      replaceState: true,
+      noScroll: true,
+      keepFocus: true,
+    });
+
+    if (isServerData) {
       searchResults = data.contracts;
       return;
     }
 
-    const request: SearchContractsRequest = {
-      query: search,
-      sort: sortBy,
-      page: page,
-    };
-
-    async function run() {
-      try {
-        const response = await searchContracts(request);
+    searchContracts(searchRequest)
+      .then((response) => {
         searchResults = response;
-      } catch (error) {
+      })
+      .catch((error) => {
         console.error("Error searching contracts:", error);
-      }
-    }
-
-    run();
+        // TODO: show error message to user
+      });
   });
 
   $effect(() => {
@@ -59,7 +85,7 @@
   <div class="text-2xl font-semibold">Procura por contratos públicos</div>
 
   <div class="space-y-1">
-    <Search bind:searchTerm={search}></Search>
+    <Search bind:searchTerm={search} />
 
     <SortDropdown bind:sortBy />
 

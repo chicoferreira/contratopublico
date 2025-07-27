@@ -3,6 +3,15 @@ import type {
   SearchContractsResponse,
 } from "$lib/types/api";
 
+export const DEFAULT_SEARCH_REQUEST: SearchContractsRequest = {
+  query: "",
+  sort: {
+    field: "publicationDate",
+    direction: "descending",
+  },
+  page: 1,
+};
+
 export async function searchContracts(
   data: SearchContractsRequest,
   baseURL: string = "",

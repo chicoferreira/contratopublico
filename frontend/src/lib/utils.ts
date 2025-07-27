@@ -15,3 +15,13 @@ export type WithoutChildrenOrChild<T> = WithoutChildren<WithoutChild<T>>;
 export type WithElementRef<T, U extends HTMLElement = HTMLElement> = T & {
   ref?: U | null;
 };
+
+export const validateEnumOrDefault = <T extends string>(
+  value: string | null,
+  allowedValues: readonly T[],
+  defaultValue: T,
+): T => {
+  return value && allowedValues.includes(value as T)
+    ? (value as T)
+    : defaultValue;
+};
