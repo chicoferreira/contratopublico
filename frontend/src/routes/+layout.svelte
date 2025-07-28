@@ -2,7 +2,7 @@
   let { children } = $props();
   import "../app.css";
 
-  import { Building2 } from "@lucide/svelte";
+  import { NotebookText } from "@lucide/svelte";
   import { goto } from "$app/navigation";
 
   function handleLogoClick() {
@@ -10,13 +10,17 @@
   }
 </script>
 
+<svelte:head>
+  <title>Contrato Público</title>
+</svelte:head>
+
 <div class="bg-primary text-primary-foreground">
   <div class="container mx-auto px-4 py-5">
     <button
       type="button"
       class="flex cursor-pointer items-center gap-3 transition-opacity hover:opacity-80"
       onclick={handleLogoClick}>
-      <Building2 class="h-8 w-8" />
+      <NotebookText class="h-8 w-8" />
       <div>
         <h1 class="text-3xl font-bold">Contrato Público</h1>
       </div>
