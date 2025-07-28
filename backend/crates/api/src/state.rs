@@ -55,7 +55,15 @@ impl AppState {
             .with_pagination(PaginationSetting {
                 // this is not recommended by meilisearch docs but it is having good performance for now and it is essential for UX
                 max_total_hits: 3000000,
-            });
+            })
+            .with_ranking_rules(&[
+                "words",
+                "typo",
+                "proximity",
+                "sort",
+                "attribute",
+                "exactness",
+            ]);
 
         contracts_index
             .set_settings(&settings)
