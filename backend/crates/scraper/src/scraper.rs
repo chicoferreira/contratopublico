@@ -21,10 +21,14 @@ const CONTRACT_SORT_ORDER: ContractSort = base_gov::ContractSort {
 const MAX_CONCURRENT_REQUESTS: usize = 1;
 const MAX_REQUEST_QUOTA: Quota = Quota::per_minute(NonZeroU32::new(100).unwrap());
 
+// Max consecutive failures when the API keeps failing since the start making it so we don't know the number of pages to scrape
+const MAX_CONSECUTIVE_FAILURES: usize = 10;
+
 pub async fn scrape(store: impl store::Store + 'static) {
     let client = Arc::new(base_gov::BaseGovClient::new());
 
     let total_pages = Arc::new(Mutex::new(None));
+    let consecutive_failures = Arc::new(Mutex::new(0_usize));
     let mut current_page = 0_usize;
 
     let limiter = Arc::new(RateLimiter::direct(MAX_REQUEST_QUOTA));
@@ -32,16 +36,20 @@ pub async fn scrape(store: impl store::Store + 'static) {
 
     let mut handles = vec![];
 
-    while total_pages
-        .lock()
-        .unwrap()
-        .is_none_or(|total_pages| current_page < total_pages)
-    {
-        current_page = store.get_next_page_to_query(current_page);
-
+    loop {
         limiter.until_ready().await;
-
         let permit = semaphore.clone().acquire_owned().await.unwrap();
+
+        let should_continue = match *total_pages.lock().unwrap() {
+            Some(total_pages) => current_page < total_pages,
+            None => *consecutive_failures.lock().unwrap() < MAX_CONSECUTIVE_FAILURES,
+        };
+
+        if !should_continue {
+            break;
+        }
+
+        current_page = store.get_next_page_to_query(current_page);
 
         let total_pages_str = total_pages
             .lock()
@@ -59,6 +67,7 @@ pub async fn scrape(store: impl store::Store + 'static) {
 
         let client = Arc::clone(&client);
         let total_pages = Arc::clone(&total_pages);
+        let consecutive_failures = Arc::clone(&consecutive_failures);
 
         let store = store.clone();
 
@@ -68,6 +77,7 @@ pub async fn scrape(store: impl store::Store + 'static) {
             let response = match client.search_contracts(payload).await {
                 Ok(response) => response,
                 Err(e) => {
+                    *consecutive_failures.lock().unwrap() += 1;
                     error!("Failed to fetch page {current_page}:\n{:?}", e);
                     return;
                 }
@@ -79,7 +89,7 @@ pub async fn scrape(store: impl store::Store + 'static) {
             );
 
             if let Ok(mut total_pages) = total_pages.lock() {
-                let new_total_pages = response.total / MAX_PAGE_SIZE + 1;
+                let new_total_pages = response.total / MAX_PAGE_SIZE;
                 if total_pages.is_none_or(|total_pages| total_pages < new_total_pages) {
                     *total_pages = Some(new_total_pages);
                 }
