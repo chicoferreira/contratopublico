@@ -30,10 +30,8 @@
             class="text-muted-foreground/70 group-hover:text-muted-foreground h-4 w-4 transition-colors" />
         </div>
       </Popover.Trigger>
-      <Popover.Content class="w-fit min-w-80 px-4 py-3">
-        <div class="space-y-1 text-sm">
+      <Popover.Content class="w-fit min-w-80 px-4 py-3 space-y-1 text-sm">
           {@render popoverContent()}
-        </div>
       </Popover.Content>
     </Popover.Root>
     <div class="font-medium break-words">
