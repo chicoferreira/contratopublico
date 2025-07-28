@@ -1,10 +1,10 @@
 <script lang="ts">
   import "../app.css";
-  import type { SearchContractsRequest } from "$lib/types/api";
+
   import Search from "../components/Search.svelte";
   import ContractCard from "../components/ContractCard.svelte";
   import SortDropdown from "../components/SortDropdown.svelte";
-  import { searchContracts, DEFAULT_SEARCH_REQUEST } from "$lib";
+  import { DEFAULT_SEARCH_REQUEST } from "$lib";
   import ContractPagination from "../components/ContractPagination.svelte";
   import { goto } from "$app/navigation";
 
@@ -20,19 +20,6 @@
     sortBy = data.sort;
     page = data.page;
   });
-
-  const searchRequest = $derived<SearchContractsRequest>({
-    query: search,
-    sort: sortBy,
-    page: page,
-  });
-
-  const isServerData = $derived(
-    search === data.query &&
-      sortBy.field === data.sort.field &&
-      sortBy.direction === data.sort.direction &&
-      page === data.page,
-  );
 
   $effect(() => {
     const params = new URLSearchParams();
@@ -58,20 +45,11 @@
       noScroll: true,
       keepFocus: true,
     });
+  });
 
-    if (isServerData) {
-      searchResults = data.contracts;
-      return;
-    }
-
-    searchContracts(searchRequest)
-      .then((response) => {
-        searchResults = response;
-      })
-      .catch((error) => {
-        console.error("Error searching contracts:", error);
-        // TODO: show error message to user
-      });
+  // Update search results when data changes
+  $effect(() => {
+    searchResults = data.contracts;
   });
 
   $effect(() => {
