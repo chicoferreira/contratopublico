@@ -5,10 +5,11 @@
     CalendarDays,
     Signature,
     FileText,
-    ExternalLink,
   } from "@lucide/svelte";
   import ContractCardInfoRow from "./ContractCardInfoRow.svelte";
   import Highlighted from "./Highlighted.svelte";
+  import ContractTypeBadge from "./ContractProcedureTypeBadge.svelte";
+  import Link from "./Link.svelte";
 
   let { contract }: { contract: Contract & MatchingRanges } = $props();
 
@@ -50,20 +51,15 @@
         <h3 class="text-base-content text-lg leading-tight font-semibold">
           <Highlighted {...renderHighlightedField("objectBriefDescription")} />
         </h3>
-        <a
-          href={getBaseGovUrl(contract.id)}
-          target="_blank"
-          rel="noopener noreferrer"
-          class="group flex w-fit shrink-0 items-center gap-[6px] transition-opacity hover:opacity-80"
-          title="Ver detalhes no base.gov.pt">
-          <span
-            class="text-muted-foreground text-sm transition-colors group-hover:text-blue-500 group-hover:underline">
+        <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <Link
+            url={getBaseGovUrl(contract.id)}
+            title="Ver detalhes no base.gov.pt"
+            external={true}>
             base.gov.pt (#<Highlighted {...renderHighlightedField("id")} />)
-          </span>
-          <ExternalLink
-            size={15}
-            class="text-muted-foreground transition-colors group-hover:text-blue-500" />
-        </a>
+          </Link>
+          <ContractTypeBadge type={contract.contractingProcedureType} />
+        </div>
       </div>
       <div class="text-lg font-semibold text-green-700 lg:shrink-0">
         {formatMoney(contract.initialContractualPrice)}

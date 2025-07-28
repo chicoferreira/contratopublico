@@ -1,0 +1,112 @@
+{
+  "Consulta Prévia": {
+    "displayText": "Consulta Prévia",
+    "className": "bg-blue-700",
+    "description": null
+  },
+  "Consulta Prévia Simplificada": {
+    "displayText": "Consulta Prévia Simplificada",
+    "className": "bg-sky-700",
+    "description": null
+  },
+  "Consulta prévia ao abrigo do artigo 7º da Lei n.º 30/2021, de 21.05": {
+    "displayText": "Consulta Prévia ao Abrigo do Artigo 7º da Lei n.º 30/2021, de 21.05",
+    "className": "bg-cyan-700",
+    "description": null
+  },
+  "Ajuste Direto Regime Geral": {
+    "displayText": "Ajuste Direto Regime Geral",
+    "className": "bg-green-700",
+    "description": null
+  },
+  "Ajuste direto simplificado": {
+    "displayText": "Ajuste Direto Simplificado",
+    "className": "bg-emerald-700",
+    "description": null
+  },
+  "Ajuste direto simplificado ao abrigo da Lei n.º 30/2021, de 21.05": {
+    "displayText": "Ajuste Direto Simplificado ao Abrigo da Lei n.º 30/2021, de 21.05",
+    "className": "bg-lime-700",
+    "description": null
+  },
+  "Ajuste Direto Regime Geral ao abrigo do artigo 7º da Lei n.º 30/2021, de 21.05": {
+    "displayText": "Ajuste Direto Regime Geral ao Abrigo do Artigo 7º da Lei n.º 30/2021, de 21.05",
+    "className": "bg-teal-700",
+    "description": null
+  },
+  "Concurso público": {
+    "displayText": "Concurso Público",
+    "className": "bg-purple-700",
+    "description": null
+  },
+  "Concurso público simplificado": {
+    "displayText": "Concurso Público Simplificado",
+    "className": "bg-violet-700",
+    "description": null
+  },
+  "Concurso limitado por prévia qualificação": {
+    "displayText": "Concurso Limitado por Prévia Qualificação",
+    "className": "bg-indigo-700",
+    "description": null
+  },
+  "Concurso limitado por prévia qualificação simplificado": {
+    "displayText": "Concurso Limitado por Prévia Qualificação Simplificado",
+    "className": "bg-slate-700",
+    "description": null
+  },
+  "Concurso de conceção simplificado": {
+    "displayText": "Concurso de Conceção Simplificado",
+    "className": "bg-pink-700",
+    "description": null
+  },
+  "Concurso de ideias simplificado": {
+    "displayText": "Concurso de Ideias Simplificado",
+    "className": "bg-rose-700",
+    "description": null
+  },
+  "Ao abrigo de acordo-quadro (art.º 258.º)": {
+    "displayText": "Ao Abrigo de Acordo-Quadro (Art.º 258.º)",
+    "className": "bg-orange-700",
+    "description": null
+  },
+  "Ao abrigo de acordo-quadro (art.º 259.º)": {
+    "displayText": "Ao Abrigo de Acordo-Quadro (Art.º 259.º)",
+    "className": "bg-amber-700",
+    "description": null
+  },
+  "Procedimento de negociação": {
+    "displayText": "Procedimento de Negociação",
+    "className": "bg-yellow-700",
+    "description": null
+  },
+  "Diálogo concorrencial": {
+    "displayText": "Diálogo Concorrencial",
+    "className": "bg-stone-700",
+    "description": null
+  },
+  "Parceria para a inovação": {
+    "displayText": "Parceria para a Inovação",
+    "className": "bg-fuchsia-700",
+    "description": null
+  },
+  "Disponibilização de bens móveis": {
+    "displayText": "Disponibilização de Bens Móveis",
+    "className": "bg-neutral-700",
+    "description": null
+  },
+  "Serviços sociais e outros serviços específicos": {
+    "displayText": "Serviços Sociais e Outros Serviços Específicos",
+    "className": "bg-zinc-700",
+    "description": null
+  },
+  "Setores especiais – isenção parte II": {
+    "displayText": "Setores Especiais - Isenção Parte II",
+    "className": "bg-red-700",
+    "description": null
+  },
+  "Contratação excluída II": {
+    "displayText": "Contratação Excluída II",
+    "className": "bg-gray-700",
+    "description": null
+  }
+}
