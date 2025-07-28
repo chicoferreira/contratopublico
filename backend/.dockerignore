@@ -1,0 +1,5 @@
+target/
+**/target/
+data/
+.DS_Store
+Dockerfile 

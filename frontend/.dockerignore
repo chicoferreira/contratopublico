@@ -1,0 +1,9 @@
+node_modules/
+.svelte-kit/
+build/
+dist/
+.DS_Store
+*.md
+.prettierrc
+Dockerfile
+coverage/

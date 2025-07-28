@@ -9,17 +9,16 @@ services:
     environment:
       - MEILI_MASTER_KEY
     volumes:
-      - ../data/meili_data:/meili_data
+      - ../backend/data/meili_data:/meili_data
 
   backend:
     restart: unless-stopped
     depends_on:
       - meilisearch
     build:
-      context: ..
-      dockerfile: ./backend/Dockerfile
+      context: ../backend
     volumes:
-      - ../data/scraper:/data/scraper
+      - ../backend/data/scraper:/data/scraper
     environment:
       - MEILISEARCH_URL=http://meilisearch:7700
       - MEILI_MASTER_KEY
