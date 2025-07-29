@@ -64,7 +64,9 @@
 </svelte:head>
 
 <div class="space-y-4">
-  <div class="text-2xl font-semibold">Procura por contratos públicos celebrados em Portugal</div>
+  <div class="text-2xl font-semibold">
+    Procura por contratos públicos celebrados em Portugal
+  </div>
 
   <div class="space-y-1">
     <Search bind:searchTerm={search} />
