@@ -24,8 +24,8 @@
             <Pagination.Link
               {page}
               isActive={currentPage === page.value}
-              size="default"
-              class="hover:bg-muted-foreground/20 dark:hover:bg-muted-foreground/30">
+              size="icon"
+              class="hover:bg-muted-foreground/20 dark:hover:bg-muted-foreground/30 size-11">
               {page.value}
             </Pagination.Link>
           </Pagination.Item>
