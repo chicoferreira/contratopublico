@@ -5,6 +5,11 @@
   import Highlighted from "./Highlighted.svelte";
   import ContractTypeBadge from "./ContractProcedureTypeBadge.svelte";
   import Link from "./Link.svelte";
+  import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+  } from "$lib/components/ui/popover";
 
   let { contract }: { contract: Contract & MatchingRanges } = $props();
 
@@ -24,9 +29,9 @@
     }).format(value / 100);
   }
 
-  function getBaseGovUrl(id: number): string {
-    return `https://www.base.gov.pt/Base4/pt/detalhe/?type=contratos&id=${id}`;
-  }
+  const baseGovUrl = $derived(
+    `https://www.base.gov.pt/Base4/pt/detalhe/?type=contratos&id=${contract.id}`,
+  );
 
   function formatDate(dateString: string): string {
     return new Date(dateString).toLocaleDateString("pt-PT", {
@@ -48,7 +53,7 @@
         </h3>
         <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
           <Link
-            url={getBaseGovUrl(contract.id)}
+            url={baseGovUrl}
             title="Ver detalhes no base.gov.pt"
             external={true}>
             base.gov.pt (#<Highlighted {...renderHighlightedField("id")} />)
@@ -61,7 +66,30 @@
         </div>
       </div>
       <div class="text-lg font-semibold text-green-700 lg:shrink-0">
-        {formatMoney(contract.initialContractualPrice)}
+        <Popover>
+          <PopoverTrigger>
+            {formatMoney(contract.initialContractualPrice)}
+          </PopoverTrigger>
+          <PopoverContent class="space-y-0">
+            <div class="text-base font-semibold">Valor Contratual Inicial</div>
+
+            <div class="space-y-2">
+              <div class="text-muted-foreground">
+                <p>Valor inicial estabelecido no momento da contratação.</p>
+                <p>
+                  Este valor pode ser alterado durante a execução do contrato.
+                </p>
+              </div>
+              <div>
+                <p>
+                  <Link class="text-blue-500" url={baseGovUrl}>
+                    Consulte sempre o valor atual no BASE.
+                  </Link>
+                </p>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
     </div>
   </div>
@@ -70,9 +98,12 @@
     <div class="md:space-y-2">
       <ContractCardInfoRow Icon={FileText} label="Contratante">
         {#snippet popoverContent()}
-          <p>Órgão público que celebra e regista o contrato no BASE.</p>
           <p>
-            Também conhecido como
+            Entidade pública responsável pela contratação e registo do contrato
+            no BASE.
+          </p>
+          <p>
+            Também conhecida como
             <strong class="font-semibold">Entidade adjudicante</strong>.
           </p>
         {/snippet}
@@ -83,9 +114,11 @@
       </ContractCardInfoRow>
       <ContractCardInfoRow Icon={Building} label="Contratado">
         {#snippet popoverContent()}
-          <p>Entidade vencedora do concurso que será contratada.</p>
           <p>
-            Também conhecido como
+            Entidade selecionada para a prestação de serviços ou fornecimento.
+          </p>
+          <p>
+            Também conhecida como
             <strong class="font-semibold">Entidade adjudicatária</strong>.
           </p>
         {/snippet}
@@ -98,7 +131,7 @@
     <div class="md:space-y-2">
       <ContractCardInfoRow Icon={CalendarDays} label="Data de Publicação">
         {#snippet popoverContent()}
-          <p>Data em que o contrato foi publicado no BASE.</p>
+          <p>Data de publicação do contrato na plataforma BASE.</p>
         {/snippet}
         {#snippet value()}
           {contract.publicationDate != null
@@ -108,7 +141,7 @@
       </ContractCardInfoRow>
       <ContractCardInfoRow Icon={Signature} label="Data do Contrato">
         {#snippet popoverContent()}
-          <p>Data em que o contrato foi assinado/celebrado.</p>
+          <p>Data de assinatura e formalização do contrato.</p>
         {/snippet}
         {#snippet value()}
           {contract.signingDate != null
