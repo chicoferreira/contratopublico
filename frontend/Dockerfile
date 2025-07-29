@@ -1,15 +1,15 @@
-FROM node:24-alpine AS builder
+FROM oven/bun:1 AS builder
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci
+COPY package*.json bun.lock* ./
+RUN bun install --frozen-lockfile
 COPY . .
-RUN npm run build
-RUN npm prune --production
+RUN bun run build
+RUN bun install --production --frozen-lockfile
 
-FROM node:24-alpine
+FROM oven/bun:1
 WORKDIR /app
 COPY --from=builder /app/build build/
 COPY --from=builder /app/node_modules node_modules/
 COPY --from=builder /app/package.json .
 ENV NODE_ENV=production
-CMD ["node", "build"]
+CMD ["bun", "run", "build/index.js"]
