@@ -10,3 +10,9 @@ upstream_options = ["keep_original_host"]
 [[apps.contratopublico.reverse_proxy]]
 path = '/api'
 upstream = [{ location = 'backend:3000' }]
+
+[apps.grafana]
+server_name = 'grafana.contratopublico.chicoferreira.dev'
+
+[[apps.grafana.reverse_proxy]]
+upstream = [{ location = 'grafana:3000' }]

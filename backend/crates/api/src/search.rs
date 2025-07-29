@@ -14,7 +14,6 @@ use crate::{
 pub struct SearchQuery {
     pub query: String,
     pub filter: Option<String>,
-    #[serde(flatten)]
     pub sort: Option<SortBy>,
     pub page: Option<usize>,
 }
