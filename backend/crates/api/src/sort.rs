@@ -2,9 +2,7 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize, Default)]
 pub struct SortBy {
-    #[serde(rename = "sortField")]
     pub field: SortField,
-    #[serde(rename = "sortDirection")]
     pub direction: SortDirection,
 }
 

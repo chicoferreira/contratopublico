@@ -21,3 +21,5 @@ thiserror = "2.0.12"
 clap = { version = "4.5.41", features = ["derive"] }
 tracing = "0.1.40"
 ringbuffer = "0.16.0"
+metrics = { version = "0.23", default-features = false }
+metrics-exporter-prometheus = { version = "0.15", default-features = false }

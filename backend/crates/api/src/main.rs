@@ -3,6 +3,7 @@ use anyhow::Context;
 use axum::{
     Router,
     http::{Response, StatusCode},
+    middleware,
     response::IntoResponse,
     routing::post,
 };
@@ -13,6 +14,7 @@ use std::path::PathBuf;
 use tokio::signal;
 use tracing::{Level, error, event, info};
 
+mod metrics;
 mod search;
 mod sort;
 mod state;
@@ -25,6 +27,8 @@ struct Args {
     meilisearch_master_key: Option<String>,
     #[clap(long, env, default_value = "0.0.0.0:3000")]
     bind_url: String,
+    #[clap(long, env, default_value = "0.0.0.0:3001")]
+    metrics_bind_url: String,
     #[clap(long, env, default_value = "60")]
     scraper_interval_secs: u64,
     #[clap(long, env, default_value = "data/scraper/saved_pages.json")]
@@ -60,22 +64,34 @@ async fn main() -> anyhow::Result<()> {
         }
     });
 
-    let app = Router::new().route("/api/search", post(search::search));
+    let backend_router = Router::new()
+        .route("/api/search", post(search::search))
+        .route_layer(middleware::from_fn(metrics::track_metrics_layer))
+        .with_state(app_state);
 
-    let listener = tokio::net::TcpListener::bind(args.bind_url)
+    let backend_listener = tokio::net::TcpListener::bind(args.bind_url)
         .await
-        .context("Failed to bind listener")?;
+        .context("Failed to bind backend listener")?;
 
-    event!(
-        Level::INFO,
-        "Listening on {}",
-        listener.local_addr().unwrap()
+    let backend_ip = backend_listener.local_addr().unwrap();
+    event!(Level::INFO, "Backend listening on {backend_ip}");
+
+    let metrics_router = metrics::metrics_router()?;
+
+    let metrics_listener = tokio::net::TcpListener::bind(args.metrics_bind_url)
+        .await
+        .context("Failed to bind metrics listener")?;
+
+    let metrics_ip = metrics_listener.local_addr().unwrap();
+    event!(Level::INFO, "Metrics listening on {metrics_ip}");
+
+    let (metrics_task, backend_task) = tokio::join!(
+        axum::serve(metrics_listener, metrics_router).with_graceful_shutdown(shutdown_signal()),
+        axum::serve(backend_listener, backend_router).with_graceful_shutdown(shutdown_signal()),
     );
 
-    axum::serve(listener, app.with_state(app_state))
-        .with_graceful_shutdown(shutdown_signal())
-        .await
-        .context("Failed to serve axum")
+    metrics_task.context("Failed to serve metrics")?;
+    backend_task.context("Failed to serve backend")
 }
 
 impl IntoResponse for AppError {
