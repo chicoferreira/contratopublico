@@ -13,7 +13,7 @@
 </script>
 
 {#snippet Fallback()}
-  <span>Próxima</span>
+  <span class="hidden md:inline">Próxima</span>
   <ChevronRightIcon class="size-4" />
 {/snippet}
 
