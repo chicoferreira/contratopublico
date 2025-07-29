@@ -1,9 +1,6 @@
 use std::collections::HashMap;
 
-use axum::{
-    Json,
-    extract::{Query, State},
-};
+use axum::extract::{Json, State};
 use common::Contract;
 use serde::{Deserialize, Serialize};
 use tracing::info;
@@ -60,10 +57,9 @@ impl From<meilisearch_sdk::search::MatchRange> for MatchingRange {
 #[tracing::instrument(skip(state))]
 #[axum::debug_handler]
 // TODO: add rate limiting
-// TODO: change this to a POST to allow json body and simplify frontend
 pub async fn search(
-    Query(query): Query<SearchQuery>,
     State(state): State<AppState>,
+    Json(query): Json<SearchQuery>,
 ) -> Result<Json<SearchResponse>, AppError> {
     // TODO: add maximum query length
     let sort = query.sort.unwrap_or_default();

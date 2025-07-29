@@ -1,11 +1,11 @@
 import { searchContracts, DEFAULT_SEARCH_REQUEST } from "$lib/index";
 import type { SearchContractsRequest } from "$lib/types/api";
 import { Sort } from "$lib/types/api";
-import type { PageServerLoad } from "./$types";
-import { env } from "$env/dynamic/private";
 import { validateEnumOrDefault } from "$lib/utils";
+import { browser } from "$app/environment";
+import type { PageLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ url }) => {
+export const load: PageLoad = async ({ fetch, url }) => {
   const params = url.searchParams;
 
   const query = params.get("query") || DEFAULT_SEARCH_REQUEST.query;
@@ -34,10 +34,8 @@ export const load: PageServerLoad = async ({ url }) => {
     page,
   };
 
-  const backendURL = env.BACKEND_URL || "http://localhost:3000";
-
   return {
-    contracts: await searchContracts(request, backendURL),
+    contracts: await searchContracts(request, fetch),
     sort,
     page,
     query,
