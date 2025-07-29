@@ -1,11 +1,6 @@
 <script lang="ts">
   import type { Contract, MatchingRanges } from "$lib/types/api";
-  import {
-    Building,
-    CalendarDays,
-    Signature,
-    FileText,
-  } from "@lucide/svelte";
+  import { Building, CalendarDays, Signature, FileText } from "@lucide/svelte";
   import ContractCardInfoRow from "./ContractCardInfoRow.svelte";
   import Highlighted from "./Highlighted.svelte";
   import ContractTypeBadge from "./ContractProcedureTypeBadge.svelte";
@@ -58,7 +53,11 @@
             external={true}>
             base.gov.pt (#<Highlighted {...renderHighlightedField("id")} />)
           </Link>
-          <ContractTypeBadge type={contract.contractingProcedureType} />
+
+          <ContractTypeBadge
+            type={contract.contractingProcedureType}
+            highlightRanges={renderHighlightedField("contractingProcedureType")
+              .ranges} />
         </div>
       </div>
       <div class="text-lg font-semibold text-green-700 lg:shrink-0">

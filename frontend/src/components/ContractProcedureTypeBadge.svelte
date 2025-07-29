@@ -3,7 +3,9 @@
   import { Popover } from "$lib/components/ui/popover";
   import PopoverContent from "$lib/components/ui/popover/popover-content.svelte";
   import PopoverTrigger from "$lib/components/ui/popover/popover-trigger.svelte";
+  import type { MatchingRange } from "$lib/types/api";
   import { cn } from "$lib/utils";
+  import Highlighted from "./Highlighted.svelte";
   import Link from "./Link.svelte";
   import contractTypesData from "./procedure-types.json";
 
@@ -17,7 +19,10 @@
     );
   }
 
-  let { type }: { type: string } = $props();
+  let {
+    type,
+    highlightRanges,
+  }: { type: string; highlightRanges: MatchingRange[] } = $props();
 
   const badgeConfig = $derived(getBadgeStyle(type));
 </script>
@@ -25,7 +30,7 @@
 <Popover>
   <PopoverTrigger>
     <Badge class={cn(badgeConfig.className, "border-transparent text-white")}>
-      {badgeConfig.displayText}
+      <Highlighted content={badgeConfig.displayText} ranges={highlightRanges} />
     </Badge>
   </PopoverTrigger>
   <PopoverContent class="space-y-0">

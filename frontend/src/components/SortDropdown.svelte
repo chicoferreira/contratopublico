@@ -54,6 +54,7 @@
   <DropdownMenu.Content class="w-[250px]" align="start">
     <DropdownMenu.Label>Ordenar por</DropdownMenu.Label>
 
+    <DropdownMenu.Separator />
     {#each Sort.fields as field}
       {#each Sort.directions as direction}
         {@const option = { field, direction }}
