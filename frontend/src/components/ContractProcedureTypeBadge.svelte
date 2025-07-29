@@ -1,8 +1,10 @@
 <script lang="ts">
   import { Badge } from "$lib/components/ui/badge";
-  import { Popover } from "$lib/components/ui/popover";
-  import PopoverContent from "$lib/components/ui/popover/popover-content.svelte";
-  import PopoverTrigger from "$lib/components/ui/popover/popover-trigger.svelte";
+  import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+  } from "$lib/components/ui/popover";
   import type { MatchingRange } from "$lib/types/api";
   import { cn } from "$lib/utils";
   import Highlighted from "./Highlighted.svelte";
@@ -43,11 +45,10 @@
         {:else}
           <div class="text-muted-foreground">
             <p>
-              Ainda não há uma descrição disponível para este tipo de
-              procedimento.
+              Descrição não disponível para este tipo de procedimento.
             </p>
             <p>
-              Contribui com uma proposta de descrição no
+              Contribua com uma descrição no
               <Link
                 class="text-blue-500"
                 showIcon={false}
