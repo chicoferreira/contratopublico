@@ -14,20 +14,11 @@ export const DEFAULT_SEARCH_REQUEST: SearchContractsRequest = {
 
 export async function searchContracts(
   data: SearchContractsRequest,
-  baseURL: string = "",
+  fetchFunction = fetch,
 ): Promise<SearchContractsResponse> {
-  const params = new URLSearchParams();
-
-  params.append("query", data.query);
-  if (data.filter) params.append("filter", data.filter);
-  if (data.sort) {
-    params.append("sortField", data.sort.field);
-    params.append("sortDirection", data.sort.direction);
-  }
-  if (data.page) params.append("page", data.page.toString());
-
-  const response = await fetch(`${baseURL}/api/search?${params}`, {
-    method: "GET",
+  const response = await fetchFunction(`/api/search`, {
+    method: "POST",
+    body: JSON.stringify(data),
     headers: { "Content-Type": "application/json" },
   });
 

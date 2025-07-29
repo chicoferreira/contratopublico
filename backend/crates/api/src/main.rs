@@ -4,7 +4,7 @@ use axum::{
     Router,
     http::{Response, StatusCode},
     response::IntoResponse,
-    routing::get,
+    routing::post,
 };
 use clap::Parser;
 use meilisearch_sdk::client::Client;
@@ -60,7 +60,7 @@ async fn main() -> anyhow::Result<()> {
         }
     });
 
-    let app = Router::new().route("/api/search", get(search::search));
+    let app = Router::new().route("/api/search", post(search::search));
 
     let listener = tokio::net::TcpListener::bind(args.bind_url)
         .await
