@@ -8,6 +8,8 @@ services:
     # - "7700:7700"
     environment:
       - MEILI_MASTER_KEY
+      - MEILI_EXPERIMENTAL_SEARCH_QUEUE_SIZE=3000
+      - MEILI_LOG_LEVEL=WARN
     volumes:
       - ../backend/data/meili_data:/meili_data
 
@@ -23,7 +25,7 @@ services:
       - MEILISEARCH_URL=http://meilisearch:7700
       - MEILI_MASTER_KEY
       - BIND_URL=0.0.0.0:3000
-      - RUST_LOG=tower_http=debug
+      - RUST_LOG=info
       - SAVED_PAGES_PATH=/data/scraper/saved_pages.json
       - SCRAPER_INTERVAL_SECS=1800 # 30 minutes
 

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use axum::extract::{Json, State};
 use common::Contract;
 use serde::{Deserialize, Serialize};
-use tracing::info;
+use tracing::debug;
 
 use crate::{
     sort::SortBy,
@@ -75,7 +75,7 @@ pub async fn search(
         .search(&query.query, &filter, &sort, page, HITS_PER_PAGE)
         .await?;
 
-    info!("Returning {} results", response.contracts.len());
+    debug!("Returning {} results", response.contracts.len());
 
     // TODO: return formatted results
     Ok(Json(response))
