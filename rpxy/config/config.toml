@@ -1,5 +1,8 @@
 listen_port = 80
 
+max_clients = 10000
+max_concurrent_streams = 10000
+
 [apps.contratopublico]
 server_name = 'contratopublico.chicoferreira.dev'
 
@@ -10,9 +13,3 @@ upstream_options = ["keep_original_host"]
 [[apps.contratopublico.reverse_proxy]]
 path = '/api'
 upstream = [{ location = 'backend:3000' }]
-
-[apps.grafana]
-server_name = 'grafana.contratopublico.chicoferreira.dev'
-
-[[apps.grafana.reverse_proxy]]
-upstream = [{ location = 'grafana:3000' }]

@@ -12,16 +12,14 @@ export const options = {
     search_load_test: {
       executor: "ramping-vus",
       stages: [
-        { duration: "10s", target: 100 },
-        { duration: "30s", target: 150 },
-        { duration: "30s", target: 150 },
-        { duration: "10s", target: 0 },
+        { duration: "5s", target: 1250 },
+        { duration: "50s", target: 1250 },
+        { duration: "5s", target: 0 },
       ],
     },
   },
 };
 
-// Test data sets for different query scenarios
 const searchQueries = [
   "construção",
   "serviços",
@@ -41,11 +39,10 @@ const searchQueries = [
   "",
 ];
 
-// Function to generate random gibberish text to avoid cache hits
 function generateGibberish() {
-  const chars = 'abcdefghijklmnopqrstuvwxyz';
-  const length = Math.floor(Math.random() * 10) + 3; // 3-12 characters
-  let result = '';
+  const chars = "abcdefghijklmnopqrstuvwxyz";
+  const length = Math.floor(Math.random() * 10) + 3;
+  let result = "";
   for (let i = 0; i < length; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
@@ -62,35 +59,35 @@ const sortOptions = [
 
 export default function () {
   const baseUrl = "http://localhost/api/search";
-  
-  // Randomly select test parameters
-  const query = Math.random() < 0.3 
-    ? generateGibberish() 
-    : searchQueries[Math.floor(Math.random() * searchQueries.length)];
-  const sort = Math.random() > 0.5 ? sortOptions[Math.floor(Math.random() * sortOptions.length)] : null;
+
+  const query =
+    Math.random() < 0.3
+      ? generateGibberish()
+      : searchQueries[Math.floor(Math.random() * searchQueries.length)];
+  const sort =
+    Math.random() > 0.5
+      ? sortOptions[Math.floor(Math.random() * sortOptions.length)]
+      : null;
   const page = Math.random() > 0.8 ? Math.floor(Math.random() * 3) + 1 : 1;
-  
-  // Build request body
+
   const body = { query: query };
-  
+
   if (sort) {
     body.sort = sort;
   }
-  
+
   if (page > 1) {
     body.page = page;
   }
-  
+
   const params = {
     headers: {
       "Content-Type": "application/json",
     },
   };
-  
-  // Send the request
+
   const res = http.post(baseUrl, JSON.stringify(body), params);
-  
-  // Simple load testing checks
+
   check(res, {
     "response code was 200": (res) => res.status === 200,
     "response time < 1000ms": (res) => res.timings.duration < 1000,
