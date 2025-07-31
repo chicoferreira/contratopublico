@@ -42,7 +42,7 @@
   <DropdownMenu.Trigger
     class={cn(
       buttonVariants({ variant: "outline" }),
-      "min-w-[200px] justify-between",
+      "min-w-[200px] cursor-pointer justify-between",
     )}>
     <div class="flex items-center gap-2">
       <ArrowUpDown class="h-4 w-4" />
@@ -60,7 +60,7 @@
         {@const option = { field, direction }}
         <DropdownMenu.Item
           onclick={() => (sortBy = option)}
-          class={sortByEquals(sortBy, option) ? "bg-accent" : ""}>
+          class={sortByEquals(sortBy, option) ? "bg-accent font-semibold" : ""}>
           {getSortLabel(option)}
         </DropdownMenu.Item>
       {/each}

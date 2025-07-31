@@ -10,6 +10,7 @@
     PopoverContent,
     PopoverTrigger,
   } from "$lib/components/ui/popover";
+  import ContractPrice from "./ContractPrice.svelte";
 
   let { contract }: { contract: Contract & MatchingRanges } = $props();
 
@@ -20,13 +21,6 @@
       content: contract[field]?.toString(),
       ranges: contract.matchingRanges[field],
     };
-  }
-
-  function formatMoney(value: number) {
-    return new Intl.NumberFormat("pt-PT", {
-      style: "currency",
-      currency: "EUR",
-    }).format(value / 100);
   }
 
   const baseGovUrl = $derived(
@@ -42,7 +36,7 @@
   }
 </script>
 
-<div class="bg-background border-neutral-content rounded-md border px-6 py-5">
+<div class="bg-card rounded-md border px-6 py-5">
   <!-- TODO: SIMPLIFY THIS CSS MESS -->
   <div class="pb-3">
     <div
@@ -65,32 +59,9 @@
               .ranges} />
         </div>
       </div>
-      <div class="text-lg font-semibold text-green-700 lg:shrink-0">
-        <Popover>
-          <PopoverTrigger>
-            {formatMoney(contract.initialContractualPrice)}
-          </PopoverTrigger>
-          <PopoverContent class="space-y-0">
-            <div class="text-base font-semibold">Valor Contratual Inicial</div>
-
-            <div class="space-y-2">
-              <div class="text-muted-foreground">
-                <p>Valor inicial estabelecido no momento da contratação.</p>
-                <p>
-                  Este valor pode ser alterado durante a execução do contrato.
-                </p>
-              </div>
-              <div>
-                <p>
-                  <Link class="text-blue-500" url={baseGovUrl}>
-                    Consulte sempre o valor atual no BASE.
-                  </Link>
-                </p>
-              </div>
-            </div>
-          </PopoverContent>
-        </Popover>
-      </div>
+      <ContractPrice
+        initialContractualPrice={contract.initialContractualPrice}
+        {baseGovUrl} />
     </div>
   </div>
 
@@ -104,7 +75,9 @@
           </p>
           <p>
             Também conhecida como
-            <strong class="font-semibold">Entidade adjudicante</strong>.
+            <span class="text-primary font-semibold">
+              Entidade adjudicante
+            </span>.
           </p>
         {/snippet}
 
@@ -114,12 +87,12 @@
       </ContractCardInfoRow>
       <ContractCardInfoRow Icon={Building} label="Contratado">
         {#snippet popoverContent()}
-          <p>
-            Entidade selecionada para a prestação de serviços ou fornecimento.
-          </p>
+          <p>Entidade selecionada para a prestação de serviços.</p>
           <p>
             Também conhecida como
-            <strong class="font-semibold">Entidade adjudicatária</strong>.
+            <span class="text-primary font-semibold">
+              Entidade adjudicatária
+            </span>.
           </p>
         {/snippet}
         {#snippet value()}

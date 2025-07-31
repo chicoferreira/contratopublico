@@ -1,112 +1,112 @@
 {
   "Consulta Prévia": {
     "displayText": "Consulta Prévia",
-    "className": "bg-blue-700",
+    "color": "blue",
     "description": null
   },
   "Consulta Prévia Simplificada": {
     "displayText": "Consulta Prévia Simplificada",
-    "className": "bg-sky-700",
+    "color": "sky",
     "description": null
   },
   "Consulta prévia ao abrigo do artigo 7º da Lei n.º 30/2021, de 21.05": {
     "displayText": "Consulta Prévia ao Abrigo do Artigo 7º da Lei n.º 30/2021, de 21.05",
-    "className": "bg-cyan-700",
+    "color": "cyan",
     "description": null
   },
   "Ajuste Direto Regime Geral": {
     "displayText": "Ajuste Direto Regime Geral",
-    "className": "bg-green-700",
+    "color": "green",
     "description": null
   },
   "Ajuste direto simplificado": {
     "displayText": "Ajuste Direto Simplificado",
-    "className": "bg-emerald-700",
+    "color": "emerald",
     "description": null
   },
   "Ajuste direto simplificado ao abrigo da Lei n.º 30/2021, de 21.05": {
     "displayText": "Ajuste Direto Simplificado ao Abrigo da Lei n.º 30/2021, de 21.05",
-    "className": "bg-lime-700",
+    "color": "lime",
     "description": null
   },
   "Ajuste Direto Regime Geral ao abrigo do artigo 7º da Lei n.º 30/2021, de 21.05": {
     "displayText": "Ajuste Direto Regime Geral ao Abrigo do Artigo 7º da Lei n.º 30/2021, de 21.05",
-    "className": "bg-teal-700",
+    "color": "teal",
     "description": null
   },
   "Concurso público": {
     "displayText": "Concurso Público",
-    "className": "bg-purple-700",
+    "color": "purple",
     "description": null
   },
   "Concurso público simplificado": {
     "displayText": "Concurso Público Simplificado",
-    "className": "bg-violet-700",
+    "color": "violet",
     "description": null
   },
   "Concurso limitado por prévia qualificação": {
     "displayText": "Concurso Limitado por Prévia Qualificação",
-    "className": "bg-indigo-700",
+    "color": "indigo",
     "description": null
   },
   "Concurso limitado por prévia qualificação simplificado": {
     "displayText": "Concurso Limitado por Prévia Qualificação Simplificado",
-    "className": "bg-slate-700",
+    "color": "slate",
     "description": null
   },
   "Concurso de conceção simplificado": {
     "displayText": "Concurso de Conceção Simplificado",
-    "className": "bg-pink-700",
+    "color": "pink",
     "description": null
   },
   "Concurso de ideias simplificado": {
     "displayText": "Concurso de Ideias Simplificado",
-    "className": "bg-rose-700",
+    "color": "rose",
     "description": null
   },
   "Ao abrigo de acordo-quadro (art.º 258.º)": {
     "displayText": "Ao Abrigo de Acordo-Quadro (Art.º 258.º)",
-    "className": "bg-orange-700",
+    "color": "orange",
     "description": null
   },
   "Ao abrigo de acordo-quadro (art.º 259.º)": {
     "displayText": "Ao Abrigo de Acordo-Quadro (Art.º 259.º)",
-    "className": "bg-amber-700",
+    "color": "amber",
     "description": null
   },
   "Procedimento de negociação": {
     "displayText": "Procedimento de Negociação",
-    "className": "bg-yellow-700",
+    "color": "yellow",
     "description": null
   },
   "Diálogo concorrencial": {
     "displayText": "Diálogo Concorrencial",
-    "className": "bg-stone-700",
+    "color": "stone",
     "description": null
   },
   "Parceria para a inovação": {
     "displayText": "Parceria para a Inovação",
-    "className": "bg-fuchsia-700",
+    "color": "fuchsia",
     "description": null
   },
   "Disponibilização de bens móveis": {
     "displayText": "Disponibilização de Bens Móveis",
-    "className": "bg-neutral-700",
+    "color": "neutral",
     "description": null
   },
   "Serviços sociais e outros serviços específicos": {
     "displayText": "Serviços Sociais e Outros Serviços Específicos",
-    "className": "bg-zinc-700",
+    "color": "zinc",
     "description": null
   },
   "Setores especiais – isenção parte II": {
     "displayText": "Setores Especiais - Isenção Parte II",
-    "className": "bg-red-700",
+    "color": "red",
     "description": null
   },
   "Contratação excluída II": {
     "displayText": "Contratação Excluída II",
-    "className": "bg-gray-700",
+    "color": "gray",
     "description": null
   }
 }
