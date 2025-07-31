@@ -6,6 +6,7 @@
   import { NotebookText } from "@lucide/svelte";
   import { goto } from "$app/navigation";
   import DarkModeToggle from "../components/DarkModeToggle.svelte";
+  import Footer from "../components/Footer.svelte";
 
   function handleLogoClick() {
     goto("/", { replaceState: false });
@@ -41,4 +42,6 @@
       {@render children()}
     </div>
   </main>
+
+  <Footer />
 </div>
