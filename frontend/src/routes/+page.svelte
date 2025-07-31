@@ -84,6 +84,13 @@
     </p>
   </div>
 
+  {#if searchResults.totalPages > 1}
+    <ContractPagination
+      bind:page
+      bind:total={searchResults.total}
+      bind:hitsPerPage={searchResults.hitsPerPage} />
+  {/if}
+
   {#each searchResults.contracts as contract}
     <ContractCard {contract} />
   {/each}
