@@ -11,10 +11,10 @@
     ranges?: MatchingRange[];
     class?: string;
   } = $props();
-  
+
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
-  
+
   // meilisearch returns the matched ranges as byte positions not character positions
   function sliceByBytes(str: string, start: number, end?: number): string {
     const bytes = encoder.encode(str);

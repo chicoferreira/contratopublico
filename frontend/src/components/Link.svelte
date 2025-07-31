@@ -29,7 +29,7 @@
   {title}>
   <p
     class={cn(
-      "text-muted-foreground text-sm transition-colors group-hover:text-blue-500 group-hover:underline",
+      "text-sm text-blue-500 transition-colors group-hover:text-blue-500 group-hover:underline dark:text-blue-400",
       extraClasses,
     )}>
     {#if children}
@@ -40,7 +40,7 @@
     <ExternalLink
       size={15}
       class={cn(
-        "text-muted-foreground transition-colors group-hover:text-blue-500",
+        "text-blue-500 transition-colors group-hover:text-blue-500 dark:text-blue-400",
         extraClasses,
       )} />
   {/if}
