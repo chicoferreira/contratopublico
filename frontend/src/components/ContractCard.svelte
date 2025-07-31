@@ -70,8 +70,7 @@
       <ContractCardInfoRow Icon={FileText} label="Contratante">
         {#snippet popoverContent()}
           <p>
-            Entidade pública responsável pela contratação e registo do contrato
-            no BASE.
+            Entidade pública responsável pela contratação e registo do contrato.
           </p>
           <p>
             Também conhecida como

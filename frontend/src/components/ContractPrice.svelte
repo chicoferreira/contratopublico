@@ -19,7 +19,7 @@
 
 <Popover>
   <PopoverTrigger
-    class="text-lg font-semibold text-green-600 transition hover:text-green-700 lg:shrink-0">
+    class="w-fit text-lg font-semibold text-green-600 transition hover:text-green-700 lg:shrink-0">
     {formatMoney(initialContractualPrice)}
   </PopoverTrigger>
   <PopoverContent>
