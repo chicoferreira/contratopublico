@@ -14,9 +14,9 @@ export const DEFAULT_SEARCH_REQUEST: SearchContractsRequest = {
 
 export async function searchContracts(
   data: SearchContractsRequest,
-  fetchFunction = fetch,
+  fetchFn = fetch,
 ): Promise<SearchContractsResponse> {
-  const response = await fetchFunction(`/api/search`, {
+  const response = await fetchFn(`/api/search`, {
     method: "POST",
     body: JSON.stringify(data),
     headers: { "Content-Type": "application/json" },

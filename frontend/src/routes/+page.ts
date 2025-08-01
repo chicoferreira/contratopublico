@@ -2,7 +2,6 @@ import { searchContracts, DEFAULT_SEARCH_REQUEST } from "$lib/index";
 import type { SearchContractsRequest } from "$lib/types/api";
 import { Sort } from "$lib/types/api";
 import { validateEnumOrDefault } from "$lib/utils";
-import { browser } from "$app/environment";
 import type { PageLoad } from "./$types";
 
 export const load: PageLoad = async ({ fetch, url }) => {
@@ -23,16 +22,8 @@ export const load: PageLoad = async ({ fetch, url }) => {
   let page = pageParam ? parseInt(pageParam, 10) : DEFAULT_SEARCH_REQUEST.page!;
   page = Math.max(1, page);
 
-  const sort: Sort.SortBy = {
-    field: sortField,
-    direction: sortDirection,
-  };
-
-  const request: SearchContractsRequest = {
-    query,
-    sort,
-    page,
-  };
+  const sort: Sort.SortBy = { field: sortField, direction: sortDirection };
+  const request: SearchContractsRequest = { query, sort, page };
 
   return {
     contracts: await searchContracts(request, fetch),
