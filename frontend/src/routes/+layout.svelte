@@ -18,28 +18,30 @@
   <title>Contrato Público</title>
 </svelte:head>
 
-<div class="bg-muted/60 border-b">
-  <div class="container mx-auto px-4 py-5">
-    <div class="flex justify-between">
-      <button
-        type="button"
-        class="flex cursor-pointer items-center gap-3 transition-opacity hover:opacity-80"
-        onclick={handleLogoClick}>
-        <NotebookText class="h-8 w-8" />
-        <h1 class="text-primary-background text-3xl font-semibold">
-          Contrato Público
-        </h1>
-      </button>
+<div class="bg-background flex min-h-screen flex-col">
+  <div class="bg-muted/60 border-y">
+    <div class="container mx-auto px-4 py-5">
+      <div class="flex justify-between">
+        <button
+          type="button"
+          class="flex cursor-pointer items-center gap-3 transition-opacity hover:opacity-80"
+          onclick={handleLogoClick}>
+          <NotebookText class="h-8 w-8" />
+          <h1 class="text-primary-background text-3xl font-semibold">
+            Contrato Público
+          </h1>
+        </button>
 
-      <DarkModeToggle />
+        <DarkModeToggle />
+      </div>
     </div>
   </div>
-</div>
 
-<div class="bg-background min-h-screen">
-  <main class="container mx-auto">
-    <div class="px-4 py-5">
-      {@render children()}
+  <main class="flex-1">
+    <div class="container mx-auto">
+      <div class="px-4 py-5">
+        {@render children()}
+      </div>
     </div>
   </main>
 

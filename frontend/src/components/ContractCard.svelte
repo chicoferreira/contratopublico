@@ -5,11 +5,6 @@
   import Highlighted from "./Highlighted.svelte";
   import ContractTypeBadge from "./ContractProcedureTypeBadge.svelte";
   import Link from "./Link.svelte";
-  import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-  } from "$lib/components/ui/popover";
   import ContractPrice from "./ContractPrice.svelte";
 
   let { contract }: { contract: Contract & MatchingRanges } = $props();

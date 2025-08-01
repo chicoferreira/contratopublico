@@ -27,7 +27,7 @@
   rel={"noopener noreferrer"}
   class="group inline-flex w-fit shrink-0 items-center gap-[6px] transition-opacity hover:opacity-80"
   {title}>
-  <p
+  <span
     class={cn(
       "text-sm text-blue-500 transition-colors group-hover:text-blue-500 group-hover:underline dark:text-blue-400",
       extraClasses,
@@ -35,7 +35,7 @@
     {#if children}
       {@render children()}
     {/if}
-  </p>
+  </span>
   {#if showIcon}
     <ExternalLink
       size={15}
