@@ -1,5 +1,5 @@
 import { searchContracts, DEFAULT_SEARCH_REQUEST } from "$lib/index";
-import type { SearchContractsRequest } from "$lib/types/api";
+import type { SearchContractsRequest, SearchContractsResponse } from "$lib/types/api";
 import { Sort } from "$lib/types/api";
 import { validateEnumOrDefault } from "$lib/utils";
 import type { PageLoad } from "./$types";
@@ -23,12 +23,29 @@ export const load: PageLoad = async ({ fetch, url }) => {
   page = Math.max(1, page);
 
   const sort: Sort.SortBy = { field: sortField, direction: sortDirection };
-  const request: SearchContractsRequest = { query, sort, page };
+  const request: Required<SearchContractsRequest> = { query, sort, page };
 
-  return {
-    contracts: await searchContracts(request, fetch),
-    sort,
-    page,
-    query,
-  };
+  try {
+    const response = await searchContracts(request, fetch);
+    return {
+      response,
+      request,
+      error: null,
+    };
+  } catch (error) {
+    console.error(error);
+    
+    return {
+      response: {
+        contracts: [],
+        total: 0,
+        page: 0,
+        totalPages: 0,
+        elapsedMillis: 0,
+        hitsPerPage: 0,
+      } as SearchContractsResponse,
+      request,
+      error: error instanceof Error ? error.message : "Erro desconhecido",
+    };
+  }
 };

@@ -12,9 +12,8 @@ export interface Contract {
 
 export interface SearchContractsRequest {
   query: string;
-  filter?: string | null;
-  sort?: Sort.SortBy | null;
-  page?: number | null;
+  sort?: Sort.SortBy;
+  page?: number;
 }
 
 export interface SearchContractsResponse {

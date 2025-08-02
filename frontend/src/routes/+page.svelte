@@ -4,29 +4,29 @@
   import Search from "../components/Search.svelte";
   import ContractCard from "../components/ContractCard.svelte";
   import SortDropdown from "../components/SortDropdown.svelte";
+  import ErrorDisplay from "../components/ErrorDisplay.svelte";
   import { fade } from "svelte/transition";
   import { DEFAULT_SEARCH_REQUEST, searchContracts } from "$lib";
   import ContractPagination from "../components/ContractPagination.svelte";
   import { replaceState } from "$app/navigation";
   import { page as sveltePage } from "$app/state";
   import { Sort } from "$lib/types/api";
+
   import { validateEnumOrDefault } from "$lib/utils";
   import { untrack } from "svelte";
   import { Skeleton } from "$lib/components/ui/skeleton";
 
   let { data } = $props();
-
-  let initialQuery = data.query;
-  let initialSort = data.sort;
-  let initialPage = data.page;
+  const { query: initialQuery, sort: initialSort, page: initialPage } = data.request;
 
   let query = $state(initialQuery);
   let sort = $state(initialSort);
   let page = $state(initialPage);
-  let searchResults = $state(data.contracts);
+  let searchResults = $state(data.response);
 
   let lastRequest = $state({ query: initialQuery, sort: initialSort, page: initialPage });
 
+  let error = $state<string | null>(data.error);
   let loading = $state(false);
 
   async function updateUrl(query: string, sort: Sort.SortBy, page: number) {
@@ -34,13 +34,13 @@
 
     if (query) params.set("query", query);
 
-    const defaultSort = DEFAULT_SEARCH_REQUEST.sort!;
+    const defaultSort = DEFAULT_SEARCH_REQUEST.sort;
     if (sort.field !== defaultSort.field || sort.direction !== defaultSort.direction) {
       params.set("sortField", sort.field);
       params.set("sortDirection", sort.direction);
     }
 
-    if (page > DEFAULT_SEARCH_REQUEST.page!) {
+    if (page > DEFAULT_SEARCH_REQUEST.page) {
       params.set("page", page.toString());
     }
 
@@ -76,15 +76,19 @@
           searchResults = result;
           lastRequest = request;
           await updateUrl(currentQuery, currentSort, currentPage);
+          // Clear any previous errors on successful request
+          error = null;
         }
 
         loading = false;
-      } catch (error) {
-        if (!(error instanceof Error) || error.name === "AbortError") {
+      } catch (err) {
+        loading = false;
+        if (!(err instanceof Error) || err.name === "AbortError") {
           return;
         }
-        console.error("Search error:", error);
-        // TODO: show error
+        console.error("Search error:", err);
+        
+        error = err.message || "Erro desconhecido";
       }
     }, 150);
   }
@@ -117,16 +121,16 @@
     const sortField = validateEnumOrDefault(
       urlParams.get("sortField"),
       Sort.fields,
-      DEFAULT_SEARCH_REQUEST.sort!.field,
+      DEFAULT_SEARCH_REQUEST.sort.field,
     );
     const sortDirection = validateEnumOrDefault(
       urlParams.get("sortDirection"),
       Sort.directions,
-      DEFAULT_SEARCH_REQUEST.sort!.direction,
+      DEFAULT_SEARCH_REQUEST.sort.direction,
     );
     const pageParam = urlParams.get("page");
 
-    page = pageParam ? parseInt(pageParam, 10) : DEFAULT_SEARCH_REQUEST.page!;
+    page = pageParam ? parseInt(pageParam, 10) : DEFAULT_SEARCH_REQUEST.page;
     page = untrack(() => Math.max(1, page));
 
     sort = { field: sortField, direction: sortDirection };
@@ -134,7 +138,7 @@
 
   // Clamp page number to the maximum allowed value
   $effect(() => {
-    if (page > searchResults.totalPages) {
+    if (searchResults && page > searchResults.totalPages) {
       page = Math.max(1, searchResults.totalPages);
     }
   });
@@ -167,21 +171,25 @@
     </div>
   </div>
 
-  {#if searchResults.totalPages > 1}
+  {#if error}
+    <ErrorDisplay message={error} />
+  {:else}
+    {#if searchResults.totalPages > 1}
+      <ContractPagination
+        bind:page
+        bind:total={searchResults.total}
+        bind:hitsPerPage={searchResults.hitsPerPage} />
+    {/if}
+
+    {#each searchResults.contracts as contract (contract.id)}
+      <div transition:fade={{ duration: 150 }}>
+        <ContractCard {contract} />
+      </div>
+    {/each}
+
     <ContractPagination
       bind:page
       bind:total={searchResults.total}
       bind:hitsPerPage={searchResults.hitsPerPage} />
   {/if}
-
-  {#each searchResults.contracts as contract (contract.id)}
-    <div transition:fade={{ duration: 150 }}>
-      <ContractCard {contract} />
-    </div>
-  {/each}
-
-  <ContractPagination
-    bind:page
-    bind:total={searchResults.total}
-    bind:hitsPerPage={searchResults.hitsPerPage} />
 </div>
