@@ -18,16 +18,13 @@
         </p>
         <p>
           Todas as informações são públicas e recolhidas do site
-          <Link
-            url="https://www.base.gov.pt"
-            class="!text-primary hover:!text-primary font-medium">
+          <Link url="https://www.base.gov.pt" class="!text-primary hover:!text-primary font-medium">
             Portal BASE
           </Link>
         </p>
       </div>
 
-      <div
-        class="flex flex-col items-center gap-3 text-sm sm:flex-row sm:gap-4">
+      <div class="flex flex-col items-center gap-3 text-sm sm:flex-row sm:gap-4">
         <div class="inline-flex items-center gap-2">
           <Github class="text-muted-foreground h-4 w-4" />
           <Link

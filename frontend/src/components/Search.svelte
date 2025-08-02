@@ -22,8 +22,7 @@
 </script>
 
 <div class="relative">
-  <div
-    class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+  <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
     <SearchIcon class="text-muted-foreground h-4 w-4" />
   </div>
   <!-- only shown on small screens -->

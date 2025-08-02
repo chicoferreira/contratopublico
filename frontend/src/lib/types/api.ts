@@ -32,12 +32,7 @@ export namespace Sort {
     direction: Direction;
   }
 
-  export const fields = [
-    "id",
-    "publicationDate",
-    "signingDate",
-    "price",
-  ] as const;
+  export const fields = ["id", "publicationDate", "signingDate", "price"] as const;
   export type Field = (typeof fields)[number];
 
   export const directions = ["ascending", "descending"] as const;

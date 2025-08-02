@@ -26,10 +26,7 @@
     highlighted: boolean;
   };
 
-  function createHighlightedSegments(
-    text: string,
-    matchRanges: MatchingRange[],
-  ): TextSegment[] {
+  function createHighlightedSegments(text: string, matchRanges: MatchingRange[]): TextSegment[] {
     if (!matchRanges || matchRanges.length === 0) {
       return [{ text, highlighted: false }];
     }
@@ -60,8 +57,7 @@
 
 {#each highlightedSegments as segment}
   {#if segment.highlighted}
-    <mark class={cn("rounded bg-yellow-200 px-0", className)}
-      >{segment.text}</mark>
+    <mark class={cn("rounded bg-yellow-200 px-0", className)}>{segment.text}</mark>
   {:else}
     {segment.text}
   {/if}

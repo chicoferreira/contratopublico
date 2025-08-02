@@ -12,13 +12,7 @@
     children?: Snippet;
   }
 
-  let {
-    url,
-    title,
-    class: extraClasses = "",
-    showIcon = true,
-    children,
-  }: Props = $props();
+  let { url, title, class: extraClasses = "", showIcon = true, children }: Props = $props();
 </script>
 
 <a
