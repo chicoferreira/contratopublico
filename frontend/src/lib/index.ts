@@ -1,7 +1,4 @@
-import type {
-  SearchContractsRequest,
-  SearchContractsResponse,
-} from "$lib/types/api";
+import type { SearchContractsRequest, SearchContractsResponse } from "$lib/types/api";
 
 export const DEFAULT_SEARCH_REQUEST: SearchContractsRequest = {
   query: "",
@@ -15,11 +12,13 @@ export const DEFAULT_SEARCH_REQUEST: SearchContractsRequest = {
 export async function searchContracts(
   data: SearchContractsRequest,
   fetchFn = fetch,
+  signal?: AbortSignal,
 ): Promise<SearchContractsResponse> {
   const response = await fetchFn(`/api/search`, {
     method: "POST",
     body: JSON.stringify(data),
     headers: { "Content-Type": "application/json" },
+    signal,
   });
 
   return await response.json();
