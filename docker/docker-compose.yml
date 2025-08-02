@@ -36,7 +36,7 @@ services:
     build:
       context: ../frontend
     environment:
-      ORIGIN: https://contratopublico.chicoferreira.dev
+      ORIGIN: https://contratopublico.pt
       BACKEND_URL: http://backend:3000
 
   prometheus:

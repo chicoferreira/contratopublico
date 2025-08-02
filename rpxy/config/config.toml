@@ -4,7 +4,7 @@ max_clients = 10000
 max_concurrent_streams = 10000
 
 [apps.contratopublico]
-server_name = 'contratopublico.chicoferreira.dev'
+server_name = 'contratopublico.pt'
 
 [[apps.contratopublico.reverse_proxy]]
 upstream = [{ location = 'frontend:3000' }]
