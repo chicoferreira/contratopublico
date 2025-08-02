@@ -9,9 +9,7 @@
 
   let { contract }: { contract: Contract & MatchingRanges } = $props();
 
-  function renderHighlightedField(
-    field: keyof Contract & keyof MatchingRanges["matchingRanges"],
-  ) {
+  function renderHighlightedField(field: keyof Contract & keyof MatchingRanges["matchingRanges"]) {
     return {
       content: contract[field]?.toString(),
       ranges: contract.matchingRanges[field],
@@ -34,29 +32,22 @@
 <div class="bg-card rounded-md border px-6 py-5">
   <!-- TODO: SIMPLIFY THIS CSS MESS -->
   <div class="pb-3">
-    <div
-      class="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+    <div class="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
       <div class="space-y-1">
         <h3 class="text-base-content text-lg leading-tight font-semibold">
           <Highlighted {...renderHighlightedField("objectBriefDescription")} />
         </h3>
         <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <Link
-            url={baseGovUrl}
-            title="Ver detalhes no base.gov.pt"
-            external={true}>
+          <Link url={baseGovUrl} title="Ver detalhes no base.gov.pt" external={true}>
             base.gov.pt (#<Highlighted {...renderHighlightedField("id")} />)
           </Link>
 
           <ContractTypeBadge
             type={contract.contractingProcedureType}
-            highlightRanges={renderHighlightedField("contractingProcedureType")
-              .ranges} />
+            highlightRanges={renderHighlightedField("contractingProcedureType").ranges} />
         </div>
       </div>
-      <ContractPrice
-        initialContractualPrice={contract.initialContractualPrice}
-        {baseGovUrl} />
+      <ContractPrice initialContractualPrice={contract.initialContractualPrice} {baseGovUrl} />
     </div>
   </div>
 
@@ -64,14 +55,10 @@
     <div class="md:space-y-2">
       <ContractCardInfoRow Icon={FileText} label="Contratante">
         {#snippet popoverContent()}
-          <p>
-            Entidade pública responsável pela contratação e registo do contrato.
-          </p>
+          <p>Entidade pública responsável pela contratação e registo do contrato.</p>
           <p>
             Também conhecida como
-            <span class="text-primary font-semibold">
-              Entidade adjudicante
-            </span>.
+            <span class="text-primary font-semibold"> Entidade adjudicante </span>.
           </p>
         {/snippet}
 
@@ -84,9 +71,7 @@
           <p>Entidade selecionada para a prestação de serviços.</p>
           <p>
             Também conhecida como
-            <span class="text-primary font-semibold">
-              Entidade adjudicatária
-            </span>.
+            <span class="text-primary font-semibold"> Entidade adjudicatária </span>.
           </p>
         {/snippet}
         {#snippet value()}
@@ -111,9 +96,7 @@
           <p>Data de assinatura e formalização do contrato.</p>
         {/snippet}
         {#snippet value()}
-          {contract.signingDate != null
-            ? formatDate(contract.signingDate)
-            : "Não informado"}
+          {contract.signingDate != null ? formatDate(contract.signingDate) : "Não informado"}
         {/snippet}
       </ContractCardInfoRow>
     </div>

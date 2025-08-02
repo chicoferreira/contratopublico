@@ -8,8 +8,7 @@
 </script>
 
 <DropdownMenu.Root>
-  <DropdownMenu.Trigger
-    class={buttonVariants({ variant: "outline", size: "icon" })}>
+  <DropdownMenu.Trigger class={buttonVariants({ variant: "outline", size: "icon" })}>
     <SunIcon
       class="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 !transition-all dark:scale-0 dark:-rotate-90" />
     <MoonIcon
@@ -17,12 +16,8 @@
     <span class="sr-only">Toggle theme</span>
   </DropdownMenu.Trigger>
   <DropdownMenu.Content align="end">
-    <DropdownMenu.Item onclick={() => setMode("light")}>
-      Claro
-    </DropdownMenu.Item>
-    <DropdownMenu.Item onclick={() => setMode("dark")}>
-      Escuro
-    </DropdownMenu.Item>
+    <DropdownMenu.Item onclick={() => setMode("light")}>Claro</DropdownMenu.Item>
+    <DropdownMenu.Item onclick={() => setMode("dark")}>Escuro</DropdownMenu.Item>
     <DropdownMenu.Item onclick={() => resetMode()}>Sistema</DropdownMenu.Item>
   </DropdownMenu.Content>
 </DropdownMenu.Root>

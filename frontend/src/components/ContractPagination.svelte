@@ -1,11 +1,7 @@
 <script lang="ts">
   import * as Pagination from "$lib/components/ui/pagination/index.js";
 
-  let {
-    page = $bindable(),
-    total = $bindable(),
-    hitsPerPage = $bindable(),
-  } = $props();
+  let { page = $bindable(), total = $bindable(), hitsPerPage = $bindable() } = $props();
 </script>
 
 <Pagination.Root count={total} perPage={hitsPerPage} bind:page>

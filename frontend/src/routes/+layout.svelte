@@ -27,9 +27,7 @@
           class="flex cursor-pointer items-center gap-3 transition-opacity hover:opacity-80"
           onclick={handleLogoClick}>
           <NotebookText class="h-8 w-8" />
-          <h1 class="text-primary-background text-3xl font-semibold">
-            Contrato Público
-          </h1>
+          <h1 class="text-primary-background text-3xl font-semibold">Contrato Público</h1>
         </button>
 
         <DarkModeToggle />

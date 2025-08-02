@@ -1,9 +1,5 @@
 <script lang="ts">
-  import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-  } from "$lib/components/ui/popover";
+  import { Popover, PopoverContent, PopoverTrigger } from "$lib/components/ui/popover";
   import InfoPopover from "./InfoPopover.svelte";
   import Link from "./Link.svelte";
 

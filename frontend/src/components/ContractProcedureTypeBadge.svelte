@@ -1,10 +1,6 @@
 <script lang="ts">
   import { Badge } from "$lib/components/ui/badge";
-  import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-  } from "$lib/components/ui/popover";
+  import { Popover, PopoverContent, PopoverTrigger } from "$lib/components/ui/popover";
   import type { MatchingRange } from "$lib/types/api";
   import { cn } from "$lib/utils";
   import Highlighted from "./Highlighted.svelte";
@@ -22,10 +18,7 @@
     );
   }
 
-  let {
-    type,
-    highlightRanges,
-  }: { type: string; highlightRanges: MatchingRange[] } = $props();
+  let { type, highlightRanges }: { type: string; highlightRanges: MatchingRange[] } = $props();
 
   const colorVariants = {
     blue: "bg-blue-600 dark:bg-blue-600/70",
