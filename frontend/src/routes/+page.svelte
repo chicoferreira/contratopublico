@@ -159,11 +159,9 @@
         </div>
       {:else}
         <p class="text-muted-foreground absolute" transition:fade={{ duration: 100 }}>
-          {searchResults.total}
+          {new Intl.NumberFormat("pt-PT").format(searchResults.total)}
           {searchResults.total === 1 ? "contrato encontrado" : "contratos encontrados"}
-
-          ({searchResults.totalPages}
-          {searchResults.totalPages === 1 ? "página" : "páginas"}) em {searchResults.elapsedMillis}ms
+          em {searchResults.elapsedMillis}ms
         </p>
       {/if}
     </div>
