@@ -7,8 +7,14 @@
 
   let inputElement = $state<HTMLInputElement | null>(null);
 
-  function handleKeyPress(event: KeyboardEvent) {
-    if (inputElement) {
+  function handleKeyPress(_event: KeyboardEvent) {
+    const activeElement = document.activeElement;
+    const hasFocusedElement =
+      activeElement &&
+      activeElement !== document.body &&
+      activeElement !== document.documentElement;
+
+    if (inputElement && !hasFocusedElement) {
       inputElement.focus();
     }
   }
