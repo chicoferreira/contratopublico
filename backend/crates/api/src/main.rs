@@ -1,19 +1,15 @@
-use crate::state::{AppError, AppState};
+use crate::state::AppState;
 use anyhow::Context;
-use axum::{
-    Router,
-    http::{Response, StatusCode},
-    middleware,
-    response::IntoResponse,
-    routing::post,
-};
+use axum::{Router, middleware, routing::post};
 use clap::Parser;
 use meilisearch_sdk::client::Client;
 use scraper::store::meilisearch::MeilisearchStore;
 use std::path::PathBuf;
 use tokio::signal;
-use tracing::{Level, error, event, info};
+use tracing::{Level, event, info};
 
+mod extractors;
+mod filter;
 mod metrics;
 mod search;
 mod sort;
@@ -86,26 +82,17 @@ async fn main() -> anyhow::Result<()> {
     event!(Level::INFO, "Metrics listening on {metrics_ip}");
 
     let (metrics_task, backend_task) = tokio::join!(
-        axum::serve(metrics_listener, metrics_router).with_graceful_shutdown(shutdown_signal()),
-        axum::serve(backend_listener, backend_router).with_graceful_shutdown(shutdown_signal()),
+        axum::serve(metrics_listener, metrics_router)
+            .with_graceful_shutdown(shutdown_signal("metrics")),
+        axum::serve(backend_listener, backend_router)
+            .with_graceful_shutdown(shutdown_signal("backend")),
     );
 
     metrics_task.context("Failed to serve metrics")?;
     backend_task.context("Failed to serve backend")
 }
 
-impl IntoResponse for AppError {
-    fn into_response(self) -> Response<axum::body::Body> {
-        match self {
-            AppError::MeilisearchError(e) => {
-                error!("Meilisearch error: {:?}", e);
-                StatusCode::INTERNAL_SERVER_ERROR.into_response()
-            }
-        }
-    }
-}
-
-async fn shutdown_signal() {
+async fn shutdown_signal(target: &str) {
     let ctrl_c = async {
         signal::ctrl_c()
             .await
@@ -128,5 +115,5 @@ async fn shutdown_signal() {
         _ = terminate => {},
     }
 
-    info!("Shutting down...");
+    info!("Shutting down {target}...");
 }

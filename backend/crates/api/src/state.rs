@@ -8,6 +8,7 @@ use meilisearch_sdk::{
 };
 
 use crate::{
+    filter::Filters,
     search::{SearchResponse, SearchedContract},
     sort::SortField,
 };
@@ -26,6 +27,7 @@ impl Clone for AppState {
 
 pub enum AppError {
     MeilisearchError(meilisearch_sdk::errors::Error),
+    JsonParseError(String),
 }
 
 pub type AppResult<T> = Result<T, AppError>;
@@ -46,12 +48,7 @@ impl AppState {
 
         let settings = Settings::new()
             .with_sortable_attributes(SortField::to_meilisearch_all())
-            .with_filterable_attributes([
-                "contractingProcedureType",
-                "ccp",
-                "contracted",
-                "contracting",
-            ])
+            .with_filterable_attributes(Filters::fields_to_meilisearch_all())
             .with_pagination(PaginationSetting {
                 // this is not recommended by meilisearch docs but it is having good performance for now and it is essential for UX
                 max_total_hits: 3000000,
@@ -77,17 +74,20 @@ impl AppState {
     pub async fn search(
         &self,
         query: &str,
-        filter: &str,
+        filters: Option<&Filters>,
         sort: &[&str],
         page: usize,
         hits_per_page: usize,
     ) -> AppResult<SearchResponse> {
+        let filters = filters.map(Filters::to_meilisearch).unwrap_or_default();
+        let filters_ref = filters.iter().map(String::as_str).collect();
+
         let results = self
             .meilisearch
             .index("contracts")
             .search()
             .with_query(query)
-            .with_filter(filter)
+            .with_array_filter(filters_ref)
             .with_sort(sort)
             .with_page(page)
             .with_hits_per_page(hits_per_page)

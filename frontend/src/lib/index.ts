@@ -1,4 +1,10 @@
-import type { SearchContractsRequest, SearchContractsResponse } from "$lib/types/api";
+import {
+  Sort,
+  type Filters,
+  type SearchContractsRequest,
+  type SearchContractsResponse,
+} from "$lib/types/api";
+import { validateEnumOrDefault } from "./utils";
 
 export const DEFAULT_SEARCH_REQUEST = {
   query: "",
@@ -21,10 +27,53 @@ export async function searchContracts(
     signal,
   });
 
-  if (!response.ok) {
+  if (!response.ok || response.status !== 200) {
     const errorData = await response.json().catch(() => ({ message: "Unknown error occurred" }));
     throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
   }
 
   return await response.json();
+}
+
+export function parseSearchRequestFromParams(
+  params: URLSearchParams,
+): Required<SearchContractsRequest> {
+  const query = params.get("query") || DEFAULT_SEARCH_REQUEST.query;
+  const sortField = validateEnumOrDefault(
+    params.get("sortField"),
+    Sort.fields,
+    DEFAULT_SEARCH_REQUEST.sort!.field,
+  );
+  const sortDirection = validateEnumOrDefault(
+    params.get("sortDirection"),
+    Sort.directions,
+    DEFAULT_SEARCH_REQUEST.sort!.direction,
+  );
+  const pageParam = params.get("page");
+  let page = pageParam ? parseInt(pageParam, 10) : DEFAULT_SEARCH_REQUEST.page!;
+  page = Math.max(1, page);
+
+  const sort: Sort.SortBy = { field: sortField, direction: sortDirection };
+
+  let filters: Filters = {};
+
+  const addParam = (key: keyof Filters, mapper: (value: string) => string | number = (v) => v) => {
+    const value = params.get(key);
+    if (value) {
+      filters[key as keyof typeof filters] = mapper(value) as any;
+    }
+  };
+
+  addParam("minId", (v) => parseInt(v, 10));
+  addParam("maxId", (v) => parseInt(v, 10));
+  addParam("contracted");
+  addParam("contracting");
+  addParam("startPublicationDate");
+  addParam("endPublicationDate");
+  addParam("startSigningDate");
+  addParam("endSigningDate");
+  addParam("minPrice", (v) => parseInt(v, 10));
+  addParam("maxPrice", (v) => parseInt(v, 10));
+
+  return { query, sort, filters, page };
 }
