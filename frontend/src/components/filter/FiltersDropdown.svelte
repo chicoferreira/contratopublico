@@ -21,10 +21,7 @@
 
 <button
   type="button"
-  class={cn(
-    buttonVariants({ variant: "outline" }),
-    "flex min-w-[200px] items-center justify-between",
-  )}
+  class={cn(buttonVariants({ variant: "outline" }), "flex  items-center justify-between")}
   onclick={toggleFilters}>
   <span class="flex items-center gap-2">
     <Funnel class="h-4 w-4" />
