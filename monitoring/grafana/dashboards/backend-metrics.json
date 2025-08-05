@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": null,
+  "id": 1,
   "links": [],
   "panels": [
     {
@@ -70,7 +70,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.2.0",
+      "pluginVersion": "12.2.0-16636675413",
       "targets": [
         {
           "disableTextWrap": false,
@@ -140,11 +140,11 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.2.0",
+      "pluginVersion": "12.2.0-16636675413",
       "targets": [
         {
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, rate(http_requests_duration_seconds_bucket[5m]))",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_requests_duration_seconds_bucket[5m])))",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -234,7 +234,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.2.0",
+      "pluginVersion": "12.2.0-16636675413",
       "targets": [
         {
           "datasource": {
@@ -270,5 +270,5 @@
   "timezone": "browser",
   "title": "Backend API Metrics",
   "uid": "backend-api-metrics",
-  "version": 1
+  "version": 2
 }

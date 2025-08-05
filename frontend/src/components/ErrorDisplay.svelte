@@ -56,6 +56,10 @@
           <li>Os logs de erro copiados</li>
           <li>O link da página onde o erro aconteceu</li>
           <li>
+            O que fez para o erro acontecer
+            <span class="text-destructive/60">(se aplicável)</span>
+          </li>
+          <li>
             O seu <em>browser</em>
             <span class="text-destructive/60">(ex: Chrome, Safari, Firefox)</span>
           </li>

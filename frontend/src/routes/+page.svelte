@@ -5,29 +5,47 @@
   import ContractCard from "../components/ContractCard.svelte";
   import SortDropdown from "../components/SortDropdown.svelte";
   import ErrorDisplay from "../components/ErrorDisplay.svelte";
-  import { fade } from "svelte/transition";
-  import { DEFAULT_SEARCH_REQUEST, searchContracts } from "$lib";
+  import { blur, fade, scale, slide } from "svelte/transition";
+  import { DEFAULT_SEARCH_REQUEST, parseSearchRequestFromParams, searchContracts } from "$lib";
   import ContractPagination from "../components/ContractPagination.svelte";
   import { replaceState } from "$app/navigation";
   import { page as sveltePage } from "$app/state";
   import { Sort } from "$lib/types/api";
-
-  import { validateEnumOrDefault } from "$lib/utils";
   import { untrack } from "svelte";
   import { Skeleton } from "$lib/components/ui/skeleton";
+  import FiltersComponent from "../components/filter/FiltersComponent.svelte";
+  import FiltersDropdown from "../components/filter/FiltersDropdown.svelte";
+  import ContractsFound from "../components/ContractsFound.svelte";
 
   let { data } = $props();
-  const { query: initialQuery, sort: initialSort, page: initialPage } = data.request;
+  const {
+    query: initialQuery,
+    sort: initialSort,
+    filters: initialFilters,
+    page: initialPage,
+  } = data.request;
 
   let query = $state(initialQuery);
   let sort = $state(initialSort);
   let page = $state(initialPage);
+  let filters = $state(initialFilters);
   let searchResults = $state(data.response);
 
-  let lastRequest = $state({ query: initialQuery, sort: initialSort, page: initialPage });
+  let lastRequest = $state({
+    query: initialQuery,
+    sort: initialSort,
+    page: initialPage,
+    filters: initialFilters,
+  });
 
   let error = $state<string | null>(data.error);
   let loading = $state(false);
+
+  let filtersOpen = $state(false);
+
+  const activeFiltersCount = $derived.by(
+    () => Object.values(filters).filter((v) => v != null && v !== "").length,
+  );
 
   async function updateUrl(query: string, sort: Sort.SortBy, page: number) {
     const params = new URLSearchParams();
@@ -44,8 +62,14 @@
       params.set("page", page.toString());
     }
 
+    Object.entries(filters).forEach(([field, value]) => {
+      if (value || value === 0) {
+        params.set(field, value);
+      }
+    });
+
     const paramsString = params.toString();
-    replaceState(paramsString ? `?${paramsString}` : "", "");
+    replaceState(paramsString ? `?${paramsString}` : "/", "");
   }
 
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -55,14 +79,20 @@
     if (timeoutId) clearTimeout(timeoutId);
     timeoutId = setTimeout(async () => {
       const currentQuery = query;
-      const currentSort = sort;
+      const currentSort = $state.snapshot(sort);
       const currentPage = page;
+      const currentFilters = $state.snapshot(filters);
 
       if (currentController) currentController.abort("new search");
       currentController = new AbortController();
       loading = true;
 
-      const request = { query: currentQuery, sort: currentSort, page: currentPage };
+      const request = {
+        query: currentQuery,
+        sort: currentSort,
+        filters: currentFilters,
+        page: currentPage,
+      };
       try {
         const result = await searchContracts(request, undefined, currentController.signal);
 
@@ -71,7 +101,8 @@
           query === currentQuery &&
           sort.direction === currentSort.direction &&
           sort.field === currentSort.field &&
-          page === currentPage
+          page === currentPage &&
+          JSON.stringify(filters) === JSON.stringify(currentFilters)
         ) {
           searchResults = result;
           lastRequest = request;
@@ -87,7 +118,7 @@
           return;
         }
         console.error("Search error:", err);
-        
+
         error = err.message || "Erro desconhecido";
       }
     }, 150);
@@ -100,6 +131,7 @@
     query;
     sort;
     page;
+    filters;
 
     // Only send the request if the parameters have changed
     // This also avoids double requesting on page load
@@ -107,7 +139,8 @@
       last.query !== query ||
       last.sort.direction !== sort.direction ||
       last.sort.field !== sort.field ||
-      last.page !== page
+      last.page !== page ||
+      JSON.stringify(last.filters) !== JSON.stringify(filters)
     ) {
       runSearchDebounced();
     }
@@ -116,24 +149,12 @@
   // On URL change, update the search parameters
   $effect(() => {
     const urlParams = sveltePage.url.searchParams;
-    query = urlParams.get("query") || DEFAULT_SEARCH_REQUEST.query;
+    const request = parseSearchRequestFromParams(urlParams);
 
-    const sortField = validateEnumOrDefault(
-      urlParams.get("sortField"),
-      Sort.fields,
-      DEFAULT_SEARCH_REQUEST.sort.field,
-    );
-    const sortDirection = validateEnumOrDefault(
-      urlParams.get("sortDirection"),
-      Sort.directions,
-      DEFAULT_SEARCH_REQUEST.sort.direction,
-    );
-    const pageParam = urlParams.get("page");
-
-    page = pageParam ? parseInt(pageParam, 10) : DEFAULT_SEARCH_REQUEST.page;
-    page = untrack(() => Math.max(1, page));
-
-    sort = { field: sortField, direction: sortDirection };
+    query = request.query;
+    sort = request.sort;
+    page = request.page;
+    filters = request.filters;
   });
 
   // Clamp page number to the maximum allowed value
@@ -151,24 +172,23 @@
 <div class="space-y-4">
   <div class="text-2xl font-semibold">Procura por contratos públicos celebrados em Portugal</div>
 
-  <div class="space-y-1">
+  <div class="space-y-2">
     <Search bind:searchTerm={query} />
 
-    <SortDropdown bind:sortBy={sort} />
-
-    <div class="relative flex h-6 items-center">
-      {#if loading}
-        <div class="absolute" transition:fade={{ duration: 100 }}>
-          <Skeleton class="h-[1em] w-[25em]" />
-        </div>
-      {:else}
-        <p class="text-muted-foreground absolute" transition:fade={{ duration: 100 }}>
-          {new Intl.NumberFormat("pt-PT").format(searchResults.total)}
-          {searchResults.total === 1 ? "contrato encontrado" : "contratos encontrados"}
-          em {searchResults.elapsedMillis}ms
-        </p>
-      {/if}
+    <div class="flex flex-wrap items-center gap-2">
+      <SortDropdown bind:sortBy={sort} />
+      <FiltersDropdown bind:filtersOpen {activeFiltersCount} />
     </div>
+
+    {#if filtersOpen}
+      <div transition:slide={{ duration: 200 }}>
+        <div transition:blur={{ duration: 200 }}>
+          <FiltersComponent bind:filters {activeFiltersCount} />
+        </div>
+      </div>
+    {/if}
+
+    <ContractsFound {loading} {searchResults} />
   </div>
 
   {#if error}

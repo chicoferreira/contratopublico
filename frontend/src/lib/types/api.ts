@@ -13,6 +13,7 @@ export interface Contract {
 export interface SearchContractsRequest {
   query: string;
   sort?: Sort.SortBy;
+  filters?: Filters;
   page?: number;
 }
 
@@ -36,6 +37,19 @@ export namespace Sort {
 
   export const directions = ["ascending", "descending"] as const;
   export type Direction = (typeof directions)[number];
+}
+
+export interface Filters {
+  minId?: number;
+  maxId?: number;
+  startPublicationDate?: string;
+  endPublicationDate?: string;
+  startSigningDate?: string;
+  endSigningDate?: string;
+  contracted?: string;
+  contracting?: string;
+  minPrice?: number;
+  maxPrice?: number;
 }
 
 export interface MatchingRanges {

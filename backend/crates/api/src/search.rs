@@ -1,11 +1,13 @@
 use std::collections::HashMap;
 
-use axum::extract::{Json, State};
+use axum::extract::State;
 use common::Contract;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 
 use crate::{
+    extractors::Json,
+    filter::Filters,
     sort::SortBy,
     state::{AppError, AppState},
 };
@@ -13,7 +15,7 @@ use crate::{
 #[derive(Debug, Deserialize)]
 pub struct SearchQuery {
     pub query: String,
-    pub filter: Option<String>,
+    pub filters: Option<Filters>,
     pub sort: Option<SortBy>,
     pub page: Option<usize>,
 }
@@ -64,15 +66,14 @@ pub async fn search(
     let sort = query.sort.unwrap_or_default();
     let sort: Vec<&str> = vec![sort.to_meilisearch()];
 
-    let filter = query.filter.unwrap_or_default();
-
     let page = query.page.unwrap_or(1);
+    let filters = query.filters.as_ref();
 
     // TODO: make this configurable
     const HITS_PER_PAGE: usize = 20;
 
     let response = state
-        .search(&query.query, &filter, &sort, page, HITS_PER_PAGE)
+        .search(&query.query, filters, &sort, page, HITS_PER_PAGE)
         .await?;
 
     debug!("Returning {} results", response.contracts.len());
