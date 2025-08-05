@@ -38,6 +38,10 @@ impl Filters {
         ]
     }
 
+    fn escape_string_value(value: &str) -> String {
+        value.replace('\'', "\\'")
+    }
+
     pub fn to_meilisearch(&self) -> Vec<String> {
         let mut filters = Vec::new();
 
@@ -60,10 +64,12 @@ impl Filters {
             filters.push(format!("signingDate <= '{end_date}'"));
         }
         if let Some(entity) = &self.contracted {
-            filters.push(format!("contracted = '{entity}'"));
+            let escaped = Self::escape_string_value(entity);
+            filters.push(format!("contracted = '{escaped}'"));
         }
         if let Some(entity) = &self.contracting {
-            filters.push(format!("contracting = '{entity}'"));
+            let escaped = Self::escape_string_value(entity);
+            filters.push(format!("contracting = '{escaped}'"));
         }
         if let Some(price) = self.min_price {
             filters.push(format!("initialContractualPrice >= {price}"));

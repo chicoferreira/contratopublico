@@ -80,7 +80,7 @@ impl AppState {
         hits_per_page: usize,
     ) -> AppResult<SearchResponse> {
         let filters = filters.map(Filters::to_meilisearch).unwrap_or_default();
-        let filters_ref = filters.iter().map(|f| f.as_str()).collect::<Vec<&str>>();
+        let filters_ref = filters.iter().map(String::as_str).collect();
 
         let results = self
             .meilisearch

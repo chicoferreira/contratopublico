@@ -25,6 +25,8 @@
   let displayMinPrice = $state("");
   let displayMaxPrice = $state("");
 
+  // using fr-FR locale for number formatting which displays thousands
+  // separator as a space (e.g., "1 234") instead of dots in pt-PT
   const priceFormatter = new Intl.NumberFormat("fr-FR", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -45,20 +47,23 @@
   });
 
   $effect(() => {
-    if (filters.minId && filters.minId > 100000000) {
-      filters.minId = 100000000;
+    const MAX_CONTRACT_ID = 100000000;
+    const MAX_PRICE_CENTS = 1000000000000000;
+
+    if (filters.minId && filters.minId > MAX_CONTRACT_ID) {
+      filters.minId = MAX_CONTRACT_ID;
     }
 
-    if (filters.maxId && filters.maxId > 100000000) {
-      filters.maxId = 100000000;
+    if (filters.maxId && filters.maxId > MAX_CONTRACT_ID) {
+      filters.maxId = MAX_CONTRACT_ID;
     }
 
-    if (filters.minPrice && filters.minPrice > 1000000000000000) {
-      filters.minPrice = 1000000000000000;
+    if (filters.minPrice && filters.minPrice > MAX_PRICE_CENTS) {
+      filters.minPrice = MAX_PRICE_CENTS;
     }
 
-    if (filters.maxPrice && filters.maxPrice > 1000000000000000) {
-      filters.maxPrice = 1000000000000000;
+    if (filters.maxPrice && filters.maxPrice > MAX_PRICE_CENTS) {
+      filters.maxPrice = MAX_PRICE_CENTS;
     }
   });
 
