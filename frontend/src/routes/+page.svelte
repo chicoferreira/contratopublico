@@ -5,14 +5,13 @@
   import ContractCard from "../components/ContractCard.svelte";
   import SortDropdown from "../components/SortDropdown.svelte";
   import ErrorDisplay from "../components/ErrorDisplay.svelte";
-  import { blur, fade, scale, slide } from "svelte/transition";
+  import { blur, fade, slide } from "svelte/transition";
   import { DEFAULT_SEARCH_REQUEST, parseSearchRequestFromParams, searchContracts } from "$lib";
   import ContractPagination from "../components/ContractPagination.svelte";
   import { replaceState } from "$app/navigation";
   import { page as sveltePage } from "$app/state";
   import { Sort } from "$lib/types/api";
   import { untrack } from "svelte";
-  import { Skeleton } from "$lib/components/ui/skeleton";
   import FiltersComponent from "../components/filter/FiltersComponent.svelte";
   import FiltersDropdown from "../components/filter/FiltersDropdown.svelte";
   import ContractsFound from "../components/ContractsFound.svelte";
@@ -132,6 +131,16 @@
     sort;
     page;
     filters;
+    filters.minId;
+    filters.maxId;
+    filters.startPublicationDate;
+    filters.endPublicationDate;
+    filters.startSigningDate;
+    filters.endSigningDate;
+    filters.contracted;
+    filters.contracting;
+    filters.minPrice;
+    filters.maxPrice;
 
     // Only send the request if the parameters have changed
     // This also avoids double requesting on page load
