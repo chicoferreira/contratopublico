@@ -179,6 +179,7 @@
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
         <FilterLabel
           labelContent="Desde"
+          placeholder="Selecione uma data"
           IconComponent={Calendar}
           bind:value={filters.startPublicationDate}
           onClear={() => delete filters.startPublicationDate}
@@ -186,6 +187,7 @@
           descriptionContent="Data inicial de publicação do contrato" />
         <FilterLabel
           labelContent="Até"
+          placeholder="Selecione uma data"
           IconComponent={Calendar}
           bind:value={filters.endPublicationDate}
           onClear={() => delete filters.endPublicationDate}
@@ -207,6 +209,7 @@
           onClear={() => delete filters.startSigningDate}
           labelContent="Desde"
           IconComponent={Calendar}
+          placeholder="Selecione uma data"
           type="date"
           descriptionContent="Data inicial da assinatura do contrato" />
         <FilterLabel
@@ -214,6 +217,7 @@
           onClear={() => delete filters.endSigningDate}
           labelContent="Até"
           IconComponent={Calendar}
+          placeholder="Selecione uma data"
           type="date"
           descriptionContent="Data final da assinatura do contrato" />
       </div>
@@ -236,7 +240,13 @@
           placeholder="10,00"
           descriptionContent="Valor inicial mínimo do contrato"
           onfocus={handlePriceFocus}
-          onblur={(e: Event) => handlePriceBlur(e, "minPrice")} />
+          onblur={(e: Event) => handlePriceBlur(e, "minPrice")}
+          onkeydown={(e: KeyboardEvent) => {
+            if (e.key == "Enter") {
+              (e.currentTarget as HTMLInputElement).blur();
+              e.preventDefault();
+            }
+          }} />
         <FilterLabel
           bind:value={displayMaxPrice}
           onClear={() => delete filters.maxPrice}
@@ -246,7 +256,13 @@
           placeholder="100,00"
           descriptionContent="Valor inicial máximo do contrato"
           onfocus={handlePriceFocus}
-          onblur={(e: Event) => handlePriceBlur(e, "maxPrice")} />
+          onblur={(e: Event) => handlePriceBlur(e, "maxPrice")}
+          onkeydown={(e: KeyboardEvent) => {
+            if (e.key == "Enter") {
+              (e.currentTarget as HTMLInputElement).blur();
+              e.preventDefault();
+            }
+          }} />
       </div>
     </FilterSection>
 
