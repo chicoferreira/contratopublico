@@ -40,10 +40,7 @@
 
 <DropdownMenu.Root>
   <DropdownMenu.Trigger
-    class={cn(
-      buttonVariants({ variant: "outline" }),
-      "min-w-[200px] cursor-pointer justify-between",
-    )}>
+    class={cn(buttonVariants({ variant: "outline" }), "min-w-[200px] justify-between")}>
     <div class="flex items-center gap-2">
       <ArrowUpDown class="h-4 w-4" />
       {getSortLabel(sortBy)}

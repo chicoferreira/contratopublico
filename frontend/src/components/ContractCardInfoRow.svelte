@@ -21,7 +21,7 @@
   <Icon class="text-muted-foreground/80 h-6 w-6 shrink-0" />
   <div class="space-y-0">
     <Popover.Root>
-      <Popover.Trigger class="cursor-pointer">
+      <Popover.Trigger>
         <div class="group flex items-center gap-1 transition-colors">
           <span
             class="text-muted-foreground/80 group-hover:text-muted-foreground text-sm font-semibold uppercase transition-colors">
