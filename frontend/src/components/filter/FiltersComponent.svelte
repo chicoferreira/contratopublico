@@ -240,13 +240,7 @@
           placeholder="10,00"
           descriptionContent="Valor inicial mínimo do contrato"
           onfocus={handlePriceFocus}
-          onblur={(e: Event) => handlePriceBlur(e, "minPrice")}
-          onkeydown={(e: KeyboardEvent) => {
-            if (e.key == "Enter") {
-              (e.currentTarget as HTMLInputElement).blur();
-              e.preventDefault();
-            }
-          }} />
+          onblur={(e: Event) => handlePriceBlur(e, "minPrice")} />
         <FilterLabel
           bind:value={displayMaxPrice}
           onClear={() => delete filters.maxPrice}
@@ -256,13 +250,7 @@
           placeholder="100,00"
           descriptionContent="Valor inicial máximo do contrato"
           onfocus={handlePriceFocus}
-          onblur={(e: Event) => handlePriceBlur(e, "maxPrice")}
-          onkeydown={(e: KeyboardEvent) => {
-            if (e.key == "Enter") {
-              (e.currentTarget as HTMLInputElement).blur();
-              e.preventDefault();
-            }
-          }} />
+          onblur={(e: Event) => handlePriceBlur(e, "maxPrice")} />
       </div>
     </FilterSection>
 

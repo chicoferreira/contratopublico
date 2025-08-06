@@ -24,7 +24,7 @@
 
 <Collapsible.Root bind:open={isOpen}>
   <Collapsible.Trigger
-    class="group flex w-full items-center justify-between rounded-lg transition-colors hover:cursor-pointer">
+    class="group flex w-full cursor-pointer items-center justify-between rounded-lg transition-colors">
     <div class="flex items-center gap-2">
       <IconComponent class="text-muted-foreground h-4 w-4" />
       <span class="font-medium group-hover:underline">{title}</span>
@@ -44,7 +44,7 @@
       {#if open}
         <div transition:slide={{ duration: 200 }}>
           <div transition:blur={{ duration: 200 }}>
-            <div class="pt-4">
+            <div class="px-6 pt-4">
               {@render children()}
             </div>
           </div>

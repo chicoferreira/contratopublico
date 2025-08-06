@@ -45,5 +45,11 @@
     )}
     {type}
     bind:value
+    onkeydown={(e: KeyboardEvent) => {
+      if (e.key == "Enter") {
+        (e.currentTarget as HTMLInputElement).blur();
+        e.preventDefault();
+      }
+    }}
     {...restProps} />
 {/if}
