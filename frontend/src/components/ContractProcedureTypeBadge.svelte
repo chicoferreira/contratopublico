@@ -60,35 +60,33 @@
   </PopoverTrigger>
   <PopoverContent>
     <InfoPopover title={badgeConfig.displayText}>
-      {#snippet content()}
-        <div>
-          {#if badgeConfig.description}
-            <div>
-              {@html badgeConfig.description}
-            </div>
-          {:else}
-            <div>
-              <p>Descrição não disponível para este tipo de procedimento.</p>
-              <p>
-                Contribua com uma descrição no
-                <Link
-                  showIcon={false}
-                  url="https://github.com/chicoferreira/contratopublico/edit/main/frontend/src/components/procedure-types.json">
-                  GitHub
-                </Link>.
-              </p>
-            </div>
-          {/if}
-        </div>
+      <div>
+        {#if badgeConfig.description}
+          <div>
+            {@html badgeConfig.description}
+          </div>
+        {:else}
+          <div>
+            <p>Descrição não disponível para este tipo de procedimento.</p>
+            <p>
+              Contribua com uma descrição no
+              <Link
+                showIcon={false}
+                url="https://github.com/chicoferreira/contratopublico/edit/main/frontend/src/components/procedure-types.json">
+                GitHub
+              </Link>.
+            </p>
+          </div>
+        {/if}
+      </div>
 
-        <div>
-          <Link
-            url="https://www.base.gov.pt/Base4/pt/documentacao/caracteristicas-dos-procedimentos/"
-            title="Saiba mais sobre as características dos procedimentos.">
-            Saiba mais sobre as características dos procedimentos.
-          </Link>
-        </div>
-      {/snippet}
+      <div>
+        <Link
+          url="https://www.base.gov.pt/Base4/pt/documentacao/caracteristicas-dos-procedimentos/"
+          title="Saiba mais sobre as características dos procedimentos.">
+          Saiba mais sobre as características dos procedimentos.
+        </Link>
+      </div>
     </InfoPopover>
   </PopoverContent>
 </Popover>

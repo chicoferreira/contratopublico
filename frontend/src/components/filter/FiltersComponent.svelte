@@ -25,9 +25,7 @@
   let displayMinPrice = $state("");
   let displayMaxPrice = $state("");
 
-  // using fr-FR locale for number formatting which displays thousands
-  // separator as a space (e.g., "1 234") instead of dots in pt-PT
-  const priceFormatter = new Intl.NumberFormat("fr-FR", {
+  const priceFormatter = new Intl.NumberFormat("pt-PT", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
@@ -134,7 +132,7 @@
       <span class="font-medium">Dica:</span>
       <span class="text-muted-foreground ml-1">
         Os filtros podem não ser necessários na maioria dos casos. Para resultados mais precisos,
-        coloque o texto "entre aspas" na barra de pesquisa para obter correspondências exatas.
+        escreva termos "entre aspas" na barra de pesquisa para obter correspondências exatas.
       </span>
     </div>
   </div>
