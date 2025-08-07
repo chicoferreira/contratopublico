@@ -16,7 +16,7 @@ async function proxyRequest(method: string, path: string, request: Request) {
     headers: request.headers,
   };
 
-  if (method === "POST") {
+  if (method !== "GET" && method !== "HEAD") {
     options.body = await request.text();
   }
 
