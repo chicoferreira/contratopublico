@@ -1,10 +1,13 @@
 use crate::state::AppState;
 use anyhow::Context;
-use axum::{Router, middleware, routing::post};
+use axum::{
+    Router, middleware,
+    routing::{get, post},
+};
 use clap::Parser;
 use meilisearch_sdk::client::Client;
 use scraper::store::meilisearch::MeilisearchStore;
-use std::path::PathBuf;
+use std::{path::PathBuf, time::Instant};
 use tokio::signal;
 use tracing::{Level, event, info};
 
@@ -14,6 +17,7 @@ mod metrics;
 mod search;
 mod sort;
 mod state;
+mod statistics;
 
 #[derive(Parser)]
 struct Args {
@@ -48,9 +52,7 @@ async fn main() -> anyhow::Result<()> {
         .await
         .context("Failed to prepare indexes")?;
 
-    let meilisearch = app_state.get_client();
-
-    let scraper_store = MeilisearchStore::new(meilisearch, args.saved_pages_path)
+    let scraper_store = MeilisearchStore::new(app_state.get_client(), args.saved_pages_path)
         .context("Failed to create scraper store")?;
 
     tokio::spawn(async move {
@@ -60,8 +62,26 @@ async fn main() -> anyhow::Result<()> {
         }
     });
 
+    let app_state_clone = app_state.clone();
+    tokio::spawn(async move {
+        let client = app_state_clone.get_client();
+        loop {
+            let instant = Instant::now();
+            // this will likely change soon to use a more efficient database with aggregation mechanisms
+            let statistics = statistics::Statistics::compute_new_statistics(client.clone())
+                .await
+                .unwrap();
+
+            info!("Computed statistics in {:?}", instant.elapsed());
+
+            app_state_clone.set_statistics(statistics);
+            tokio::time::sleep(tokio::time::Duration::from_secs(15 * 60)).await;
+        }
+    });
+
     let backend_router = Router::new()
         .route("/api/search", post(search::search))
+        .route("/api/statistics", get(statistics::statistics))
         .route_layer(middleware::from_fn(metrics::track_metrics_layer))
         .with_state(app_state);
 

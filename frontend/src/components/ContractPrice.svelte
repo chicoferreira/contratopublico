@@ -5,11 +5,13 @@
 
   const { baseGovUrl, initialContractualPrice } = $props();
 
+  const formatter = new Intl.NumberFormat("pt-PT", {
+    style: "currency",
+    currency: "EUR",
+  });
+
   function formatMoney(value: number) {
-    return new Intl.NumberFormat("pt-PT", {
-      style: "currency",
-      currency: "EUR",
-    }).format(value / 100);
+    return formatter.format(value / 100);
   }
 </script>
 
@@ -20,17 +22,15 @@
   </PopoverTrigger>
   <PopoverContent>
     <InfoPopover title="Valor Contratual Inicial">
-      {#snippet content()}
-        <div>
-          <p>Valor inicial estabelecido no momento da contratação.</p>
-          <p>Este valor pode ser alterado durante a execução do contrato.</p>
-        </div>
-        <div>
-          <p>
-            <Link url={baseGovUrl}>Consulte sempre o valor atual no BASE.</Link>
-          </p>
-        </div>
-      {/snippet}
+      <div>
+        <p>Valor inicial estabelecido no momento da contratação.</p>
+        <p>Este valor pode ser alterado durante a execução do contrato.</p>
+      </div>
+      <div>
+        <p>
+          <Link url={baseGovUrl}>Consulte sempre o valor atual no BASE.</Link>
+        </p>
+      </div>
     </InfoPopover>
   </PopoverContent>
 </Popover>

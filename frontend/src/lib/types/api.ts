@@ -62,3 +62,12 @@ export interface MatchingRange {
   start: number;
   end: number;
 }
+
+export interface Statistics {
+  totalSpentLast365Days: number;
+  contractsLast365Days: number;
+  totalSpentLast30Days: number;
+  contractsLast30Days: number;
+  totalSpentLast7Days: number;
+  contractsLast7Days: number;
+}

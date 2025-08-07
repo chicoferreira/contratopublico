@@ -19,3 +19,4 @@ clap = { workspace = true, features = ["derive", "env"] }
 metrics = { workspace = true, default-features = false }
 metrics-exporter-prometheus = { workspace = true, default-features = false }
 chrono = { workspace = true }
+itertools = { workspace = true }

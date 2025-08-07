@@ -8,7 +8,6 @@
     title?: string;
     class?: string;
     showIcon?: boolean;
-    external?: boolean;
     children?: Snippet;
   }
 

@@ -2,6 +2,7 @@
   import { buttonVariants } from "$lib/components/ui/button";
   import { cn } from "$lib/utils";
   import { ChevronDown, Funnel } from "@lucide/svelte";
+  import { blur, slide } from "svelte/transition";
 
   let { filtersOpen = $bindable(), activeFiltersCount } = $props();
 
@@ -25,7 +26,12 @@
   onclick={toggleFilters}>
   <span class="flex items-center gap-2">
     <Funnel class="h-4 w-4" />
-    Filtros{@render extra()}
+
+    {#key activeFiltersCount}
+      <p>
+        Filtros<span in:blur={{ duration: 200 }}>{@render extra()}</span>
+      </p>
+    {/key}
   </span>
   <ChevronDown class="h-4 w-4 opacity-50 transition-transform" />
 </button>

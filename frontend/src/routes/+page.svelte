@@ -15,6 +15,7 @@
   import FiltersComponent from "../components/filter/FiltersComponent.svelte";
   import FiltersDropdown from "../components/filter/FiltersDropdown.svelte";
   import ContractsFound from "../components/ContractsFound.svelte";
+  import StatisticsInsights from "../components/StatisticsInsights.svelte";
 
   let { data } = $props();
   const {
@@ -22,13 +23,15 @@
     sort: initialSort,
     filters: initialFilters,
     page: initialPage,
-  } = data.request;
+  } = data.searchRequest;
+
+  let statistics = data.statisticsResponse;
 
   let query = $state(initialQuery);
   let sort = $state(initialSort);
   let page = $state(initialPage);
   let filters = $state(initialFilters);
-  let searchResults = $state(data.response);
+  let searchResults = $state(data.searchResponse);
 
   let lastRequest = $state({
     query: initialQuery,
@@ -179,14 +182,21 @@
 </svelte:head>
 
 <div class="space-y-4">
-  <div class="text-2xl font-semibold">Procura por contratos públicos celebrados em Portugal</div>
-
-  <div class="space-y-2">
+  <div class="space-y-2.5">
+    <div class="space-y-0.5">
+      <div class="text-2xl font-semibold">
+        Procura por contratos públicos celebrados em Portugal
+      </div>
+      <StatisticsInsights {statistics} />
+    </div>
     <Search bind:searchTerm={query} />
 
-    <div class="flex flex-wrap items-center gap-2">
-      <SortDropdown bind:sortBy={sort} />
-      <FiltersDropdown bind:filtersOpen {activeFiltersCount} />
+    <div class="flex flex-wrap justify-between gap-y-0.5">
+      <div class="flex flex-wrap gap-2">
+        <SortDropdown bind:sortBy={sort} />
+        <FiltersDropdown bind:filtersOpen {activeFiltersCount} />
+      </div>
+      <ContractsFound {loading} {searchResults} />
     </div>
 
     {#if filtersOpen}
@@ -196,8 +206,6 @@
         </div>
       </div>
     {/if}
-
-    <ContractsFound {loading} {searchResults} />
   </div>
 
   {#if error}

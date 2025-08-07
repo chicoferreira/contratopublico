@@ -38,7 +38,7 @@
           <Highlighted {...renderHighlightedField("objectBriefDescription")} />
         </h3>
         <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <Link url={baseGovUrl} title="Ver detalhes no base.gov.pt" external={true}>
+          <Link url={baseGovUrl} title="Ver detalhes no base.gov.pt">
             base.gov.pt (#<Highlighted {...renderHighlightedField("id")} />)
           </Link>
 
