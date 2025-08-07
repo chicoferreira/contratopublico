@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 
 use anyhow::Context;
 use common::Contract;
@@ -11,16 +11,19 @@ use crate::{
     filter::Filters,
     search::{SearchResponse, SearchedContract},
     sort::SortField,
+    statistics::Statistics,
 };
 
 pub struct AppState {
     meilisearch: Arc<Client>,
+    statistics: Arc<RwLock<Statistics>>,
 }
 
 impl Clone for AppState {
     fn clone(&self) -> Self {
         Self {
             meilisearch: Arc::clone(&self.meilisearch),
+            statistics: Arc::clone(&self.statistics),
         }
     }
 }
@@ -36,11 +39,22 @@ impl AppState {
     pub fn new(meilisearch: Client) -> Self {
         Self {
             meilisearch: Arc::new(meilisearch),
+            statistics: Default::default(),
         }
     }
 
     pub fn get_client(&self) -> Arc<Client> {
         Arc::clone(&self.meilisearch)
+    }
+
+    pub fn set_statistics(&self, new_statistics: Statistics) {
+        if let Ok(mut statistics) = self.statistics.write() {
+            *statistics = new_statistics;
+        }
+    }
+
+    pub fn get_statistics(&self) -> Statistics {
+        self.statistics.read().unwrap().clone()
     }
 
     pub async fn prepare_settings(&self) -> anyhow::Result<()> {

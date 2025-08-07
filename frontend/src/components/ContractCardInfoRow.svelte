@@ -33,11 +33,9 @@
       </Popover.Trigger>
       <Popover.Content>
         <InfoPopover title={label}>
-          {#snippet content()}
-            <div>
-              {@render popoverContent()}
-            </div>
-          {/snippet}
+          <div>
+            {@render popoverContent()}
+          </div>
         </InfoPopover>
       </Popover.Content>
     </Popover.Root>

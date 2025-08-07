@@ -1,23 +1,29 @@
+import { fetchStatistics } from "$lib/index";
 import { searchContracts, DEFAULT_SEARCH_REQUEST, parseSearchRequestFromParams } from "$lib/index";
-import type { SearchContractsResponse } from "$lib/types/api";
+import type { SearchContractsResponse, Statistics } from "$lib/types/api";
 import type { PageLoad } from "./$types";
 
 export const load: PageLoad = async ({ fetch, url }) => {
   const params = url.searchParams;
-  const request = parseSearchRequestFromParams(params);
+  const searchRequest = parseSearchRequestFromParams(params);
 
   try {
-    const response = await searchContracts(request, fetch);
+    const [searchResponse, statisticsResponse] = await Promise.all([
+      searchContracts(searchRequest, fetch),
+      fetchStatistics(fetch),
+    ]);
+
     return {
-      response,
-      request,
+      searchResponse,
+      searchRequest,
+      statisticsResponse,
       error: null,
     };
   } catch (error) {
     console.error(error);
 
     return {
-      response: {
+      searchResponse: {
         contracts: [],
         total: 0,
         page: 0,
@@ -25,7 +31,15 @@ export const load: PageLoad = async ({ fetch, url }) => {
         elapsedMillis: 0,
         hitsPerPage: 0,
       } as SearchContractsResponse,
-      request,
+      statisticsResponse: {
+        totalSpentLast365Days: 0,
+        contractsLast365Days: 0,
+        totalSpentLast30Days: 0,
+        contractsLast30Days: 0,
+        totalSpentLast7Days: 0,
+        contractsLast7Days: 0,
+      } as Statistics,
+      searchRequest,
       error: error instanceof Error ? error.message : "Erro desconhecido",
     };
   }

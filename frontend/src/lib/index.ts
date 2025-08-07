@@ -3,6 +3,7 @@ import {
   type Filters,
   type SearchContractsRequest,
   type SearchContractsResponse,
+  type Statistics,
 } from "$lib/types/api";
 import { validateEnumOrDefault } from "./utils";
 
@@ -76,4 +77,18 @@ export function parseSearchRequestFromParams(
   addParam("maxPrice", (v) => parseInt(v, 10));
 
   return { query, sort, filters, page };
+}
+
+export async function fetchStatistics(fetchFn = fetch): Promise<Statistics> {
+  const response = await fetchFn(`/api/statistics`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!response.ok || response.status !== 200) {
+    const errorData = await response.json().catch(() => ({ message: "Unknown error occurred" }));
+    throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
+  }
+
+  return await response.json();
 }
