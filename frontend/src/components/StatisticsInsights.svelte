@@ -41,11 +41,13 @@
   let currentInsightType: (typeof insight_types)[number] | undefined = $state();
 
   onMount(() => {
+    const INSIGHT_ROTATION_INTERVAL_MS = 10000;
+
     currentInsightType = randomInsightType();
 
     const interval = setInterval(() => {
       currentInsightType = randomInsightType();
-    }, 10000);
+    }, INSIGHT_ROTATION_INTERVAL_MS);
 
     return () => clearInterval(interval);
   });

@@ -9,7 +9,7 @@ use meilisearch_sdk::client::Client;
 use scraper::store::meilisearch::MeilisearchStore;
 use std::{path::PathBuf, time::Instant};
 use tokio::signal;
-use tracing::{Level, event, info};
+use tracing::{error, event, info, Level};
 
 mod extractors;
 mod filter;
@@ -68,14 +68,21 @@ async fn main() -> anyhow::Result<()> {
         loop {
             let instant = Instant::now();
             // this will likely change soon to use a more efficient database with aggregation mechanisms
-            let statistics = statistics::Statistics::compute_new_statistics(client.clone())
-                .await
-                .unwrap();
+            // 
+            match statistics::Statistics::compute_new_statistics(client.clone()).await {
+                Ok(statistics) => {
+                    info!("Computed statistics in {:?}", instant.elapsed());
 
-            info!("Computed statistics in {:?}", instant.elapsed());
+                    app_state_clone.set_statistics(statistics);
+                }
+                Err(err) => {
+                    error!("Failed to compute statistics: {:?}", err);
+                }
+            }
 
-            app_state_clone.set_statistics(statistics);
-            tokio::time::sleep(tokio::time::Duration::from_secs(15 * 60)).await;
+            const STATISTICS_REFRESH_TIME: tokio::time::Duration =
+                tokio::time::Duration::from_secs(15 * 60);
+            tokio::time::sleep(STATISTICS_REFRESH_TIME).await;
         }
     });
 
