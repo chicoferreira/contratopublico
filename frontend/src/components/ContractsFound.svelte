@@ -7,7 +7,7 @@
   const formatter = new Intl.NumberFormat("pt-PT");
 </script>
 
-<div class="flex items-center min-h-[1.5rem]">
+<div class="flex min-h-[1.5rem]">
   {#if loading}
     <div in:fade={{ duration: 300 }}>
       <Skeleton class="h-[1em] w-[15em]" />
