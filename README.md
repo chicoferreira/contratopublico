@@ -1,95 +1,97 @@
 # Contrato Público
 
-[contratopublico.pt](https://contratopublico.pt/) is a search service for public contracts
-executed in Portugal that aggregates data from the
-official [Portal BASE](https://www.base.gov.pt/base4)[^1] into a much more usable, faster, and intuitive platform.
+O [contratopublico.pt](https://contratopublico.pt/) é um serviço de pesquisa de contratos públicos
+realizados em Portugal que agrega dados do
+[Portal BASE](https://www.base.gov.pt/base4)[^1], disponibilizando-os numa plataforma muito mais usável, rápida e intuitiva.
 
 <img width="1334" height="834" alt="image" src="https://github.com/user-attachments/assets/90aac3d9-8959-474f-ae45-940be8ac5b53" />
 
-[^1]: Not affiliated with Governo de Portugal or IMPIC.
+[^1]: Sem qualquer afiliação com o Governo de Portugal ou o IMPIC.
 
-## Performance
+O Portal BASE oficial apresenta [um desempenho muito fraco, mesmo para pesquisas simples de contratos](https://www.base.gov.pt/Base4/pt/pesquisa/?type=contratos&texto=Porto&tipo=0&tipocontrato=0&cpv=&aqinfo=&adjudicante=&adjudicataria=&sel_price=price_c1&desdeprecocontrato=&ateprecocontrato=&desdeprecoefectivo=&ateprecoefectivo=&desdeprazoexecucao=&ateprazoexecucao=&sel_date=date_c1&desdedatacontrato=&atedatacontrato=&desdedatapublicacao=&atedatapublicacao=&desdedatafecho=&atedatafecho=&pais=0&distrito=0&concelho=0), cada uma demorando frequentemente mais de 5 segundos, e [algumas consultas podem ultrapassar os 50 segundos](https://www.base.gov.pt/Base4/pt/pesquisa/?type=contratos&texto=&tipo=0&tipocontrato=0&cpv=&aqinfo=&adjudicante=Municipio+de+Santo+Tirso&adjudicataria=&sel_price=price_c1&desdeprecocontrato=&ateprecocontrato=&desdeprecoefectivo=&ateprecoefectivo=&desdeprazoexecucao=&ateprazoexecucao=&sel_date=date_c1&desdedatacontrato=&atedatacontrato=&desdedatapublicacao=&atedatapublicacao=&desdedatafecho=&atedatafecho=&pais=0&distrito=0&concelho=0).
 
-The official Portal BASE demonstrates [very poor performance for even simple contract searches](https://www.base.gov.pt/Base4/pt/pesquisa/?type=contratos&texto=Porto&tipo=0&tipocontrato=0&cpv=&aqinfo=&adjudicante=&adjudicataria=&sel_price=price_c1&desdeprecocontrato=&ateprecocontrato=&desdeprecoefectivo=&ateprecoefectivo=&desdeprazoexecucao=&ateprazoexecucao=&sel_date=date_c1&desdedatacontrato=&atedatacontrato=&desdedatapublicacao=&atedatapublicacao=&desdedatafecho=&atedatafecho=&pais=0&distrito=0&concelho=0), often taking more than 5 seconds, and [some queries can exceed 50 seconds](https://www.base.gov.pt/Base4/pt/pesquisa/?type=contratos&texto=&tipo=0&tipocontrato=0&cpv=&aqinfo=&adjudicante=Municipio+de+Santo+Tirso&adjudicataria=&sel_price=price_c1&desdeprecocontrato=&ateprecocontrato=&desdeprecoefectivo=&ateprecoefectivo=&desdeprazoexecucao=&ateprazoexecucao=&sel_date=date_c1&desdedatacontrato=&atedatacontrato=&desdedatapublicacao=&atedatapublicacao=&desdedatafecho=&atedatafecho=&pais=0&distrito=0&concelho=0).
+Embora não seja uma comparação direta e exata, uma vez que a nossa recolha de dados apenas obtém informação superficial apresentada nos resultados de pesquisa do Portal BASE e não inclui campos como _localização_ ou _entidades concorrentes_ (ver [issue #28](https://github.com/chicoferreira/contratopublico/issues/28) para progresso), a diferença nos tempos de resposta continua a ser astronómica. A [mesma pesquisa simples](https://contratopublico.pt/?query=Porto) e [a pesquisa com os mesmos filtros](https://contratopublico.pt/?contracting=Municipio+do+Porto) no [contratopublico.pt](https://contratopublico.pt) devolvem resultados em apenas alguns milissegundos, tornando a pesquisa praticamente instantânea.
 
-While not a direct one-to-one comparison, since our scraping only collects the surface-level information displayed in Portal BASE search results and does not include fields like _location_ or _competitor entities_ (check [issue #28](https://github.com/chicoferreira/contratopublico/issues/28) for progress in this), the difference in response times is still astronomical. The [same simple query](https://contratopublico.pt/?query=Porto) and [the query with the same filters](https://contratopublico.pt/?contracting=Municipio+do+Porto) on [contratopublico.pt](https://contratopublico.pt) return the results in just a few milliseconds, making the search practically instantaneous.
+Está planeada disponibilização de informação mais abrangente e interativa sobre este tema de desempenho em [issue #10](https://github.com/chicoferreira/contratopublico/issues/10).
 
-More comprehensive and interactive information on this topic is planned in [issue #10](https://github.com/chicoferreira/contratopublico/issues/10).
+O [contratopublico.pt](https://contratopublico.pt) também proporciona uma experiência de pesquisa muito mais intuitiva e acessível, com funcionalidades de pesquisa automática, descrições detalhadas para termos técnicos menos familiares ao público geral e uma interface significativamente mais apelativa e funcional.
 
-## Planned Features
+## Funcionalidades Planeadas
 
-Currently, this project allows searching for public contracts using basic information such as contract title, contracting entity, contracted entity, and dates.
+Atualmente, este projeto permite pesquisar contratos públicos com base em informações simples como título do contrato, entidade adjudicante, entidade adjudicatária, datas, entre outros.
 
-Many new features are planned to make the project more informative and user-friendly. Some include integrating interactive statistics, such as charts and graphs that show daily contract spending, highlight the most expensive contracts, and display which locations have the highest spending.
+Estão planeadas várias novas funcionalidades para tornar o projeto mais informativo. Entre elas, a integração de estatísticas interativas, como gráficos que mostram a despesa diária, mensal e anual com contratos, destaques com os contratos mais caros e quais as localizações/instituições com maior despesa.
 
-There are also plans to implement pages for contract views with more detailed information so users do not need to visit Portal BASE for further details.
+Também está prevista a implementação de páginas dedicadas a cada contrato, com informação mais detalhada, evitando que o utilizador tenha de visitar o Portal BASE para obter mais dados.
 
-Additionally, tracking contract modifications made after publication and offering pages for each entity, showing their contract history and related statistics, are planned.
+Além disso, está planeado o acompanhamento de alterações aos contratos após a sua publicação e a criação de uma página para aceder a informações de cada entidade, mostrando o seu histórico de contratos e estatísticas relacionadas.
 
-For a complete list of planned features, check out the [issues tab](https://github.com/chicoferreira/contratopublico/issues/). Contributions are welcome. If you have suggestions or new ideas, please create a new issue describing them.
+Para a lista completa de funcionalidades planeadas, consulte as [issues](https://github.com/chicoferreira/contratopublico/issues/). Contribuições são bem-vindas. Caso tenha sugestões ou novas ideias, crie uma _issue_ a descrevê-las.
 
-## Project structure
+## Estrutura do projeto
 
 ### Stack
-- **Backend**: Rust with Axum
-- **Search Engine**: Meilisearch
+
+- **Backend**: Rust com Axum
+- **Motor de Pesquisa**: Meilisearch
 - **Frontend**: SvelteKit + Tailwind + TypeScript
-- **Monitoring**: Prometheus + Grafana
+- **Monitorização**: Prometheus + Grafana
 
 ```
-backend/                # Rust backend
+backend/                # Backend em Rust
   crates/
-    api/                # Axum API (search, statistics, metrics)
-    common/             # Shared types (Contract, Currency)
-    scraper/            # Scraper and CLI (scrape/import)
-frontend/               # SvelteKit app
-docker/                 # Compose files (stack, dev Meilisearch, Cloudflare tunnel)
+    api/                # API Axum (pesquisa, estatísticas, métricas)
+    common/             # Tipos partilhados (Contrato, Moeda)
+    scraper/            # Scraper e CLI (raspagem/importação)
+frontend/               # Aplicação SvelteKit
+docker/                 # Ficheiros Compose (stack, Meilisearch dev, túnel Cloudflare)
 monitoring/             # Prometheus + Grafana + k6
-rpxy/                   # Reverse proxy configuration
+rpxy/                   # Configuração do proxy reverso
 ```
-### Scraping
 
-The running backend service continuously scrapes Portal BASE using the `scraper` crate and adds new contracts into Meilisearch. The saved pages are tracked in `SAVED_PAGES_PATH`.
+### _Scraping_
 
-### Monitoring
+O serviço backend recolhe continuamente dados do Portal BASE usando a _crate_ `scraper` e adiciona novos contratos ao Meilisearch.
 
-Prometheus and Grafana are included in `docker/docker-compose.yml` with dashboards and configurations under `monitoring/grafana`. Set `GRAFANA_ADMIN_PASSWORD` in `.env`.
+### Monitorização
 
-A simple `k6` benchmark script is also provided in `monitoring/bench`.
+O Prometheus e o Grafana com uma _dashboard_ simples estão incluídos em `docker/docker-compose.yml`, com as suas configurações em `monitoring/grafana`.
 
-## Quick start (Docker)
+Um simples script de _benchmark_ com `k6` também está incluído em `monitoring/bench`.
 
-**Prerequisites:** Docker & Docker Compose
+## Início rápido (Docker)
 
-1. Copy the `.env.example` into `.env` inside `docker/` and change the values as needed.
+**Pré-requisitos:** Docker & Docker Compose
 
-2. Run the compose:
+1. Copie o ficheiro `.env.example` para `.env` dentro da pasta `docker/` e altere os valores conforme necessário.
+
+2. Execute o _compose_:
 
 ```
 docker compose -f docker/docker-compose.yml up -d
 ```
 
-This brings up:
+Isto irá iniciar:
 
-- `meilisearch` (data in `backend/data/meili_data`)
+- `meilisearch` (dados em `backend/data/meili_data`)
 - `backend`
 - `frontend`
-- `prometheus` and `grafana`
-- `rpxy` reverse proxy
+- `prometheus` e `grafana`
+- `rpxy` (proxy reverso)
 
-By default, ports are not published. In production deploy behind your own proxy (for example `docker-compose-cftunnels.yml` brings up Cloudflare Tunnels). For local exploration you can either:
+Por predefinição, as portas não são expostas. Em produção, deve disponibilizar o seu próprio _proxy_ (por exemplo, `docker-compose-cftunnels.yml` inicia um Cloudflare Tunnel). Para utilização local pode:
 
-- Run services locally without Docker (see next section), or:
-  1. Add `ports:` mappings to `docker/docker-compose.yml` for `rpxy` exposing port 80.
-  2. Change `server_name` from `contratopublico.pt` to `localhost` in `rpxy/config/config.toml`.
+- Executar os serviços localmente sem Docker (ver secção seguinte), ou:
+  1. Adicionar `ports:` no `docker/docker-compose.yml` no serviço `rpxy`, expondo a porta 80.
+  2. Alterar `server_name` de `contratopublico.pt` para `localhost` em `rpxy/config/config.toml`.
 
-## Local development
+## Desenvolvimento local
 
-You can run Meilisearch in Docker, the backend with Cargo, and the frontend with Bun/Node.
+Pode executar o Meilisearch em Docker, o backend com Cargo e o frontend com Bun/Node.
 
 ### 1. Meilisearch
 
-Start Meilisearch in Docker:
+Inicie o Meilisearch em Docker:
 
 ```
 docker compose -f docker/docker-compose-meilisearch.yml up -d
@@ -97,31 +99,37 @@ docker compose -f docker/docker-compose-meilisearch.yml up -d
 
 ### 2. Backend (Rust)
 
-**Requirements:** Rust
+**Requisitos:** Rust
 
-Check `backend/src/api/src/main.rs` for environment variables.
+Consulte `backend/src/api/src/main.rs` para variáveis de ambiente.
 
-Run:
+Execute:
 
 ```
 cd backend
 cargo run --release --bin backend
 ```
 
-The backend will (by default):
+O backend irá (por predefinição):
 
-- Prepare Meilisearch index settings
-- Spawn a periodic scraper loop
-- Expose API on `:3000` and metrics on `:3001/metrics`
+- Preparar as definições do Meilisearch
+- Iniciar um ciclo periódico de _scraping_
+- Expor a API em `:3000` e métricas em `:3001/metrics`
 
 ### 3. Frontend (SvelteKit)
 
-**Requirements:** Bun (recommended) or Node 20+
+**Requisitos:** Bun (recomendado) ou Node 20+
 
-Run:
+Execute:
 
 ```
 cd frontend
 bun install
 bun run dev
 ```
+
+Será apresentada a porta onde o frontend foi exposto.
+
+## Licença
+
+Consulte a licença de utilização em [LICENSE](https://github.com/chicoferreira/contratopublico/blob/main/LICENSE)
