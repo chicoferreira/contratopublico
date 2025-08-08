@@ -4,6 +4,8 @@
 executed in Portugal that aggregates data from the
 official [Portal BASE](https://www.base.gov.pt/base4)[^1] into a much more usable, faster, and intuitive platform.
 
+<img width="1334" height="834" alt="image" src="https://github.com/user-attachments/assets/90aac3d9-8959-474f-ae45-940be8ac5b53" />
+
 [^1]: Not affiliated with Governo de Portugal or IMPIC.
 
 ## Performance
