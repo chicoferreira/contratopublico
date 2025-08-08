@@ -1,8 +1,8 @@
-# Contrato Público
-
 > Portuguese version of this README is available at [README.md](https://github.com/chicoferreira/contratopublico/blob/main/README.md)
 
-[contratopublico.pt](https://contratopublico.pt/) is a public contracts search service for contracts executed in Portugal. It aggregates data from the official database [Portal BASE](https://www.base.gov.pt/base4)[^1], making it available on a platform that is far more usable, faster, and intuitive.
+# Contrato Público (Public Contracts)
+
+[contratopublico.pt](https://contratopublico.pt/) is a search service for public contracts executed in Portugal. It aggregates data from the official database [Portal BASE](https://www.base.gov.pt/base4)[^1], making it available on a platform that is far more usable, faster, and intuitive.
 
 <img width="1334" height="834" alt="image" src="https://github.com/user-attachments/assets/90aac3d9-8959-474f-ae45-940be8ac5b53" />
 
@@ -10,7 +10,7 @@
 
 The official Portal BASE [has very poor performance, even for simple contract searches](https://www.base.gov.pt/Base4/pt/pesquisa/?type=contratos&texto=Porto&tipo=0&tipocontrato=0&cpv=&aqinfo=&adjudicante=&adjudicataria=&sel_price=price_c1&desdeprecocontrato=&ateprecocontrato=&desdeprecoefectivo=&ateprecoefectivo=&desdeprazoexecucao=&ateprazoexecucao=&sel_date=date_c1&desdedatacontrato=&atedatacontrato=&desdedatapublicacao=&atedatapublicacao=&desdedatafecho=&atedatafecho=&pais=0&distrito=0&concelho=0), often taking more than 5 seconds per search, and [some queries can take over 50 seconds](https://www.base.gov.pt/Base4/pt/pesquisa/?type=contratos&texto=&tipo=0&tipocontrato=0&cpv=&aqinfo=&adjudicante=Municipio+de+Santo+Tirso&adjudicataria=&sel_price=price_c1&desdeprecocontrato=&ateprecocontrato=&desdeprecoefectivo=&ateprecoefectivo=&desdeprazoexecucao=&ateprazoexecucao=&sel_date=date_c1&desdedatacontrato=&atedatacontrato=&desdedatapublicacao=&atedatapublicacao=&desdedatafecho=&atedatafecho=&pais=0&distrito=0&concelho=0).
 
-Although this is not a direct and exact comparison, since our data collection only retrieves the superficial information shown in the Portal BASE search results and does not include fields like *location* or *competing entities* (see [issue #28](https://github.com/chicoferreira/contratopublico/issues/28) for progress), the difference in response times remains astronomical. The [same simple search](https://contratopublico.pt/?query=Porto) and [search with the same filters](https://contratopublico.pt/?contracting=Municipio+do+Porto) on [contratopublico.pt](https://contratopublico.pt) return results in just a few milliseconds, making the search practically instantaneous.
+Although this is not a direct and exact comparison, since our data collection only retrieves the superficial information shown in the Portal BASE search results and does not include fields like _location_ or _competing entities_ (see [issue #28](https://github.com/chicoferreira/contratopublico/issues/28) for progress), the difference in response times remains astronomical. The [same simple search](https://contratopublico.pt/?query=Porto) and [search with the same filters](https://contratopublico.pt/?contracting=Municipio+do+Porto) on [contratopublico.pt](https://contratopublico.pt) return results in just a few milliseconds, making the search practically instantaneous.
 
 More extensive and interactive information about this performance topic is planned in [issue #10](https://github.com/chicoferreira/contratopublico/issues/10).
 
@@ -26,16 +26,16 @@ There are also plans to implement dedicated pages for each contract, with more d
 
 In addition, there are plans to track changes to contracts after their publication and to create a page with information on each entity, showing its contract history and related statistics.
 
-For the full list of planned features, check the [issues](https://github.com/chicoferreira/contratopublico/issues/). Contributions are welcome. If you have suggestions or new ideas, create an *issue* describing them.
+For the full list of planned features, check the [issues](https://github.com/chicoferreira/contratopublico/issues/). Contributions are welcome. If you have suggestions or new ideas, create an _issue_ describing them.
 
 ## Project Structure
 
 ### Stack
 
-* **Backend**: Rust with Axum
-* **Search Engine**: Meilisearch
-* **Frontend**: SvelteKit + Tailwind + TypeScript
-* **Monitoring**: Prometheus + Grafana
+- **Backend**: Rust with Axum
+- **Search Engine**: Meilisearch
+- **Frontend**: SvelteKit + Tailwind + TypeScript
+- **Monitoring**: Prometheus + Grafana
 
 ```
 backend/                # Rust backend
@@ -73,16 +73,15 @@ docker compose -f docker/docker-compose.yml up -d
 
 This will start:
 
-* `meilisearch` (data in `backend/data/meili_data`)
-* `backend`
-* `frontend`
-* `prometheus` and `grafana`
-* `rpxy` (reverse proxy)
+- `meilisearch` (data in `backend/data/meili_data`)
+- `backend`
+- `frontend`
+- `prometheus` and `grafana`
+- `rpxy` (reverse proxy)
 
 By default, the ports are not exposed. In production, you should provide your own proxy (for example, `docker-compose-cftunnels.yml` starts a Cloudflare Tunnel). For local use, you can:
 
-* Run the services locally without Docker (see next section), or:
-
+- Run the services locally without Docker (see next section), or:
   1. Add `ports:` to `rpxy` in `docker/docker-compose.yml` to expose port 80.
   2. Change `server_name` from `contratopublico.pt` to `localhost` in `rpxy/config/config.toml`.
 
@@ -113,9 +112,9 @@ cargo run --release --bin backend
 
 The backend will (by default):
 
-* Prepare Meilisearch settings
-* Start a periodic scraping cycle
-* Expose the API on `:3000` and metrics on `:3001/metrics`
+- Prepare Meilisearch settings
+- Start a periodic scraping cycle
+- Expose the API on `:3000` and metrics on `:3001/metrics`
 
 ### 3. Frontend (SvelteKit)
 
