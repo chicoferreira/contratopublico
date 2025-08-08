@@ -2,13 +2,15 @@
 
 [contratopublico.pt](https://contratopublico.pt/) is a search service for public contracts
 executed in Portugal that aggregates data from the
-official [Portal BASE](https://www.base.gov.pt/base4) into a much more usable, faster, and intuitive platform.
+official [Portal BASE](https://www.base.gov.pt/base4)[^1] into a much more usable, faster, and intuitive platform.
+
+[^1]: Not affiliated with Governo de Portugal or IMPIC.
 
 ## Performance
 
-Portal BASE demonstrates [very poor performance for even simple contract searches](https://www.base.gov.pt/Base4/pt/pesquisa/?type=contratos&texto=Porto&tipo=0&tipocontrato=0&cpv=&aqinfo=&adjudicante=&adjudicataria=&sel_price=price_c1&desdeprecocontrato=&ateprecocontrato=&desdeprecoefectivo=&ateprecoefectivo=&desdeprazoexecucao=&ateprazoexecucao=&sel_date=date_c1&desdedatacontrato=&atedatacontrato=&desdedatapublicacao=&atedatapublicacao=&desdedatafecho=&atedatafecho=&pais=0&distrito=0&concelho=0), often taking more than 5 seconds, and [some queries can exceed 50 seconds](https://www.base.gov.pt/Base4/pt/pesquisa/?type=contratos&texto=&tipo=0&tipocontrato=0&cpv=&aqinfo=&adjudicante=Municipio+de+Santo+Tirso&adjudicataria=&sel_price=price_c1&desdeprecocontrato=&ateprecocontrato=&desdeprecoefectivo=&ateprecoefectivo=&desdeprazoexecucao=&ateprazoexecucao=&sel_date=date_c1&desdedatacontrato=&atedatacontrato=&desdedatapublicacao=&atedatapublicacao=&desdedatafecho=&atedatafecho=&pais=0&distrito=0&concelho=0).
+The official Portal BASE demonstrates [very poor performance for even simple contract searches](https://www.base.gov.pt/Base4/pt/pesquisa/?type=contratos&texto=Porto&tipo=0&tipocontrato=0&cpv=&aqinfo=&adjudicante=&adjudicataria=&sel_price=price_c1&desdeprecocontrato=&ateprecocontrato=&desdeprecoefectivo=&ateprecoefectivo=&desdeprazoexecucao=&ateprazoexecucao=&sel_date=date_c1&desdedatacontrato=&atedatacontrato=&desdedatapublicacao=&atedatapublicacao=&desdedatafecho=&atedatafecho=&pais=0&distrito=0&concelho=0), often taking more than 5 seconds, and [some queries can exceed 50 seconds](https://www.base.gov.pt/Base4/pt/pesquisa/?type=contratos&texto=&tipo=0&tipocontrato=0&cpv=&aqinfo=&adjudicante=Municipio+de+Santo+Tirso&adjudicataria=&sel_price=price_c1&desdeprecocontrato=&ateprecocontrato=&desdeprecoefectivo=&ateprecoefectivo=&desdeprazoexecucao=&ateprazoexecucao=&sel_date=date_c1&desdedatacontrato=&atedatacontrato=&desdedatapublicacao=&atedatapublicacao=&desdedatafecho=&atedatafecho=&pais=0&distrito=0&concelho=0).
 
-While not a direct one-to-one comparison, since our scraping only collects the surface-level information displayed in Portal BASE search results and does not include fields like _location_ or _competitor entities_ (check [issue #28](https://github.com/chicoferreira/contratopublico/issues/28) for progress in this), the difference in response times is still very astronomical. The [same simple query](https://contratopublico.pt/?query=Porto) and [the query with the same filters](https://contratopublico.pt/?contracting=Municipio+do+Porto) on [contratopublico.pt](https://contratopublico.pt) return the results in just a few milliseconds, making the search practically instantaneous.
+While not a direct one-to-one comparison, since our scraping only collects the surface-level information displayed in Portal BASE search results and does not include fields like _location_ or _competitor entities_ (check [issue #28](https://github.com/chicoferreira/contratopublico/issues/28) for progress in this), the difference in response times is still astronomical. The [same simple query](https://contratopublico.pt/?query=Porto) and [the query with the same filters](https://contratopublico.pt/?contracting=Municipio+do+Porto) on [contratopublico.pt](https://contratopublico.pt) return the results in just a few milliseconds, making the search practically instantaneous.
 
 More comprehensive and interactive information on this topic is planned in [issue #10](https://github.com/chicoferreira/contratopublico/issues/10).
 
@@ -121,6 +123,3 @@ cd frontend
 bun install
 bun run dev
 ```
-
-> [!NOTE]
-> Not affiliated with Governo de Portugal or IMPIC.
