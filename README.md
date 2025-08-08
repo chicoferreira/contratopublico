@@ -1,5 +1,7 @@
 # Contrato Público
 
+> English version of this README is available at [README.en.md](https://github.com/chicoferreira/contratopublico/blob/main/README.en.md)
+
 O [contratopublico.pt](https://contratopublico.pt/) é um serviço de pesquisa de contratos públicos
 realizados em Portugal que agrega dados do
 [Portal BASE](https://www.base.gov.pt/base4)[^1], disponibilizando-os numa plataforma muito mais usável, rápida e intuitiva.
@@ -40,11 +42,11 @@ Para a lista completa de funcionalidades planeadas, consulte as [issues](https:/
 ```
 backend/                # Backend em Rust
   crates/
-    api/                # API Axum (pesquisa, estatísticas, métricas)
-    common/             # Tipos partilhados (Contrato, Moeda)
-    scraper/            # Scraper e CLI (raspagem/importação)
+    api/                # API Axum-
+    common/             # Tipos partilhados
+    scraper/            # Scraper e CLI
 frontend/               # Aplicação SvelteKit
-docker/                 # Ficheiros Compose (stack, Meilisearch dev, túnel Cloudflare)
+docker/                 # Ficheiros Compose
 monitoring/             # Prometheus + Grafana + k6
 rpxy/                   # Configuração do proxy reverso
 ```
