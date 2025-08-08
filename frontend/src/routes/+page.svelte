@@ -196,7 +196,6 @@
         <SortDropdown bind:sortBy={sort} />
         <FiltersDropdown bind:filtersOpen {activeFiltersCount} />
       </div>
-      <ContractsFound {loading} {searchResults} />
     </div>
 
     {#if filtersOpen}
@@ -206,6 +205,8 @@
         </div>
       </div>
     {/if}
+
+    <ContractsFound {loading} {searchResults} />
   </div>
 
   {#if error}
