@@ -1,6 +1,6 @@
-# Contrato Público
-
 > English version of this README is available at [README.en.md](https://github.com/chicoferreira/contratopublico/blob/main/README.en.md)
+
+# Contrato Público
 
 O [contratopublico.pt](https://contratopublico.pt/) é um serviço de pesquisa de contratos públicos
 realizados em Portugal que agrega dados do
