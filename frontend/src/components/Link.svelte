@@ -18,7 +18,7 @@
   href={url}
   target={"_blank"}
   rel={"noopener noreferrer"}
-  class="group inline-flex w-fit shrink-0 items-center gap-[6px] transition-opacity hover:opacity-80"
+  class="group inline-flex w-fit shrink-0 items-center gap-[6px] transition-opacity hover:opacity-80 cursor-pointer"
   {title}>
   <span
     class={cn(

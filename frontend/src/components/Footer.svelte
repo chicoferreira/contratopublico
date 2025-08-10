@@ -7,9 +7,14 @@
 </script>
 
 <footer class="bg-muted/30 mt-auto border-y">
-  <div class="container mx-auto px-4 py-7">
+  <div class="container mx-auto px-4 py-7 text-sm">
+    <nav class="flex items-center justify-center gap-3 text-muted-foreground mb-8">
+      <a href="/changelog" class="transition-colors hover:text-primary">Changelog</a>
+      <Separator orientation="vertical" class="hidden !h-4 sm:block" />
+      <a href="/privacy" class="transition-colors hover:text-primary">Privacidade</a>
+    </nav>
     <div class="flex flex-col items-center space-y-5 text-center">
-      <div class="text-muted-foreground max-w-2xl space-y-2 text-sm">
+      <div class="text-muted-foreground max-w-2xl space-y-2">
         <p>
           Site não afiliado ao
           <span class="text-primary font-semibold">IMPIC</span>
@@ -24,7 +29,7 @@
         </p>
       </div>
 
-      <div class="flex flex-col items-center gap-3 text-sm sm:flex-row sm:gap-4">
+      <div class="flex flex-col items-center gap-3 sm:flex-row sm:gap-4">
         <div class="inline-flex items-center gap-2">
           <Github class="text-muted-foreground h-4 w-4" />
           <Link
@@ -60,7 +65,7 @@
         </div>
       </div>
 
-      <p class="text-muted-foreground text-sm">
+      <p class="text-muted-foreground">
         Desenvolvido por
         <Link
           url="https://github.com/chicoferreira"
