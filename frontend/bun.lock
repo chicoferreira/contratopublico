@@ -30,6 +30,7 @@
         "svelte-check": "^4.0.0",
         "tailwind-merge": "^3.3.1",
         "tailwind-variants": "^1.0.0",
+        "tsx": "^4.20.3",
         "tw-animate-css": "^1.3.5",
         "typescript": "^5.0.0",
         "vite": "^6.2.6",
@@ -351,6 +352,8 @@
 
     "function-bind": ["function-bind@1.1.2", "", {}, "sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA=="],
 
+    "get-tsconfig": ["get-tsconfig@4.10.1", "", { "dependencies": { "resolve-pkg-maps": "^1.0.0" } }, "sha512-auHyJ4AgMz7vgS8Hp3N6HXSmlMdUyhSUrfBF16w153rxtLIEOE+HGqaBppczZvnHLqQJfiHotCYpNhl0lUROFQ=="],
+
     "glob-parent": ["glob-parent@6.0.2", "", { "dependencies": { "is-glob": "^4.0.3" } }, "sha512-XxwI8EOhVQgWp6iDL+3b0r86f4d6AX6zSU55HfB4ydCEuXLXc5FcYeOu+nnGftS4TEju/11rt4KJPTMgbfmv4A=="],
 
     "globals": ["globals@14.0.0", "", {}, "sha512-oahGvuMGQlPw/ivIYBjVSrWAfWLBeku5tpPE2fOPLi+WHffIWbuh2tCjhyQhTBPMf5E9jDEH4FOmTYgYwbKwtQ=="],
@@ -499,6 +502,8 @@
 
     "resolve-from": ["resolve-from@4.0.0", "", {}, "sha512-pb/MYmXstAkysRFx8piNI1tGFNQIFA3vkE3Gq4EuA1dF6gHp/+vgZqsCGJapvy8N3Q+4o7FwvquPJcnZ7RYy4g=="],
 
+    "resolve-pkg-maps": ["resolve-pkg-maps@1.0.0", "", {}, "sha512-seS2Tj26TBVOC2NIc2rOe2y2ZO7efxITtLZcGSOnHHNOQ7CkiUBfw0Iw2ck6xkIhPwLhKNLS8BO+hEpngQlqzw=="],
+
     "rollup": ["rollup@4.46.1", "", { "dependencies": { "@types/estree": "1.0.8" }, "optionalDependencies": { "@rollup/rollup-android-arm-eabi": "4.46.1", "@rollup/rollup-android-arm64": "4.46.1", "@rollup/rollup-darwin-arm64": "4.46.1", "@rollup/rollup-darwin-x64": "4.46.1", "@rollup/rollup-freebsd-arm64": "4.46.1", "@rollup/rollup-freebsd-x64": "4.46.1", "@rollup/rollup-linux-arm-gnueabihf": "4.46.1", "@rollup/rollup-linux-arm-musleabihf": "4.46.1", "@rollup/rollup-linux-arm64-gnu": "4.46.1", "@rollup/rollup-linux-arm64-musl": "4.46.1", "@rollup/rollup-linux-loongarch64-gnu": "4.46.1", "@rollup/rollup-linux-ppc64-gnu": "4.46.1", "@rollup/rollup-linux-riscv64-gnu": "4.46.1", "@rollup/rollup-linux-riscv64-musl": "4.46.1", "@rollup/rollup-linux-s390x-gnu": "4.46.1", "@rollup/rollup-linux-x64-gnu": "4.46.1", "@rollup/rollup-linux-x64-musl": "4.46.1", "@rollup/rollup-win32-arm64-msvc": "4.46.1", "@rollup/rollup-win32-ia32-msvc": "4.46.1", "@rollup/rollup-win32-x64-msvc": "4.46.1", "fsevents": "~2.3.2" }, "bin": { "rollup": "dist/bin/rollup" } }, "sha512-33xGNBsDJAkzt0PvninskHlWnTIPgDtTwhg0U38CUoNP/7H6wI2Cz6dUeoNPbjdTdsYTGuiFFASuUOWovH0SyQ=="],
 
     "runed": ["runed@0.29.2", "", { "dependencies": { "esm-env": "^1.0.0" }, "peerDependencies": { "svelte": "^5.7.0" } }, "sha512-0cq6cA6sYGZwl/FvVqjx9YN+1xEBu9sDDyuWdDW1yWX7JF2wmvmVKfH+hVCZs+csW+P3ARH92MjI3H9QTagOQA=="],
@@ -550,6 +555,8 @@
     "totalist": ["totalist@3.0.1", "", {}, "sha512-sf4i37nQ2LBx4m3wB74y+ubopq6W/dIzXg0FDGjsYnZHVa1Da8FH853wlL2gtUhg+xJXjfk3kUZS3BRoQeoQBQ=="],
 
     "tslib": ["tslib@2.8.1", "", {}, "sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w=="],
+
+    "tsx": ["tsx@4.20.3", "", { "dependencies": { "esbuild": "~0.25.0", "get-tsconfig": "^4.7.5" }, "optionalDependencies": { "fsevents": "~2.3.3" }, "bin": { "tsx": "dist/cli.mjs" } }, "sha512-qjbnuR9Tr+FJOMBqJCW5ehvIo/buZq7vH7qD7JziU98h6l3qGy0a/yPFjwO+y0/T7GFpNgNAvEcPPVfyT8rrPQ=="],
 
     "tw-animate-css": ["tw-animate-css@1.3.6", "", {}, "sha512-9dy0R9UsYEGmgf26L8UcHiLmSFTHa9+D7+dAt/G/sF5dCnPePZbfgDYinc7/UzAM7g/baVrmS6m9yEpU46d+LA=="],
 
