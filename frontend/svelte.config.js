@@ -1,8 +1,8 @@
-import type { Config } from "@sveltejs/kit";
 import adapter from "svelte-adapter-bun";
 import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
 import { mdsvex } from "mdsvex";
 
+/** @type {import('@sveltejs/kit').Config} */
 const config = {
   extensions: [".svelte", ".md"],
   preprocess: [
@@ -16,6 +16,6 @@ const config = {
   kit: {
     adapter: adapter(),
   },
-} as Config;
+};
 
 export default config;
