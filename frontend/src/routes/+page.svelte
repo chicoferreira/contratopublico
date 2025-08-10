@@ -206,6 +206,8 @@
       </div>
     {/if}
 
+    <div data-change-page-scroll-target></div>
+
     <ContractsFound {loading} {searchResults} />
   </div>
 
@@ -228,6 +230,8 @@
     <ContractPagination
       bind:page
       bind:total={searchResults.total}
-      bind:hitsPerPage={searchResults.hitsPerPage} />
+      bind:hitsPerPage={searchResults.hitsPerPage}
+      scrolToElement="[data-change-page-scroll-target]"
+      scrollOffset={-10} />
   {/if}
 </div>

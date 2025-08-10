@@ -1,10 +1,32 @@
 <script lang="ts">
   import * as Pagination from "$lib/components/ui/pagination/index.js";
 
-  let { page = $bindable(), total = $bindable(), hitsPerPage = $bindable() } = $props();
+  let {
+    page = $bindable(),
+    total = $bindable(),
+    hitsPerPage = $bindable(),
+    scrolToElement = undefined,
+    scrollOffset = 0,
+  } = $props();
+
+  function getPage() {
+    return page;
+  }
+
+  function setPage(newPage: number) {
+    if (newPage > page && scrolToElement) {
+      const targetElement = document.querySelector(scrolToElement) as HTMLElement | null;
+      if (targetElement) {
+        const elementPosition = targetElement.getBoundingClientRect().top;
+        const target = elementPosition + window.scrollY + scrollOffset;
+        window.scrollTo({ top: target, behavior: "smooth" });
+      }
+    }
+    page = newPage;
+  }
 </script>
 
-<Pagination.Root count={total} perPage={hitsPerPage} bind:page>
+<Pagination.Root count={total} perPage={hitsPerPage} bind:page={getPage, setPage}>
   {#snippet children({ pages, currentPage })}
     <Pagination.Content>
       <Pagination.Item>
