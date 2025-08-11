@@ -89,7 +89,8 @@ pub async fn scrape(store: impl store::Store + 'static) {
             );
 
             if let Ok(mut total_pages) = total_pages.lock() {
-                let new_total_pages = response.total / MAX_PAGE_SIZE;
+                // use ceil division to ensure the last (incomplete) page is accounted for
+                let new_total_pages = (response.total + MAX_PAGE_SIZE - 1) / MAX_PAGE_SIZE;
                 if total_pages.is_none_or(|total_pages| total_pages < new_total_pages) {
                     *total_pages = Some(new_total_pages);
                 }

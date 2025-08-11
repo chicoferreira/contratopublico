@@ -117,9 +117,8 @@ impl Store for MeilisearchStore {
             }
         }
 
-        if contracts.len() == contracts_per_page {
-            self.save_page_as_completed(page)?;
-        }
+        // Mark page as completed regardless of being full or the final partial page
+        self.save_page_as_completed(page)?;
 
         Ok(())
     }
