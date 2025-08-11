@@ -45,16 +45,19 @@ impl SortField {
 }
 
 impl SortBy {
-    pub fn to_meilisearch(&self) -> &'static str {
+    pub fn to_meilisearch(&self) -> &'static [&'static str] {
+        use SortDirection::*;
+        use SortField::*;
+
         match (&self.field, &self.direction) {
-            (SortField::Id, SortDirection::Ascending) => "id:asc",
-            (SortField::Id, SortDirection::Descending) => "id:desc",
-            (SortField::PublicationDate, SortDirection::Ascending) => "publicationDate:asc",
-            (SortField::PublicationDate, SortDirection::Descending) => "publicationDate:desc",
-            (SortField::SigningDate, SortDirection::Ascending) => "signingDate:asc",
-            (SortField::SigningDate, SortDirection::Descending) => "signingDate:desc",
-            (SortField::Price, SortDirection::Ascending) => "initialContractualPrice:asc",
-            (SortField::Price, SortDirection::Descending) => "initialContractualPrice:desc",
+            (Id, Ascending) => &["id:asc"],
+            (Id, Descending) => &["id:desc"],
+            (PublicationDate, Ascending) => &["publicationDate:asc", "id:asc"],
+            (PublicationDate, Descending) => &["publicationDate:desc", "id:desc"],
+            (SigningDate, Ascending) => &["signingDate:asc", "id:asc"],
+            (SigningDate, Descending) => &["signingDate:desc", "id:desc"],
+            (Price, Ascending) => &["initialContractualPrice:asc"],
+            (Price, Descending) => &["initialContractualPrice:desc"],
         }
     }
 }
