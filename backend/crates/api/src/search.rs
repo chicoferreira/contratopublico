@@ -64,7 +64,7 @@ pub async fn search(
 ) -> Result<Json<SearchResponse>, AppError> {
     // TODO: add maximum query length
     let sort = query.sort.unwrap_or_default();
-    let sort: Vec<&str> = vec![sort.to_meilisearch()];
+    let sort = sort.to_meilisearch();
 
     let page = query.page.unwrap_or(1);
     let filters = query.filters.as_ref();
