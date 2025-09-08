@@ -78,6 +78,5 @@ pub async fn search(
 
     debug!("Returning {} results", response.contracts.len());
 
-    // TODO: return formatted results
     Ok(Json(response))
 }

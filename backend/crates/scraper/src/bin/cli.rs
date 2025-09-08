@@ -14,22 +14,13 @@ struct Args {
 #[derive(clap::Subcommand)]
 enum Command {
     Scrape {
-        #[command(subcommand)]
-        store: StoreCommand,
+        saved_pages_path: PathBuf,
+        url: String,
+        api_key: Option<String>,
     },
     Import {
         meilisearch_url: String,
         meilisearch_api_key: Option<String>,
-    },
-}
-
-#[derive(Clone, clap::Subcommand)]
-enum StoreCommand {
-    File,
-    Meilisearch {
-        url: String,
-        api_key: Option<String>,
-        saved_pages_path: PathBuf,
     },
 }
 
@@ -41,27 +32,19 @@ async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
     match args.command {
-        Command::Scrape { store } => match store {
-            StoreCommand::File => {
-                scraper::scraper::scrape(scraper::store::file::FileStore).await;
-            }
-            StoreCommand::Meilisearch {
-                url,
-                api_key,
-                saved_pages_path,
-            } => {
-                let client = meilisearch_sdk::client::Client::new(url, api_key)
-                    .context("Failed to create Meilisearch client")?;
+        Command::Scrape {
+            url,
+            api_key,
+            saved_pages_path,
+        } => {
+            let client = meilisearch_sdk::client::Client::new(url, api_key)
+                .context("Failed to create Meilisearch client")?;
 
-                let store = scraper::store::meilisearch::MeilisearchStore::new(
-                    Arc::new(client),
-                    saved_pages_path,
-                )
-                .context("Failed to create MeilisearchStore")?;
+            let store = scraper::store::Store::new(client, saved_pages_path)
+                .context("Failed to create store")?;
 
-                scraper::scraper::scrape(store).await;
-            }
-        },
+            scraper::scraper::scrape(Arc::new(store)).await;
+        }
         Command::Import {
             meilisearch_url,
             meilisearch_api_key,
