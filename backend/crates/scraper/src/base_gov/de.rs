@@ -1,0 +1,62 @@
+use chrono::NaiveDate;
+use common::Currency;
+use serde::Deserialize;
+
+pub fn deserialize_date<'de, D>(deserializer: D) -> Result<NaiveDate, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let date_str: String = Deserialize::deserialize(deserializer)?;
+    NaiveDate::parse_from_str(&date_str, "%d-%m-%Y").map_err(serde::de::Error::custom)
+}
+
+pub fn deserialize_optional_date<'de, D>(deserializer: D) -> Result<Option<NaiveDate>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let date_str: Option<String> = Deserialize::deserialize(deserializer)?;
+    date_str
+        .map(|s| NaiveDate::parse_from_str(&s, "%d-%m-%Y").map_err(serde::de::Error::custom))
+        .transpose()
+}
+
+pub fn deserialize_euros<'de, D>(deserializer: D) -> Result<Currency, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    // 5.611,10 €
+    let euros_str: String = Deserialize::deserialize(deserializer)?;
+    let euros_str = euros_str
+        .trim()
+        .trim_end_matches(" €")
+        .replace(".", "")
+        .replace(",", "");
+
+    let big_int: isize = euros_str.parse().map_err(serde::de::Error::custom)?;
+
+    Ok(Currency(big_int))
+}
+
+pub fn deserialize_execution_deadline<'de, D>(deserializer: D) -> Result<usize, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let date_str: String = Deserialize::deserialize(deserializer)?;
+    let date_str = date_str.trim().trim_end_matches(" dias");
+
+    let days: usize = date_str.parse().map_err(serde::de::Error::custom)?;
+
+    Ok(days)
+}
+
+pub fn deserialize_announcement_id<'de, D>(deserializer: D) -> Result<Option<usize>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let id_str: isize = Deserialize::deserialize(deserializer)?;
+    if id_str >= 0 {
+        Ok(Some(id_str as usize))
+    } else {
+        Ok(None)
+    }
+}

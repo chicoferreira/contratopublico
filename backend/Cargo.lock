@@ -1826,6 +1826,7 @@ dependencies = [
  "log",
  "meilisearch-sdk",
  "nonzero_ext",
+ "num-traits",
  "reqwest",
  "ringbuffer",
  "serde",
@@ -2199,6 +2200,7 @@ dependencies = [
  "slab",
  "socket2",
  "tokio-macros",
+ "tracing",
  "windows-sys 0.52.0",
 ]
 
