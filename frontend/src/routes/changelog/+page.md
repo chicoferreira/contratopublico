@@ -6,15 +6,20 @@ title: Changelog
 import Muted from "../../components/markdown/Muted.svelte"
 import Commit from "../../components/markdown/Commit.svelte"
 import MonthCommits from "../../components/markdown/MonthCommits.svelte"
+import PullRequest from "../../components/markdown/PullRequest.svelte"
 </script>
 
 # Changelog da Plataforma
 
 Este changelog documenta todas as alterações, melhorias e atualizações feitas na plataforma do **Contrato Público**.
 
+## Setembro de 2025 <MonthCommits startDate="2025-09-01" endDate="2025-09-30" />
+
+- Os contratos agora incluem campos como descrição, NIFs de contratados e contratantes, códigos CPV, documentos, e vários outros atributos <PullRequest pr="38"/> <Muted>(09/09/2025)</Muted>
+
 ## Agosto de 2025 <MonthCommits startDate="2025-08-01" endDate="2025-08-31" />
 
-- Ao ordenar uma pesquisa por data, o critério de desempate será o ID do contrato para garantir que contratos mais recentes no mesmo dia apareçam primeiro (ou em último caso ordem ascendente). <Commit commit="9cc96dea2d1dc8701422dc8fd8634eaf8fc46ae7"/> <Muted>(11/08/2025)</Muted>
+- Adicionado critério de desempate por ID do contrato na ordenação por data <Commit commit="9cc96dea2d1dc8701422dc8fd8634eaf8fc46ae7"/> <Muted>(11/08/2025)</Muted>
 - Esta página de changelog adicionada <Commit commit="e54681d72529c4a90fa0e3d68542588b37ce9172"/> <Muted>(10/08/2025)</Muted>
 - Na pesquisa de contratos, ao mudar de página no seletor inferior, a janela do navegador será movida para cima <Commit commit="de17ee4a650ae81a317b823f724b9ac0fa11658b"/> <Muted>(10/08/2025)</Muted>
 - Lançamento da Plataforma [contratopublico.pt](https://contratopublico.pt) <Muted>(08/08/2025)</Muted>
