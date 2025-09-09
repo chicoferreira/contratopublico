@@ -17,7 +17,7 @@ export interface Contract {
   executionPlace: string;
   contractFundamentationType: string;
   contestants: Entity[];
-  invitees: number[];
+  invitees: Entity[];
   documents: Document[];
   ccp: boolean;
 }

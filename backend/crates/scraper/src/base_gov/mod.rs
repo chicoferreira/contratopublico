@@ -69,8 +69,8 @@ pub struct BaseGovContract {
     /// The contestants involved in the contract.
     pub contestants: Vec<BaseGovEntity>,
 
-    // TODO: Check what this value represents
-    pub invitees: Vec<isize>,
+    // Entities that have been invited to participate in the contract.
+    pub invitees: Vec<BaseGovEntity>,
 
     /// The documents related to the contract.
     pub documents: Vec<BaseGovDocument>,
@@ -143,7 +143,7 @@ impl From<BaseGovContract> for Contract {
             execution_place: contract.execution_place,
             contract_fundamentation_type: contract.contract_fundamentation_type,
             contestants: contract.contestants.into_iter().map(Into::into).collect(),
-            invitees: contract.invitees,
+            invitees: contract.invitees.into_iter().map(Into::into).collect(),
             documents: contract.documents.into_iter().map(Into::into).collect(),
             contracting_procedure_url: contract.contracting_procedure_url,
             announcement_id: contract.announcement_id,
