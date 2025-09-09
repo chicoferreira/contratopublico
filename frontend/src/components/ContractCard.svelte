@@ -55,7 +55,7 @@
     <div class="md:space-y-2">
       <ContractCardInfoRow
         Icon={FileText}
-        label={contract.contracting.length > 0 ? "Contratante" : "Contratantes"}>
+        label={contract.contracting.length === 1 ? "Contratante" : "Contratantes"}>
         {#snippet popoverContent()}
           <p>Entidade pública responsável pela contratação e registo do contrato.</p>
           <p>
@@ -77,7 +77,7 @@
       </ContractCardInfoRow>
       <ContractCardInfoRow
         Icon={Building}
-        label={contract.contracted.length > 0 ? "Contratado" : "Contratados"}>
+        label={contract.contracted.length === 1 ? "Contratado" : "Contratados"}>
         {#snippet popoverContent()}
           <p>Entidade selecionada para a prestação de serviços.</p>
           <p>
