@@ -120,62 +120,63 @@ pub struct BaseGovDocument {
     pub description: String,
 }
 
-impl Into<Contract> for BaseGovContract {
-    fn into(self) -> Contract {
+impl From<BaseGovContract> for Contract {
+    fn from(contract: BaseGovContract) -> Contract {
         Contract {
-            id: self.id,
-            contracting_procedure_type: self.contracting_procedure_type,
-            publication_date: self.publication_date,
-            signing_date: self.signing_date,
-            ccp: self.ccp,
-            contracted: self.contracted.into_iter().map(Into::into).collect(),
-            contracting: self.contracting.into_iter().map(Into::into).collect(),
-            object_brief_description: self.object_brief_description,
-            initial_contractual_price: self.initial_contractual_price,
-            description: self.description,
-            cpv: self.cpv.into(),
-            regime: self.regime,
-            contract_status: self.contract_status,
-            non_written_contract_justification_types: self.non_written_contract_justification_types,
-            contract_types: self.contract_types,
-            execution_deadline_days: self.execution_deadline_days,
-            execution_place: self.execution_place,
-            contract_fundamentation_type: self.contract_fundamentation_type,
-            contestants: self.contestants.into_iter().map(Into::into).collect(),
-            invitees: self.invitees,
-            documents: self.documents.into_iter().map(Into::into).collect(),
-            contracting_procedure_url: self.contracting_procedure_url,
-            announcement_id: self.announcement_id,
-            direct_award_fundamentation_type: self.direct_award_fundamentation_type,
-            observations: self.observations,
+            id: contract.id,
+            contracting_procedure_type: contract.contracting_procedure_type,
+            publication_date: contract.publication_date,
+            signing_date: contract.signing_date,
+            ccp: contract.ccp,
+            contracted: contract.contracted.into_iter().map(Into::into).collect(),
+            contracting: contract.contracting.into_iter().map(Into::into).collect(),
+            object_brief_description: contract.object_brief_description,
+            initial_contractual_price: contract.initial_contractual_price,
+            description: contract.description,
+            cpv: contract.cpv.into(),
+            regime: contract.regime,
+            contract_status: contract.contract_status,
+            non_written_contract_justification_types: contract
+                .non_written_contract_justification_types,
+            contract_types: contract.contract_types,
+            execution_deadline_days: contract.execution_deadline_days,
+            execution_place: contract.execution_place,
+            contract_fundamentation_type: contract.contract_fundamentation_type,
+            contestants: contract.contestants.into_iter().map(Into::into).collect(),
+            invitees: contract.invitees,
+            documents: contract.documents.into_iter().map(Into::into).collect(),
+            contracting_procedure_url: contract.contracting_procedure_url,
+            announcement_id: contract.announcement_id,
+            direct_award_fundamentation_type: contract.direct_award_fundamentation_type,
+            observations: contract.observations,
         }
     }
 }
 
-impl Into<Entity> for BaseGovEntity {
-    fn into(self) -> Entity {
+impl From<BaseGovEntity> for Entity {
+    fn from(entity: BaseGovEntity) -> Entity {
         Entity {
-            id: self.id,
-            description: self.description,
-            nif: self.nif,
+            id: entity.id,
+            description: entity.description,
+            nif: entity.nif,
         }
     }
 }
 
-impl Into<Cpv> for BaseGovCpv {
-    fn into(self) -> Cpv {
+impl From<BaseGovCpv> for Cpv {
+    fn from(cpv: BaseGovCpv) -> Cpv {
         Cpv {
-            code: self.code,
-            designation: self.designation,
+            code: cpv.code,
+            designation: cpv.designation,
         }
     }
 }
 
-impl Into<Document> for BaseGovDocument {
-    fn into(self) -> Document {
+impl From<BaseGovDocument> for Document {
+    fn from(document: BaseGovDocument) -> Document {
         Document {
-            id: self.id,
-            description: self.description,
+            id: document.id,
+            description: document.description,
         }
     }
 }
