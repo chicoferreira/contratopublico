@@ -2,7 +2,6 @@ use std::sync::{Arc, RwLock};
 
 use anyhow::Context;
 use common::Contract;
-use itertools::Itertools;
 use meilisearch_sdk::{
     client::Client,
     settings::{PaginationSetting, Settings},
