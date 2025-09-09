@@ -37,6 +37,25 @@ where
     Ok(Currency(big_int))
 }
 
+pub fn deserialize_optional_euros<'de, D>(deserializer: D) -> Result<Option<Currency>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    // 5.611,10 €
+    let euros_str: Option<String> = Deserialize::deserialize(deserializer)?;
+    euros_str
+        .map(|euros_str| {
+            let processed = euros_str
+                .trim()
+                .trim_end_matches(" €")
+                .replace(".", "")
+                .replace(",", "");
+            let big_int: isize = processed.parse().map_err(serde::de::Error::custom)?;
+            Ok(Currency(big_int))
+        })
+        .transpose()
+}
+
 pub fn deserialize_execution_deadline<'de, D>(deserializer: D) -> Result<usize, D::Error>
 where
     D: serde::Deserializer<'de>,

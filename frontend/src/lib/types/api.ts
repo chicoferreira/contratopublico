@@ -10,7 +10,7 @@ export interface Contract {
   signingDate: string | null;
   initialContractualPrice: number;
   regime: string;
-  contractStatus: number | string;
+  contractStatus: string | null;
   nonWrittenContractJustificationTypes: string;
   contractTypes: string;
   executionDeadlineDays: number;
@@ -20,6 +20,11 @@ export interface Contract {
   invitees: Entity[];
   documents: Document[];
   ccp: boolean;
+  endOfContractType: string | null;
+  closeDate: string | null;
+  totalEffectivePrice: number | null;
+  causesDeadlineChange: string | null;
+  causesPriceChange: string | null;
 }
 
 export interface Entity {

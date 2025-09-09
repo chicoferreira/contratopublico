@@ -30,11 +30,11 @@ pub struct BaseGovContract {
     pub cpv: BaseGovCpv,
 
     #[serde(deserialize_with = "de::deserialize_optional_date")]
-    // The date when the contract was signed.
+    /// The date when the contract was signed.
     pub signing_date: Option<NaiveDate>,
 
     #[serde(deserialize_with = "de::deserialize_date")]
-    // The date when the contract was published.
+    /// The date when the contract was published.
     pub publication_date: NaiveDate,
 
     #[serde(deserialize_with = "de::deserialize_euros")]
@@ -44,8 +44,8 @@ pub struct BaseGovContract {
     // TODO: Add documentation here
     pub regime: String,
 
-    // TODO: Check what this value represents
-    pub contract_status: Option<usize>,
+    /// The status of the contract. (idk what status mean)
+    pub contract_status: Option<String>,
 
     // TODO: Check what this value represents
     pub non_written_contract_justification_types: String,
@@ -69,7 +69,7 @@ pub struct BaseGovContract {
     /// The contestants involved in the contract.
     pub contestants: Vec<BaseGovEntity>,
 
-    // Entities that have been invited to participate in the contract.
+    /// Entities that have been invited to participate in the contract.
     pub invitees: Vec<BaseGovEntity>,
 
     /// The documents related to the contract.
@@ -90,6 +90,23 @@ pub struct BaseGovContract {
 
     // TODO: Check what this value represents
     pub ccp: bool,
+
+    /// The type of end of contract (ex: Cumprimento integral do contrato)
+    pub end_of_contract_type: Option<String>,
+
+    #[serde(deserialize_with = "de::deserialize_optional_date")]
+    /// The date when the contract was complete or closed.
+    pub close_date: Option<NaiveDate>,
+
+    #[serde(deserialize_with = "de::deserialize_optional_euros")]
+    /// The price of the contract when it was completed or closed.
+    pub total_effective_price: Option<Currency>,
+
+    /// What caused the deadline to change (if changed)
+    pub causes_deadline_change: Option<String>,
+
+    /// What caused the price to change (if changed)
+    pub causes_price_change: Option<String>,
 }
 
 /// CPV (Common Procurement Vocabulary) identifies the type of goods or services being contracted.
@@ -149,6 +166,11 @@ impl From<BaseGovContract> for Contract {
             announcement_id: contract.announcement_id,
             direct_award_fundamentation_type: contract.direct_award_fundamentation_type,
             observations: contract.observations,
+            end_of_contract_type: contract.end_of_contract_type,
+            close_date: contract.close_date,
+            total_effective_price: contract.total_effective_price,
+            causes_deadline_change: contract.causes_deadline_change,
+            causes_price_change: contract.causes_price_change,
         }
     }
 }

@@ -16,7 +16,7 @@ pub struct Contract {
     pub contracted: Vec<Entity>,
     pub cpv: Cpv,
     pub regime: String,
-    pub contract_status: Option<usize>,
+    pub contract_status: Option<String>,
     pub non_written_contract_justification_types: String,
     pub contract_types: String,
     pub execution_deadline_days: usize,
@@ -29,6 +29,11 @@ pub struct Contract {
     pub announcement_id: Option<usize>,
     pub direct_award_fundamentation_type: String,
     pub observations: Option<String>,
+    pub end_of_contract_type: Option<String>,
+    pub close_date: Option<NaiveDate>,
+    pub total_effective_price: Option<Currency>,
+    pub causes_deadline_change: Option<String>,
+    pub causes_price_change: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
