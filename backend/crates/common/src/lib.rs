@@ -23,7 +23,7 @@ pub struct Contract {
     pub execution_place: String,
     pub contract_fundamentation_type: String,
     pub contestants: Vec<Entity>,
-    pub invitees: Vec<isize>,
+    pub invitees: Vec<Entity>,
     pub documents: Vec<Document>,
     pub contracting_procedure_url: Option<String>,
     pub announcement_id: Option<usize>,
