@@ -44,6 +44,8 @@ pub struct SearchedContract {
 pub struct MatchingRange {
     pub start: usize,
     pub end: usize,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub indices: Option<Vec<usize>>,
 }
 
 impl From<meilisearch_sdk::search::MatchRange> for MatchingRange {
@@ -51,6 +53,7 @@ impl From<meilisearch_sdk::search::MatchRange> for MatchingRange {
         MatchingRange {
             start: value.start,
             end: value.start + value.length,
+            indices: value.indices,
         }
     }
 }
