@@ -53,7 +53,9 @@
 
   <div class="grid grid-cols-1 md:grid-cols-2">
     <div class="md:space-y-2">
-      <ContractCardInfoRow Icon={FileText} label="Contratante">
+      <ContractCardInfoRow
+        Icon={FileText}
+        label={contract.contracting.length > 0 ? "Contratante" : "Contratantes"}>
         {#snippet popoverContent()}
           <p>Entidade pública responsável pela contratação e registo do contrato.</p>
           <p>
@@ -63,10 +65,19 @@
         {/snippet}
 
         {#snippet value()}
-          <Highlighted {...renderHighlightedField("contracting")} />
+          {#each contract.contracting as contracting, index}
+            <p>
+              <Highlighted
+                content={contracting.description}
+                ranges={contract.matchingRanges["contracting.description"]}
+                {index} />
+            </p>
+          {/each}
         {/snippet}
       </ContractCardInfoRow>
-      <ContractCardInfoRow Icon={Building} label="Contratado">
+      <ContractCardInfoRow
+        Icon={Building}
+        label={contract.contracted.length > 0 ? "Contratado" : "Contratados"}>
         {#snippet popoverContent()}
           <p>Entidade selecionada para a prestação de serviços.</p>
           <p>
@@ -75,7 +86,14 @@
           </p>
         {/snippet}
         {#snippet value()}
-          <Highlighted {...renderHighlightedField("contracted")} />
+          {#each contract.contracted as contracted, index}
+            <p>
+              <Highlighted
+                content={contracted.description}
+                ranges={contract.matchingRanges["contracted.description"]}
+                {index} />
+            </p>
+          {/each}
         {/snippet}
       </ContractCardInfoRow>
     </div>

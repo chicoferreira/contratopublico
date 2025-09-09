@@ -1,13 +1,41 @@
 export interface Contract {
   id: number;
+  description: string | null;
+  objectBriefDescription: string;
   contractingProcedureType: string;
+  contracting: Entity[];
+  contracted: Entity[];
+  cpv: Cpv;
   publicationDate: string;
   signingDate: string | null;
-  ccp: boolean;
-  contracted: string;
-  contracting: string;
-  objectBriefDescription: string;
   initialContractualPrice: number;
+  regime: string;
+  contractStatus: number | string;
+  nonWrittenContractJustificationTypes: string;
+  contractTypes: string;
+  executionDeadlineDays: number;
+  executionPlace: string;
+  contractFundamentationType: string;
+  contestants: Entity[];
+  invitees: number[];
+  documents: Document[];
+  ccp: boolean;
+}
+
+export interface Entity {
+  id: number;
+  nif: string;
+  description: string;
+}
+
+export interface Cpv {
+  code: string;
+  designation: string;
+}
+
+export interface Document {
+  id: number;
+  description: string;
 }
 
 export interface SearchContractsRequest {
@@ -61,6 +89,7 @@ export interface MatchingRanges {
 export interface MatchingRange {
   start: number;
   end: number;
+  indices?: number[];
 }
 
 export interface Statistics {
