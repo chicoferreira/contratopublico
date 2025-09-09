@@ -42,7 +42,7 @@ pub struct BaseGovContract {
     pub initial_contractual_price: Currency,
 
     // TODO: Add documentation here
-    pub regime: String,
+    pub regime: Option<String>,
 
     /// The status of the contract. (idk what status mean)
     pub contract_status: Option<String>,

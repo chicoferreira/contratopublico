@@ -9,7 +9,7 @@ export interface Contract {
   publicationDate: string;
   signingDate: string | null;
   initialContractualPrice: number;
-  regime: string;
+  regime: string | null;
   contractStatus: string | null;
   nonWrittenContractJustificationTypes: string;
   contractTypes: string;
