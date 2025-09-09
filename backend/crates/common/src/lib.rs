@@ -15,7 +15,7 @@ pub struct Contract {
     pub contracting: Vec<Entity>,
     pub contracted: Vec<Entity>,
     pub cpv: Cpv,
-    pub regime: String,
+    pub regime: Option<String>,
     pub contract_status: Option<String>,
     pub non_written_contract_justification_types: String,
     pub contract_types: String,
