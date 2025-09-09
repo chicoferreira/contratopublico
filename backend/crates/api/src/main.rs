@@ -6,8 +6,8 @@ use axum::{
 };
 use clap::Parser;
 use meilisearch_sdk::client::Client;
-use scraper::store::meilisearch::MeilisearchStore;
-use std::{path::PathBuf, time::Instant};
+use scraper::store::Store;
+use std::{path::PathBuf, sync::Arc, time::Instant};
 use tokio::signal;
 use tracing::{Level, error, event, info};
 
@@ -33,6 +33,8 @@ struct Args {
     scraper_interval_secs: u64,
     #[clap(long, env, default_value = "data/scraper/saved_pages.json")]
     saved_pages_path: PathBuf,
+    #[clap(long, env)]
+    no_scraper: bool,
 }
 
 #[tokio::main]
@@ -46,21 +48,26 @@ async fn main() -> anyhow::Result<()> {
     )
     .context("Failed to create Meilisearch client")?;
 
+    let scraper_store = Arc::new(
+        Store::new(meilisearch.clone(), args.saved_pages_path)
+            .context("Failed to create scraper store")?,
+    );
+
     let app_state = AppState::new(meilisearch);
     app_state
         .prepare_settings()
         .await
         .context("Failed to prepare indexes")?;
 
-    let scraper_store = MeilisearchStore::new(app_state.get_client(), args.saved_pages_path)
-        .context("Failed to create scraper store")?;
-
-    tokio::spawn(async move {
-        loop {
-            scraper::scraper::scrape(scraper_store.clone()).await;
-            tokio::time::sleep(tokio::time::Duration::from_secs(args.scraper_interval_secs)).await;
-        }
-    });
+    if !args.no_scraper {
+        tokio::spawn(async move {
+            loop {
+                scraper::scraper::scrape(scraper_store.clone()).await;
+                tokio::time::sleep(tokio::time::Duration::from_secs(args.scraper_interval_secs))
+                    .await;
+            }
+        });
+    }
 
     let app_state_clone = app_state.clone();
     tokio::spawn(async move {

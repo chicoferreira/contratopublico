@@ -5,10 +5,12 @@
   const {
     content,
     ranges,
+    index,
     class: className,
   }: {
     content?: string;
     ranges?: MatchingRange[];
+    index?: number;
     class?: string;
   } = $props();
 
@@ -35,6 +37,11 @@
     let currentIndex = 0;
 
     for (const range of matchRanges) {
+      if (index !== undefined && range.indices && !range.indices.includes(index)) {
+        // is list and this range is not for the current index
+        continue;
+      }
+
       const beforeText = sliceByBytes(text, currentIndex, range.start);
       segments.push({ text: beforeText, highlighted: false });
 
