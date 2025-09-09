@@ -10,7 +10,7 @@
 <div class="relative flex h-6 items-center">
   {#if loading}
     <div class="absolute" transition:fade={{ duration: 100 }}>
-      <Skeleton class="h-[1em] w-[25em]" />
+      <Skeleton class="h-[1em] w-[20em]" />
     </div>
   {:else}
     <p class="text-muted-foreground absolute" transition:fade={{ duration: 100 }}>
