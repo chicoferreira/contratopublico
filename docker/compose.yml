@@ -11,7 +11,7 @@ services:
       - MEILI_EXPERIMENTAL_SEARCH_QUEUE_SIZE=3000
       - MEILI_LOG_LEVEL=WARN
     volumes:
-      - ../backend/data/meili_data:/meili_data
+      - ${DATA_FOLDER}/meili_data:/meili_data
 
   backend:
     restart: unless-stopped
@@ -20,7 +20,7 @@ services:
     build:
       context: ../backend
     volumes:
-      - ../backend/data/scraper:/data/scraper
+      - ${DATA_FOLDER}/scraper:/data/scraper
     environment:
       - MEILISEARCH_URL=http://meilisearch:7700
       - MEILI_MASTER_KEY
@@ -43,7 +43,7 @@ services:
     image: prom/prometheus:latest
     volumes:
       - ../monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ../monitoring/prometheus/data:/prometheus:rw
+      - ${DATA_FOLDER}/prometheus:/prometheus:rw
     depends_on:
       - backend
     restart: unless-stopped
