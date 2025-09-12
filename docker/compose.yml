@@ -10,6 +10,7 @@ services:
       - MEILI_MASTER_KEY
       - MEILI_EXPERIMENTAL_SEARCH_QUEUE_SIZE=3000
       - MEILI_LOG_LEVEL=WARN
+      - MEILI_EXPERIMENTAL_DUMPLESS_UPGRADE=true
     volumes:
       - ${DATA_FOLDER}/meili_data:/meili_data
 
