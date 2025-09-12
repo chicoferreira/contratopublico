@@ -1,6 +1,6 @@
 name: contratopublico
 
-include: [docker-compose.yml]
+include: [compose.yml]
 services:
   cloudflared:
     image: cloudflare/cloudflared:latest
