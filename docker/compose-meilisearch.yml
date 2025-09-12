@@ -8,4 +8,4 @@ services:
     environment:
       - MEILI_MASTER_KEY=masterKey
     volumes:
-      - ../backend/data/meili_data:/meili_data
+      - ${DATA_FOLDER}/meili_data:/meili_data
