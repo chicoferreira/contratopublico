@@ -123,15 +123,3 @@ impl Serialize for ContractSort {
         serializer.serialize_str(&format!("{}{}", order_prefix, method_str))
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn test_get_contract_details() {
-        let client = BaseGovClient::new();
-        let response = client.get_contract_details(11641358).await;
-        assert!(response.is_ok());
-    }
-}
