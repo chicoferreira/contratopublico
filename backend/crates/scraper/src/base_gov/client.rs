@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use anyhow::Context;
 use serde::{Serialize, de::DeserializeOwned};
 
@@ -51,6 +53,7 @@ impl BaseGovClient {
         Self {
             client: reqwest::Client::builder()
                 .user_agent(USER_AGENT)
+                .timeout(Duration::from_secs(60))
                 .build()
                 .unwrap(),
         }
