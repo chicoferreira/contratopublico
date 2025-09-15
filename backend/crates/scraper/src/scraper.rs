@@ -127,15 +127,15 @@ async fn run_fetch_details_task(
     store: Arc<Store>,
     throttler: Arc<Throttler>,
     mut exit_rx: tokio::sync::oneshot::Receiver<()>,
-    id_sender: tokio::sync::mpsc::Sender<ContractLocation>,
-    mut id_receiver: tokio::sync::mpsc::Receiver<ContractLocation>,
+    id_tx: tokio::sync::mpsc::Sender<ContractLocation>,
+    mut id_rx: tokio::sync::mpsc::Receiver<ContractLocation>,
 ) {
     let mut handles: Vec<JoinHandle<()>> = Vec::new();
 
     loop {
         let ContractLocation { id, page, retries } = tokio::select! {
             biased;
-            Some(contract_location) = id_receiver.recv() => {
+            Some(contract_location) = id_rx.recv() => {
                 contract_location
             }
             _ = &mut exit_rx => {
@@ -153,7 +153,7 @@ async fn run_fetch_details_task(
         let permit = throttler.throttle().await;
         let client = Arc::clone(&client);
         let store = Arc::clone(&store);
-        let id_sender = id_sender.clone();
+        let id_tx = id_tx.clone();
 
         let handle = tokio::spawn(async move {
             let _permit = permit; // hold permit until task ends
@@ -176,7 +176,7 @@ async fn run_fetch_details_task(
                         error!("Failed to fetch details for ID {id}:\n{:?}", e);
                         // Enqueue the ID for retry
                         drop(_permit);
-                        let _ = id_sender.send(ContractLocation { id, page, retries }).await;
+                        let _ = id_tx.send(ContractLocation { id, page, retries }).await;
                     }
 
                     return;
