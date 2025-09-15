@@ -28,14 +28,16 @@ pub async fn scrape(store: Arc<Store>) {
     let throttler = Arc::new(Throttler::new(MAX_CONCURRENT_REQUESTS, MAX_REQUEST_QUOTA));
 
     let (id_tx, id_rx) = tokio::sync::mpsc::channel(MAX_CONCURRENT_REQUESTS);
+    let (exit_tx, exit_rx) = tokio::sync::oneshot::channel();
 
     let fetch_task = run_fetch_ids_task(
         client.clone(),
         store.clone(),
         throttler.clone(),
+        exit_tx,
         id_tx.clone(),
     );
-    let details_task = run_fetch_details_task(client, store, throttler, id_tx, id_rx);
+    let details_task = run_fetch_details_task(client, store, throttler, exit_rx, id_tx, id_rx);
 
     tokio::join!(fetch_task, details_task);
 }
@@ -43,13 +45,15 @@ pub async fn scrape(store: Arc<Store>) {
 struct ContractLocation {
     id: usize,
     page: usize,
+    retries: usize,
 }
 
 async fn run_fetch_ids_task(
     client: Arc<BaseGovClient>,
     store: Arc<Store>,
     throttler: Arc<Throttler>,
-    id_sender: tokio::sync::mpsc::Sender<ContractLocation>,
+    exit_tx: tokio::sync::oneshot::Sender<()>,
+    id_tx: tokio::sync::mpsc::Sender<ContractLocation>,
 ) {
     let mut total_pages = None;
     let mut consecutive_failures = 0_usize;
@@ -97,10 +101,11 @@ async fn run_fetch_ids_task(
         for minimal_contract in minimal_contracts {
             // this will block this task until the receiver needs more ids to fetch because
             // the tokio::sync::mpsc::Sender has a buffer which will create backpressure when full
-            let _ = id_sender
+            let _ = id_tx
                 .send(ContractLocation {
                     id: minimal_contract.id,
                     page: current_page,
+                    retries: 0,
                 })
                 .await;
         }
@@ -114,20 +119,30 @@ async fn run_fetch_ids_task(
         current_page += 1;
     }
 
-    // when this finishes id_sender is dropped, and so run_fetch_details_task()
-    // will return None at the next recv()
+    let _ = exit_tx.send(());
 }
 
 async fn run_fetch_details_task(
     client: Arc<BaseGovClient>,
     store: Arc<Store>,
     throttler: Arc<Throttler>,
+    mut exit_rx: tokio::sync::oneshot::Receiver<()>,
     id_sender: tokio::sync::mpsc::Sender<ContractLocation>,
     mut id_receiver: tokio::sync::mpsc::Receiver<ContractLocation>,
 ) {
     let mut handles: Vec<JoinHandle<()>> = Vec::new();
 
-    while let Some(ContractLocation { id, page }) = id_receiver.recv().await {
+    loop {
+        let ContractLocation { id, page, retries } = tokio::select! {
+            biased;
+            Some(contract_location) = id_receiver.recv() => {
+                contract_location
+            }
+            _ = &mut exit_rx => {
+                break;
+            }
+        };
+
         if store.already_exists(id, page).await {
             warn!("Contract {id} already exists, skipping...");
             continue;
@@ -149,10 +164,21 @@ async fn run_fetch_details_task(
             let contract = match response {
                 Ok(response) => response,
                 Err(e) => {
-                    error!("Failed to fetch details for ID {id}:\n{:?}", e);
-                    // Enqueue the ID for retry
-                    drop(_permit);
-                    let _ = id_sender.send(ContractLocation { id, page }).await;
+                    let retries = retries + 1;
+
+                    if retries >= MAX_CONSECUTIVE_FAILURES {
+                        error!(
+                            "Failed to fetch details for ID {id} after {} retries:\n{e:?}",
+                            MAX_CONSECUTIVE_FAILURES
+                        );
+                        // do not retry
+                    } else {
+                        error!("Failed to fetch details for ID {id}:\n{:?}", e);
+                        // Enqueue the ID for retry
+                        drop(_permit);
+                        let _ = id_sender.send(ContractLocation { id, page, retries }).await;
+                    }
+
                     return;
                 }
             };
