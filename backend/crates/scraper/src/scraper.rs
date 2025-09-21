@@ -66,6 +66,7 @@ async fn run_fetch_ids_task(
         };
 
         if !should_continue {
+            error!("Couldn't fetch IDs for over {MAX_CONSECUTIVE_FAILURES} consecutive times");
             break;
         }
 
