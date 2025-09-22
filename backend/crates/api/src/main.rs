@@ -6,7 +6,8 @@ use axum::{
 };
 use clap::Parser;
 use meilisearch_sdk::client::Client;
-use scraper::store::Store;
+use reqwest::Url;
+use scraper::{base_gov::client::BaseGovClient, store::Store};
 use std::{path::PathBuf, sync::Arc, time::Instant};
 use tokio::signal;
 use tracing::{Level, error, event, info};
@@ -35,6 +36,8 @@ struct Args {
     saved_pages_path: PathBuf,
     #[clap(long, env)]
     no_scraper: bool,
+    #[clap(long, env)]
+    base_gov_client_proxy: Option<Url>,
 }
 
 #[tokio::main]
@@ -62,7 +65,8 @@ async fn main() -> anyhow::Result<()> {
     if !args.no_scraper {
         tokio::spawn(async move {
             loop {
-                scraper::scraper::scrape(scraper_store.clone()).await;
+                let base_gov_client = BaseGovClient::new(args.base_gov_client_proxy.clone());
+                scraper::scraper::scrape(scraper_store.clone(), base_gov_client).await;
                 tokio::time::sleep(tokio::time::Duration::from_secs(args.scraper_interval_secs))
                     .await;
             }

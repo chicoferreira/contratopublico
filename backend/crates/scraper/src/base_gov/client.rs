@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use anyhow::Context;
+use reqwest::Url;
 use serde::{Serialize, de::DeserializeOwned};
 
 use crate::base_gov::{BaseGovContract, ContractSearchResponse};
@@ -49,14 +50,19 @@ pub struct BaseGovClient {
 }
 
 impl BaseGovClient {
-    pub fn new() -> Self {
-        Self {
-            client: reqwest::Client::builder()
-                .user_agent(USER_AGENT)
-                .timeout(Duration::from_secs(60))
-                .build()
-                .unwrap(),
-        }
+    pub fn new(proxy: Option<Url>) -> Self {
+        let client = reqwest::Client::builder()
+            .user_agent(USER_AGENT)
+            .timeout(Duration::from_secs(60));
+
+        let client = match proxy {
+            Some(proxy) => client.proxy(reqwest::Proxy::all(proxy).unwrap()),
+            None => client,
+        };
+
+        let client = client.build().unwrap();
+
+        Self { client }
     }
 
     pub async fn fetch_page(

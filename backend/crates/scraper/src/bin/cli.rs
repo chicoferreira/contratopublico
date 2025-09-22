@@ -2,7 +2,8 @@ use std::{path::PathBuf, sync::Arc};
 
 use anyhow::Context;
 use clap::Parser;
-use scraper::importer;
+use reqwest::Url;
+use scraper::{base_gov::client::BaseGovClient, importer};
 
 #[derive(clap::Parser)]
 #[command(version, about)]
@@ -17,6 +18,7 @@ enum Command {
         saved_pages_path: PathBuf,
         url: String,
         api_key: Option<String>,
+        base_gov_client_proxy: Option<Url>,
     },
     Import {
         meilisearch_url: String,
@@ -36,6 +38,7 @@ async fn main() -> anyhow::Result<()> {
             url,
             api_key,
             saved_pages_path,
+            base_gov_client_proxy,
         } => {
             let client = meilisearch_sdk::client::Client::new(url, api_key)
                 .context("Failed to create Meilisearch client")?;
@@ -43,7 +46,9 @@ async fn main() -> anyhow::Result<()> {
             let store = scraper::store::Store::new(client, saved_pages_path)
                 .context("Failed to create store")?;
 
-            scraper::scraper::scrape(Arc::new(store)).await;
+            let base_gov_client = BaseGovClient::new(base_gov_client_proxy);
+
+            scraper::scraper::scrape(Arc::new(store), base_gov_client).await;
         }
         Command::Import {
             meilisearch_url,
