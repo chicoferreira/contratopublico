@@ -21,9 +21,11 @@ pub struct BaseGovContract {
     pub contracting_procedure_type: String,
 
     /// The entities responsible for contracting the contracted.
+    #[serde(default, deserialize_with = "de::empty_vec_if_null")]
     pub contracting: Vec<BaseGovEntity>,
 
     /// The entities contracted for the contract.
+    #[serde(default, deserialize_with = "de::empty_vec_if_null")]
     pub contracted: Vec<BaseGovEntity>,
 
     #[serde(flatten)]

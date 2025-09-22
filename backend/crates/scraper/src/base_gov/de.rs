@@ -1,6 +1,6 @@
 use chrono::NaiveDate;
 use common::Currency;
-use serde::Deserialize;
+use serde::{Deserialize, Deserializer};
 
 pub fn deserialize_date<'de, D>(deserializer: D) -> Result<NaiveDate, D::Error>
 where
@@ -78,4 +78,13 @@ where
     } else {
         Ok(None)
     }
+}
+
+pub fn empty_vec_if_null<'de, D, T>(deserializer: D) -> Result<Vec<T>, D::Error>
+where
+    D: Deserializer<'de>,
+    T: Deserialize<'de>,
+{
+    let opt = Option::<Vec<T>>::deserialize(deserializer)?;
+    Ok(opt.unwrap_or_default())
 }
