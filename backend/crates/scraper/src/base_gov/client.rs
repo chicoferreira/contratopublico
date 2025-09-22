@@ -7,7 +7,7 @@ use serde::{Serialize, de::DeserializeOwned};
 use crate::base_gov::{BaseGovContract, ContractSearchResponse};
 
 const URL: &str = "https://www.base.gov.pt/Base4/pt/resultados/";
-const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3";
+const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36";
 
 #[derive(Debug)]
 pub struct ContractSort {
@@ -72,7 +72,7 @@ impl BaseGovClient {
         size: usize,
     ) -> anyhow::Result<ContractSearchResponse> {
         let payload = BaseGovPayload::SearchContracts {
-            version: "135.0",
+            version: "140.0",
             query: "tipo=0&tipocontrato=0&pais=0&distrito=0&concelho=0",
             sort,
             page,
@@ -83,7 +83,7 @@ impl BaseGovClient {
 
     pub async fn get_contract_details(&self, id: usize) -> anyhow::Result<BaseGovContract> {
         let payload = BaseGovPayload::ContractDetails {
-            version: "58.0",
+            version: "140.0",
             id,
         };
         self.send_payload(payload).await
