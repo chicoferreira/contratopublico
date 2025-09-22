@@ -1,0 +1,44 @@
+name: contratopublico
+
+services:
+  backend:
+    environment:
+      - BASE_GOV_CLIENT_PROXY=socks5://warp:1080
+    depends_on:
+      warp:
+        condition: service_healthy
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    environment:
+      - TUNNEL_TOKEN
+    command: "tunnel run"
+    depends_on:
+      - frontend
+    restart: unless-stopped
+  warp:
+    image: caomingjun/warp
+    container_name: warp
+    restart: unless-stopped
+    device_cgroup_rules:
+      - "c 10:200 rwm"
+    environment:
+      - WARP_SLEEP=2
+    cap_add:
+      - MKNOD
+      - AUDIT_WRITE
+      - NET_ADMIN
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=0
+      - net.ipv4.conf.all.src_valid_mark=1
+    volumes:
+      - ${DATA_FOLDER}/warp-data:/var/lib/cloudflare-warp
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s --socks5-hostname localhost:1080 https://www.cloudflare.com/cdn-cgi/trace | grep -q '^warp=on'",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s

@@ -23,8 +23,8 @@ const MAX_CONSECUTIVE_FAILURES: usize = 10;
 const MAX_CONCURRENT_REQUESTS: usize = 5;
 const MAX_REQUEST_QUOTA: Quota = Quota::per_second(NonZeroU32::new(5).unwrap());
 
-pub async fn scrape(store: Arc<Store>) {
-    let client = Arc::new(BaseGovClient::new());
+pub async fn scrape(store: Arc<Store>, base_gov_client: BaseGovClient) {
+    let client = Arc::new(base_gov_client);
     let throttler = Arc::new(Throttler::new(MAX_CONCURRENT_REQUESTS, MAX_REQUEST_QUOTA));
 
     let (id_tx, id_rx) = tokio::sync::mpsc::channel(MAX_CONCURRENT_REQUESTS);

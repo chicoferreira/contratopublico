@@ -218,6 +218,7 @@ dependencies = [
  "meilisearch-sdk",
  "metrics",
  "metrics-exporter-prometheus",
+ "reqwest",
  "scraper",
  "serde",
  "thiserror 2.0.12",

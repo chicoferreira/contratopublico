@@ -20,3 +20,4 @@ metrics = { workspace = true, default-features = false }
 metrics-exporter-prometheus = { workspace = true, default-features = false }
 chrono = { workspace = true }
 itertools = { workspace = true }
+reqwest = { workspace = true }
