@@ -18,7 +18,7 @@ const CONTRACT_SORT_ORDER: ContractSort = base_gov::client::ContractSort {
 };
 
 // Max consecutive failures when the API keeps failing since the start making it so we don't know the number of pages to scrape
-const MAX_CONSECUTIVE_FAILURES: usize = 10;
+const MAX_CONSECUTIVE_FAILURES: usize = 3;
 
 const MAX_CONCURRENT_REQUESTS: usize = 5;
 const MAX_REQUEST_QUOTA: Quota = Quota::per_second(NonZeroU32::new(5).unwrap());
