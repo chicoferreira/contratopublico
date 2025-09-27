@@ -183,28 +183,6 @@
 </svelte:head>
 
 <div class="space-y-4">
-  <!-- TODO: REMOVE -->
-  <div
-    class="mb-4 rounded-xl border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800/30 dark:bg-yellow-950/20">
-    <div class="flex items-start gap-3">
-      <div class="mt-0.5 rounded-full bg-yellow-100 p-1.5 dark:bg-yellow-900/40">
-        <TriangleAlert class="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-      </div>
-      <div class="flex-1 space-y-1">
-        <div class="flex items-center gap-2">
-          <span class="font-semibold text-yellow-800 dark:text-yellow-200">
-            Alerta Reindexação da Base de Dados
-          </span>
-        </div>
-        <p class="text-sm text-yellow-700 dark:text-yellow-200">
-          Estamos a reindexar a base de dados do Portal BASE para incluir mais detalhes sobre os
-          contratos, que ficarão disponíveis gradualmente à medida que são processados. Este
-          processo poderá demorar alguns dias.
-        </p>
-      </div>
-    </div>
-  </div>
-
   <div class="space-y-2.5">
     <div class="space-y-0.5">
       <div class="text-2xl font-semibold">
