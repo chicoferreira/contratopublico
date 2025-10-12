@@ -2,6 +2,8 @@ use chrono::NaiveDate;
 use common::Currency;
 use serde::{Deserialize, Deserializer};
 
+use crate::base_gov::BaseGovCpv;
+
 pub fn deserialize_date<'de, D>(deserializer: D) -> Result<NaiveDate, D::Error>
 where
     D: serde::Deserializer<'de>,
@@ -87,4 +89,31 @@ where
 {
     let opt = Option::<Vec<T>>::deserialize(deserializer)?;
     Ok(opt.unwrap_or_default())
+}
+
+pub fn deserialize_cpv_none_if_empty<'de, D>(
+    deserializer: D,
+) -> Result<Option<BaseGovCpv>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    #[derive(Deserialize)]
+    struct CpvFields {
+        #[serde(rename = "cpvs")]
+        code: Option<String>,
+        #[serde(rename = "cpvsDesignation")]
+        designation: Option<String>,
+    }
+
+    let fields: CpvFields = Deserialize::deserialize(deserializer)?;
+
+    match (fields.code, fields.designation) {
+        (Some(code), Some(designation)) if !code.is_empty() && !designation.is_empty() => {
+            Ok(Some(BaseGovCpv {
+                code: code.to_string(),
+                designation: designation.to_string(),
+            }))
+        }
+        _ => Ok(None),
+    }
 }
