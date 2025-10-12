@@ -8,13 +8,16 @@ use std::{
 use anyhow::Context;
 use common::Contract;
 use serde::{Deserialize, Serialize};
+use sqlx::PgPool;
 
 use crate::store::rangeset::RangeSet;
 
+pub mod db;
 pub mod rangeset;
 
 pub struct Store {
     client: meilisearch_sdk::client::Client,
+    pg_pool: PgPool,
     scrape_progress: Mutex<ScrapeProgress>,
     path: PathBuf,
 }
@@ -71,11 +74,16 @@ impl Store {
             .context("Failed to open saved pages file")
     }
 
-    pub fn new(client: meilisearch_sdk::client::Client, path: PathBuf) -> anyhow::Result<Self> {
+    pub fn new(
+        client: meilisearch_sdk::client::Client,
+        pg_pool: PgPool,
+        path: PathBuf,
+    ) -> anyhow::Result<Self> {
         let scrape_progress = Self::load_progress(&path).context("Failed to load progress")?;
 
         Ok(Self {
             client,
+            pg_pool,
             scrape_progress: Mutex::new(scrape_progress),
             path,
         })
@@ -97,13 +105,17 @@ impl Store {
         page: usize,
         contracts_per_page: usize,
     ) -> anyhow::Result<()> {
+        db::insert_contract(&contract, &self.pg_pool)
+            .await
+            .context("Failed to save contract in database")?;
+
         let index = self.client.index("contracts");
         let id = contract.id;
 
         index
             .add_documents(&[contract], Some("id"))
             .await
-            .context("Failed to save contract")?;
+            .context("Failed to save contract in meilisearch")?;
 
         let mut scrape_progress = self.scrape_progress.lock().unwrap();
         scrape_progress.update(page, contracts_per_page, id);

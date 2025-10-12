@@ -51,6 +51,22 @@ async fn main() -> anyhow::Result<()> {
     )
     .context("Failed to create Meilisearch client")?;
 
+    let pg_options = sqlx::postgres::PgConnectOptions::new()
+        .host(&args.postgres_host)
+        .port(args.postgres_port)
+        .username(&args.postgres_user)
+        .password(&args.postgres_password)
+        .database(&args.postgres_db);
+
+    let pg_pool = sqlx::postgres::PgPool::connect_with(pg_options)
+        .await
+        .context("Failed to connect to PostgreSQL")?;
+
+    sqlx::migrate!("../../migrations")
+        .run(&pg_pool)
+        .await
+        .context("Failed to run migrations")?;
+
     let scraper_store = Arc::new(
         Store::new(meilisearch.clone(), args.saved_pages_path)
             .context("Failed to create scraper store")?,

@@ -1,0 +1,22 @@
+name: contratopublico-dev
+
+services:
+  meilisearch:
+    image: getmeili/meilisearch:v1
+    ports:
+      - "7700:7700"
+    environment:
+      - MEILI_MASTER_KEY=masterKey
+      - MEILI_EXPERIMENTAL_DUMPLESS_UPGRADE=true
+    volumes:
+      - ${DATA_FOLDER}/meili_data:/meili_data
+  postgres:
+    image: postgres
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=contratopublico
+      - POSTGRES_PASSWORD=contratopublico
+      - POSTGRES_DB=contratopublico
+    volumes:
+      - ${DATA_FOLDER}/postgres_data:/var/lib/postgresql

@@ -3,7 +3,11 @@ use std::{path::PathBuf, sync::Arc};
 use anyhow::Context;
 use clap::Parser;
 use reqwest::Url;
-use scraper::{base_gov::client::BaseGovClient, importer};
+use scraper::{
+    base_gov::client::BaseGovClient,
+    config::{MeilisearchConfig, PostgresConfig},
+    export, migrate,
+};
 
 #[derive(clap::Parser)]
 #[command(version, about)]
@@ -15,14 +19,24 @@ struct Args {
 #[derive(clap::Subcommand)]
 enum Command {
     Scrape {
+        #[command(flatten)]
+        postgres_config: PostgresConfig,
+        #[command(flatten)]
+        meilisearch_config: MeilisearchConfig,
         saved_pages_path: PathBuf,
-        url: String,
-        api_key: Option<String>,
         base_gov_client_proxy: Option<Url>,
     },
-    Import {
-        meilisearch_url: String,
-        meilisearch_api_key: Option<String>,
+    ExportOldFormatToJson {
+        #[command(flatten)]
+        meilisearch_config: MeilisearchConfig,
+        output_path: PathBuf,
+    },
+    MigrateToPostgres {
+        #[command(flatten)]
+        postgres_config: PostgresConfig,
+        #[command(flatten)]
+        meilisearch_config: MeilisearchConfig,
+        contracts_path: PathBuf,
     },
 }
 
@@ -35,28 +49,39 @@ async fn main() -> anyhow::Result<()> {
 
     match args.command {
         Command::Scrape {
-            url,
-            api_key,
             saved_pages_path,
             base_gov_client_proxy,
+            postgres_config,
+            meilisearch_config,
         } => {
-            let client = meilisearch_sdk::client::Client::new(url, api_key)
-                .context("Failed to create Meilisearch client")?;
+            let meili_client = meilisearch_config.create_client()?;
+            let pg_pool = postgres_config.create_pool().await?;
 
-            let store = scraper::store::Store::new(client, saved_pages_path)
+            let store = scraper::store::Store::new(meili_client, pg_pool, saved_pages_path)
                 .context("Failed to create store")?;
 
             let base_gov_client = BaseGovClient::new(base_gov_client_proxy);
-
             scraper::scraper::scrape(Arc::new(store), base_gov_client).await;
         }
-        Command::Import {
-            meilisearch_url,
-            meilisearch_api_key,
+        Command::MigrateToPostgres {
+            postgres_config,
+            meilisearch_config,
+            contracts_path,
         } => {
-            importer::import_contracts_to_meilisearch(meilisearch_url, meilisearch_api_key)
+            let meili_client = meilisearch_config.create_client()?;
+            let pg_pool = postgres_config.create_pool().await?;
+
+            migrate::migrate_contracts_to_postgres(contracts_path, meili_client, pg_pool)
                 .await
                 .context("Failed to import contracts")?;
+        }
+        Command::ExportOldFormatToJson {
+            meilisearch_config,
+            output_path,
+        } => {
+            let meili_client = meilisearch_config.create_client()?;
+
+            export::export_old_format_to_json(meili_client, output_path).await?;
         }
     }
 
