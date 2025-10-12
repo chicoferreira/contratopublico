@@ -1,7 +1,7 @@
 use std::sync::{Arc, RwLock};
 
 use anyhow::Context;
-use common::Contract;
+use common::SearchableContract;
 use meilisearch_sdk::{
     client::Client,
     settings::{PaginationSetting, Settings},
@@ -106,7 +106,7 @@ impl AppState {
             .with_page(page)
             .with_hits_per_page(hits_per_page)
             .with_show_matches_position(true)
-            .execute::<Contract>()
+            .execute::<SearchableContract>()
             .await
             .map_err(AppError::MeilisearchError)?;
 

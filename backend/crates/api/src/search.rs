@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use axum::extract::State;
-use common::Contract;
+use common::SearchableContract;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 
@@ -35,7 +35,7 @@ pub struct SearchResponse {
 #[serde(rename_all = "camelCase")]
 pub struct SearchedContract {
     #[serde(flatten)]
-    pub contract: Contract,
+    pub contract: SearchableContract,
     pub matching_ranges: HashMap<String, Vec<MatchingRange>>,
 }
 

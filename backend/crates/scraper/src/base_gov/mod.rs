@@ -28,8 +28,8 @@ pub struct BaseGovContract {
     #[serde(default, deserialize_with = "de::empty_vec_if_null")]
     pub contracted: Vec<BaseGovEntity>,
 
-    #[serde(flatten)]
-    pub cpv: BaseGovCpv,
+    #[serde(flatten, deserialize_with = "de::deserialize_cpv_none_if_empty")]
+    pub cpv: Option<BaseGovCpv>,
 
     #[serde(deserialize_with = "de::deserialize_optional_date")]
     /// The date when the contract was signed.
@@ -115,9 +115,7 @@ pub struct BaseGovContract {
 /// For example: "48000000-8" = "Pacotes de software e sistemas de informação"
 #[derive(Debug, Deserialize)]
 pub struct BaseGovCpv {
-    #[serde(rename = "cpvs")]
     pub code: String,
-    #[serde(rename = "cpvsDesignation")]
     pub designation: String,
 }
 
@@ -152,7 +150,7 @@ impl From<BaseGovContract> for Contract {
             object_brief_description: contract.object_brief_description,
             initial_contractual_price: contract.initial_contractual_price,
             description: contract.description,
-            cpv: contract.cpv.into(),
+            cpv: contract.cpv.map(|cpv| cpv.into()),
             regime: contract.regime,
             contract_status: contract.contract_status,
             non_written_contract_justification_types: contract
