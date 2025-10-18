@@ -1,21 +1,57 @@
-use std::sync::{Arc, RwLock};
+use std::{
+    collections::HashMap,
+    sync::{Arc, RwLock},
+};
 
 use anyhow::Context;
-use common::SearchableContract;
-use meilisearch_sdk::{
-    client::Client,
-    settings::{PaginationSetting, Settings},
-};
+use common::{Contract, SearchableContract};
+use meilisearch_sdk::settings::{PaginationSetting, Settings};
+use serde::Serialize;
+use sqlx::PgPool;
 
-use crate::{
-    filter::Filters,
-    search::{SearchResponse, SearchedContract},
-    sort::SortField,
-    statistics::Statistics,
-};
+use crate::{error::AppResult, filter::Filters, sort::SortField, statistics::Statistics};
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SearchResponse {
+    pub contracts: Vec<SearchedContract>,
+    pub total: usize,
+    pub page: usize,
+    pub total_pages: usize,
+    pub elapsed_millis: u64,
+    pub hits_per_page: usize,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SearchedContract {
+    #[serde(flatten)]
+    pub contract: SearchableContract,
+    pub matching_ranges: HashMap<String, Vec<MatchingRange>>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MatchingRange {
+    pub start: usize,
+    pub end: usize,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub indices: Option<Vec<usize>>,
+}
+
+impl From<meilisearch_sdk::search::MatchRange> for MatchingRange {
+    fn from(value: meilisearch_sdk::search::MatchRange) -> Self {
+        MatchingRange {
+            start: value.start,
+            end: value.start + value.length,
+            indices: value.indices,
+        }
+    }
+}
 
 pub struct AppState {
-    meilisearch: Arc<Client>,
+    meilisearch: Arc<meilisearch_sdk::client::Client>,
+    pg_pool: PgPool,
     statistics: Arc<RwLock<Statistics>>,
 }
 
@@ -23,27 +59,22 @@ impl Clone for AppState {
     fn clone(&self) -> Self {
         Self {
             meilisearch: Arc::clone(&self.meilisearch),
+            pg_pool: self.pg_pool.clone(), // PgPool is already an Arc
             statistics: Arc::clone(&self.statistics),
         }
     }
 }
 
-pub enum AppError {
-    MeilisearchError(meilisearch_sdk::errors::Error),
-    JsonParseError(String),
-}
-
-pub type AppResult<T> = Result<T, AppError>;
-
 impl AppState {
-    pub fn new(meilisearch: Client) -> Self {
+    pub fn new(meilisearch: meilisearch_sdk::client::Client, pg_pool: PgPool) -> Self {
         Self {
             meilisearch: Arc::new(meilisearch),
+            pg_pool,
             statistics: Default::default(),
         }
     }
 
-    pub fn get_client(&self) -> Arc<Client> {
+    pub fn get_client(&self) -> Arc<meilisearch_sdk::client::Client> {
         Arc::clone(&self.meilisearch)
     }
 
@@ -107,8 +138,7 @@ impl AppState {
             .with_hits_per_page(hits_per_page)
             .with_show_matches_position(true)
             .execute::<SearchableContract>()
-            .await
-            .map_err(AppError::MeilisearchError)?;
+            .await?;
 
         let contracts = results
             .hits
@@ -132,5 +162,11 @@ impl AppState {
             elapsed_millis: results.processing_time_ms as u64,
             hits_per_page,
         })
+    }
+
+    pub async fn get_contract(&self, id: u64) -> AppResult<Option<Contract>> {
+        common::db::get_contract(id, &self.pg_pool)
+            .await
+            .map_err(Into::into)
     }
 }

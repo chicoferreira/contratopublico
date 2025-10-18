@@ -5,7 +5,7 @@ export interface Contract {
   contractingProcedureType: string;
   contracting: Entity[];
   contracted: Entity[];
-  cpv: Cpv;
+  cpvs: Cpv[];
   publicationDate: string;
   signingDate: string | null;
   initialContractualPrice: number;

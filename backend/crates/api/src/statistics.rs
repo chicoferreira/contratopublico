@@ -1,16 +1,10 @@
 use std::sync::Arc;
 
+use crate::filter::Filters;
 use anyhow::Context;
-use axum::extract::State;
 use chrono::{Local, NaiveDate};
 use meilisearch_sdk::documents::DocumentsQuery;
 use serde::{Deserialize, Serialize};
-
-use crate::{
-    extractors::Json,
-    filter::Filters,
-    state::{AppError, AppState},
-};
 
 #[derive(Default, Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -94,9 +88,4 @@ impl Statistics {
             contracts_last_7_days,
         })
     }
-}
-#[tracing::instrument(skip(state))]
-#[axum::debug_handler]
-pub async fn statistics(State(state): State<AppState>) -> Result<Json<Statistics>, AppError> {
-    Ok(Json(state.get_statistics()))
 }

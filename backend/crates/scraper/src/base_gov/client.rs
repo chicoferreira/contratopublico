@@ -42,7 +42,7 @@ pub enum BaseGovPayload {
         size: usize,
     },
     #[serde(rename = "detail_contratos")]
-    ContractDetails { version: &'static str, id: usize },
+    ContractDetails { version: &'static str, id: u64 },
 }
 
 pub struct BaseGovClient {
@@ -81,7 +81,7 @@ impl BaseGovClient {
         self.send_payload(payload).await
     }
 
-    pub async fn get_contract_details(&self, id: usize) -> anyhow::Result<BaseGovContract> {
+    pub async fn get_contract_details(&self, id: u64) -> anyhow::Result<BaseGovContract> {
         let payload = BaseGovPayload::ContractDetails {
             version: "140.0",
             id,
