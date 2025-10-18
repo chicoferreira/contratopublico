@@ -1,9 +1,5 @@
 use crate::state::AppState;
 use anyhow::Context;
-use axum::{
-    Router, middleware,
-    routing::{get, post},
-};
 use clap::Parser;
 use meilisearch_sdk::client::Client;
 use reqwest::Url;
@@ -12,10 +8,11 @@ use std::{path::PathBuf, sync::Arc, time::Instant};
 use tokio::signal;
 use tracing::{Level, error, event, info};
 
+mod error;
 mod extractors;
 mod filter;
 mod metrics;
-mod search;
+mod router;
 mod sort;
 mod state;
 mod statistics;
@@ -34,6 +31,16 @@ struct Args {
     scraper_interval_secs: u64,
     #[clap(long, env, default_value = "../data/scraper/saved_pages.json")]
     saved_pages_path: PathBuf,
+    #[clap(long, env, default_value = "localhost")]
+    postgres_host: String,
+    #[clap(long, env, default_value = "5432")]
+    postgres_port: u16,
+    #[clap(long, env, default_value = "contratopublico")]
+    postgres_user: String,
+    #[clap(long, env, default_value = "contratopublico")]
+    postgres_password: String,
+    #[clap(long, env, default_value = "contratopublico")]
+    postgres_db: String,
     #[clap(long, env)]
     no_scraper: bool,
     #[clap(long, env)]
@@ -68,11 +75,11 @@ async fn main() -> anyhow::Result<()> {
         .context("Failed to run migrations")?;
 
     let scraper_store = Arc::new(
-        Store::new(meilisearch.clone(), args.saved_pages_path)
+        Store::new(meilisearch.clone(), pg_pool.clone(), args.saved_pages_path)
             .context("Failed to create scraper store")?,
     );
 
-    let app_state = AppState::new(meilisearch);
+    let app_state = AppState::new(meilisearch, pg_pool);
     app_state
         .prepare_settings()
         .await
@@ -112,11 +119,7 @@ async fn main() -> anyhow::Result<()> {
         }
     });
 
-    let backend_router = Router::new()
-        .route("/api/search", post(search::search))
-        .route("/api/statistics", get(statistics::statistics))
-        .route_layer(middleware::from_fn(metrics::track_metrics_layer))
-        .with_state(app_state);
+    let backend_router = router::router(app_state);
 
     let backend_listener = tokio::net::TcpListener::bind(args.bind_url)
         .await

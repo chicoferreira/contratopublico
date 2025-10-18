@@ -22,7 +22,6 @@ CREATE TABLE IF NOT EXISTS contracts (
     object_brief_description TEXT NOT NULL,
     initial_contractual_price BIGINT NOT NULL, -- Currency in cents
     description TEXT,
-    cpv_code TEXT REFERENCES cpv(code),
     regime TEXT,
     contract_status TEXT,
     non_written_contract_justification_types TEXT NOT NULL,
@@ -80,3 +79,11 @@ CREATE TABLE IF NOT EXISTS contract_documents (
     PRIMARY KEY (contract_id, document_id)
 );
 CREATE INDEX IF NOT EXISTS idx_contract_documents_document ON contract_documents(document_id);
+
+CREATE TABLE IF NOT EXISTS contract_cpvs (
+    contract_id BIGINT NOT NULL REFERENCES contracts(id) ON DELETE CASCADE,
+    cpv_code TEXT NOT NULL REFERENCES cpv(code),
+    PRIMARY KEY (contract_id, cpv_code)
+);
+CREATE INDEX IF NOT EXISTS idx_contract_cpvs_contract ON contract_cpvs(contract_id);
+CREATE INDEX IF NOT EXISTS idx_contract_cpvs_cpv ON contract_cpvs(cpv_code);

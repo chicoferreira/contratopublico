@@ -8,8 +8,6 @@ use common::{Contract, SearchableContract};
 use sqlx::PgPool;
 use tokio::task::JoinHandle;
 
-use crate::store::db;
-
 pub async fn migrate_contracts_to_postgres(
     contracts_path: PathBuf,
     meili_client: meilisearch_sdk::client::Client,
@@ -73,7 +71,7 @@ pub async fn migrate_contracts_to_postgres(
                 let contract = contract.clone();
                 let handle = tokio::spawn(async move {
                     let instant = Instant::now();
-                    db::insert_contract(&contract, &pg_pool).await?;
+                    common::db::insert_contract(&contract, &pg_pool).await?;
 
                     let duration = instant.elapsed();
                     log::info!("Inserted contract {} in {:?}", contract.id, duration);

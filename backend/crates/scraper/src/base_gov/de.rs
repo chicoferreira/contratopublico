@@ -91,29 +91,28 @@ where
     Ok(opt.unwrap_or_default())
 }
 
-pub fn deserialize_cpv_none_if_empty<'de, D>(
-    deserializer: D,
-) -> Result<Option<BaseGovCpv>, D::Error>
+pub fn deserialize_cpvs<'de, D>(deserializer: D) -> Result<Vec<BaseGovCpv>, D::Error>
 where
     D: Deserializer<'de>,
 {
     #[derive(Deserialize)]
     struct CpvFields {
         #[serde(rename = "cpvs")]
-        code: Option<String>,
+        code: String,
         #[serde(rename = "cpvsDesignation")]
-        designation: Option<String>,
+        designation: String,
     }
 
     let fields: CpvFields = Deserialize::deserialize(deserializer)?;
 
-    match (fields.code, fields.designation) {
-        (Some(code), Some(designation)) if !code.is_empty() && !designation.is_empty() => {
-            Ok(Some(BaseGovCpv {
-                code: code.to_string(),
-                designation: designation.to_string(),
-            }))
-        }
-        _ => Ok(None),
-    }
+    let code_split = fields.code.split(" | ");
+    let designation_split = fields.designation.split(" | ");
+
+    Ok(code_split
+        .zip(designation_split)
+        .map(|(code, designation)| BaseGovCpv {
+            code: code.trim().to_string(),
+            designation: designation.trim().to_string(),
+        })
+        .collect())
 }

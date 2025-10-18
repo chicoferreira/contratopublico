@@ -13,7 +13,6 @@ common = { path = "../common" }
 scraper = { path = "../scraper" }
 thiserror = { workspace = true }
 anyhow = { workspace = true }
-log = { workspace = true }
 tracing = { workspace = true }
 clap = { workspace = true, features = ["derive", "env"] }
 metrics = { workspace = true, default-features = false }
@@ -21,3 +20,4 @@ metrics-exporter-prometheus = { workspace = true, default-features = false }
 chrono = { workspace = true }
 itertools = { workspace = true }
 reqwest = { workspace = true }
+sqlx = { workspace = true }
