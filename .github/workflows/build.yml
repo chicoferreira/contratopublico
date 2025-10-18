@@ -13,12 +13,24 @@ jobs:
     name: Build and test backend
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: ./backend
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: contratopublico_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
 
     env:
       CARGO_TERM_COLOR: always
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/contratopublico_test
 
     steps:
       - name: Checkout code
@@ -27,13 +39,33 @@ jobs:
       - name: Set up Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      - uses: Swatinem/rust-cache@v2
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            backend/target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('backend/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Run migrations
+        working-directory: backend
+        run: |
+          cargo install sqlx-cli --no-default-features --features postgres || true
+          sqlx migrate run
 
       - name: Build backend
-        run: cargo build --release
+        working-directory: backend
+        run: cargo build --verbose
 
-      - name: Test backend
-        run: cargo test --release
+      - name: Run tests
+        working-directory: backend
+        run: cargo test --verbose
+
   frontend:
     name: Build frontend
     runs-on: ubuntu-latest
