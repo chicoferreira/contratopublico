@@ -9,7 +9,7 @@ use serde::Deserialize;
 #[serde(rename_all = "camelCase")]
 pub struct BaseGovContract {
     /// Unique identifier of the contract.
-    pub id: usize,
+    pub id: u64,
 
     /// Description of the contract.
     pub description: Option<String>,
@@ -28,8 +28,8 @@ pub struct BaseGovContract {
     #[serde(default, deserialize_with = "de::empty_vec_if_null")]
     pub contracted: Vec<BaseGovEntity>,
 
-    #[serde(flatten, deserialize_with = "de::deserialize_cpv_none_if_empty")]
-    pub cpv: Option<BaseGovCpv>,
+    #[serde(flatten, deserialize_with = "de::deserialize_cpvs")]
+    pub cpvs: Vec<BaseGovCpv>,
 
     #[serde(deserialize_with = "de::deserialize_optional_date")]
     /// The date when the contract was signed.
@@ -122,7 +122,7 @@ pub struct BaseGovCpv {
 #[derive(Debug, Deserialize)]
 pub struct BaseGovEntity {
     /// The internal Portal BASE identifier
-    pub id: usize,
+    pub id: u64,
     /// The NIF of the entity
     pub nif: String,
     /// The name/description of the entity
@@ -132,7 +132,7 @@ pub struct BaseGovEntity {
 #[derive(Debug, Deserialize)]
 pub struct BaseGovDocument {
     /// The internal Portal BASE identifier
-    pub id: usize,
+    pub id: u64,
     /// The file name of the document
     pub description: String,
 }
@@ -150,7 +150,7 @@ impl From<BaseGovContract> for Contract {
             object_brief_description: contract.object_brief_description,
             initial_contractual_price: contract.initial_contractual_price,
             description: contract.description,
-            cpv: contract.cpv.map(|cpv| cpv.into()),
+            cpvs: contract.cpvs.into_iter().map(Into::into).collect(),
             regime: contract.regime,
             contract_status: contract.contract_status,
             non_written_contract_justification_types: contract
@@ -208,7 +208,7 @@ impl From<BaseGovDocument> for Document {
 /// This id is then used to fetch the full contract details with [BaseGovClient::get_contract_details].
 #[derive(Debug, Deserialize)]
 pub struct BaseGovContractMinimal {
-    pub id: usize,
+    pub id: u64,
 }
 
 #[derive(Debug, Deserialize)]

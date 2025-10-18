@@ -12,7 +12,6 @@ use sqlx::PgPool;
 
 use crate::store::rangeset::RangeSet;
 
-pub mod db;
 pub mod rangeset;
 
 pub struct Store {
@@ -28,11 +27,11 @@ struct ScrapeProgress {
     saved_pages: RangeSet<usize>,
     /// A map of page (that have not been completely scraped yet) numbers
     /// to the set of contract ids that have been scraped and saved
-    pending_pages: HashMap<usize, HashSet<usize>>,
+    pending_pages: HashMap<usize, HashSet<u64>>,
 }
 
 impl ScrapeProgress {
-    fn update(&mut self, page: usize, contracts_per_page: usize, id: usize) {
+    fn update(&mut self, page: usize, contracts_per_page: usize, id: u64) {
         if self.saved_pages.contains(&page) {
             // already saved
             return;
@@ -89,7 +88,7 @@ impl Store {
         })
     }
 
-    pub async fn already_exists(&self, id: usize, page: usize) -> bool {
+    pub async fn already_exists(&self, id: u64, page: usize) -> bool {
         let scrape_progress = self.scrape_progress.lock().unwrap();
 
         scrape_progress.saved_pages.contains(&page)
@@ -105,7 +104,7 @@ impl Store {
         page: usize,
         contracts_per_page: usize,
     ) -> anyhow::Result<()> {
-        db::insert_contract(&contract, &self.pg_pool)
+        common::db::insert_contract(&contract, &self.pg_pool)
             .await
             .context("Failed to save contract in database")?;
 

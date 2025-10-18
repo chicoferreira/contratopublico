@@ -43,7 +43,7 @@ pub async fn scrape(store: Arc<Store>, base_gov_client: BaseGovClient) {
 }
 
 struct ContractLocation {
-    id: usize,
+    id: u64,
     page: usize,
     retries: usize,
 }
