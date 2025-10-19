@@ -4,9 +4,9 @@ use clap::Parser;
 use meilisearch_sdk::client::Client;
 use reqwest::Url;
 use scraper::{base_gov::client::BaseGovClient, store::Store};
-use std::{path::PathBuf, sync::Arc, time::Instant};
+use std::{path::PathBuf, sync::Arc};
 use tokio::signal;
-use tracing::{Level, error, event, info};
+use tracing::{Level, event, info};
 
 mod error;
 mod extractors;
@@ -96,28 +96,7 @@ async fn main() -> anyhow::Result<()> {
         });
     }
 
-    let app_state_clone = app_state.clone();
-    tokio::spawn(async move {
-        let client = app_state_clone.get_client();
-        loop {
-            let instant = Instant::now();
-            // this will likely change soon to use a more efficient database with aggregation mechanisms
-            match statistics::Statistics::compute_new_statistics(client.clone()).await {
-                Ok(statistics) => {
-                    info!("Computed statistics in {:?}", instant.elapsed());
-
-                    app_state_clone.set_statistics(statistics);
-                }
-                Err(err) => {
-                    error!("Failed to compute statistics: {:?}", err);
-                }
-            }
-
-            const STATISTICS_REFRESH_TIME: tokio::time::Duration =
-                tokio::time::Duration::from_secs(15 * 60);
-            tokio::time::sleep(STATISTICS_REFRESH_TIME).await;
-        }
-    });
+    tokio::spawn(statistics::run_reload_statistics_task(app_state.clone()));
 
     let backend_router = router::router(app_state);
 
