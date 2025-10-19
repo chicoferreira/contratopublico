@@ -1,3 +1,4 @@
+use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use tokio::time::Instant;
@@ -57,7 +58,7 @@ impl Statistics {
         Ok(stats)
     }
 
-    pub async fn reload_view(pg_pool: &PgPool) -> sqlx::Result<()> {
+    pub async fn refresh_view(pg_pool: &PgPool) -> sqlx::Result<()> {
         sqlx::query!("REFRESH MATERIALIZED VIEW contract_spent_daily")
             .execute(pg_pool)
             .await?;
@@ -66,29 +67,38 @@ impl Statistics {
     }
 }
 
+const STATISTICS_REFRESH_TIME: tokio::time::Duration = tokio::time::Duration::from_secs(15 * 60);
+
+async fn reload_statistics(app_state: &AppState) -> anyhow::Result<()> {
+    let instant = Instant::now();
+    // currently, the materialized view is refreshed on every task execution.
+    // in the future, the application will support flexible time-based queries
+    // (weekly and monthly statistics) rather than the current fixed
+    // intervals of 365, 30, and 7 days.
+    Statistics::refresh_view(&app_state.get_pg_pool())
+        .await
+        .context("Failed to refresh materialized view")?;
+
+    info!("Refreshed materialized view in {:?}", instant.elapsed());
+
+    let instant = Instant::now();
+    let statistics = Statistics::get_statistics(&app_state.get_pg_pool())
+        .await
+        .context("Failed to compute statistics")?;
+
+    info!("Computed statistics in {:?}", instant.elapsed());
+    app_state.set_statistics(statistics);
+
+    Ok(())
+}
+
 pub async fn run_reload_statistics_task(app_state: AppState) -> anyhow::Result<()> {
     loop {
-        let instant = Instant::now();
-        // currently, the materialized view is refreshed on every task execution.
-        // in the future, the application will support flexible time-based queries
-        // (weekly and monthly statistics) rather than the current fixed
-        // intervals of 365, 30, and 7 days.
-        Statistics::reload_view(&app_state.get_pg_pool()).await?;
-        info!("Reloaded materialized view in {:?}", instant.elapsed());
-
-        let instant = Instant::now();
-        match Statistics::get_statistics(&app_state.get_pg_pool()).await {
-            Ok(statistics) => {
-                info!("Computed statistics in {:?}", instant.elapsed());
-                app_state.set_statistics(statistics);
-            }
-            Err(err) => {
-                error!("Failed to compute statistics: {:?}", err);
-            }
+        match reload_statistics(&app_state).await {
+            Ok(_) => {}
+            Err(err) => error!("Failed to reload statistics: {:?}", err),
         }
 
-        const STATISTICS_REFRESH_TIME: tokio::time::Duration =
-            tokio::time::Duration::from_secs(15 * 60);
         tokio::time::sleep(STATISTICS_REFRESH_TIME).await;
     }
 }
@@ -140,7 +150,7 @@ mod tests {
 
     #[sqlx::test(migrations = "../../migrations")]
     async fn test_compute_statistics_empty_database(pg_pool: PgPool) {
-        Statistics::reload_view(&pg_pool).await.unwrap();
+        Statistics::refresh_view(&pg_pool).await.unwrap();
         let stats = Statistics::get_statistics(&pg_pool).await.unwrap();
 
         assert_eq!(stats.total_spent_last_365_days, 0);
@@ -159,7 +169,7 @@ mod tests {
         insert_test_contract(&pg_pool, 2, today - chrono::Duration::days(15), 2000).await;
         insert_test_contract(&pg_pool, 3, today - chrono::Duration::days(100), 3000).await;
 
-        Statistics::reload_view(&pg_pool).await.unwrap();
+        Statistics::refresh_view(&pg_pool).await.unwrap();
         let stats = Statistics::get_statistics(&pg_pool).await.unwrap();
 
         assert_eq!(stats.total_spent_last_365_days, 6000);
@@ -177,7 +187,7 @@ mod tests {
         insert_test_contract(&pg_pool, 1, today - chrono::Duration::days(400), 5000).await;
         insert_test_contract(&pg_pool, 2, today - chrono::Duration::days(1), 1000).await;
 
-        Statistics::reload_view(&pg_pool).await.unwrap();
+        Statistics::refresh_view(&pg_pool).await.unwrap();
         let stats = Statistics::get_statistics(&pg_pool).await.unwrap();
 
         assert_eq!(stats.total_spent_last_365_days, 1000);
