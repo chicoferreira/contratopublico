@@ -14,21 +14,41 @@ services:
     volumes:
       - ${DATA_FOLDER}/meili_data:/meili_data
 
+  postgres:
+    image: postgres
+    environment:
+      - POSTGRES_DB=contratopublico
+      - POSTGRES_USER=contratopublico
+      - POSTGRES_PASSWORD=contratopublico
+    volumes:
+      - ${DATA_FOLDER}/postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: "pg_isready -U contratopublico"
+      interval: 1s
+      timeout: 60s
+      retries: 5
+
   backend:
     restart: unless-stopped
     depends_on:
       - meilisearch
+      - postgres
     build:
       context: ../backend
     volumes:
       - ${DATA_FOLDER}/scraper:/data/scraper
     environment:
-      - MEILISEARCH_URL=http://meilisearch:7700
-      - MEILI_MASTER_KEY
-      - BIND_URL=0.0.0.0:3000
       - RUST_LOG=info
       - SAVED_PAGES_PATH=/data/scraper/saved_pages.json
       - SCRAPER_INTERVAL_SECS=3600 # 60 minutes
+      - MEILISEARCH_URL=http://meilisearch:7700
+      - MEILI_MASTER_KEY
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=contratopublico
+      - POSTGRES_PASSWORD=contratopublico
+      - POSTGRES_DB=contratopublico
+      - BIND_URL=0.0.0.0:3000
 
   frontend:
     restart: unless-stopped

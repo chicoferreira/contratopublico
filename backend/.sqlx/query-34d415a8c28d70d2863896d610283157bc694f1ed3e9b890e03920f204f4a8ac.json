@@ -1,0 +1,160 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            id, contracting_procedure_type, publication_date, signing_date,\n            ccp, object_brief_description, initial_contractual_price, description,\n            regime, contract_status, non_written_contract_justification_types,\n            contract_types, execution_deadline_days, execution_place,\n            contract_fundamentation_type, contracting_procedure_url, announcement_id,\n            direct_award_fundamentation_type, observations, end_of_contract_type,\n            close_date, total_effective_price, causes_deadline_change, causes_price_change\n        FROM contracts\n        WHERE id = $1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "contracting_procedure_type",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "publication_date",
+        "type_info": "Date"
+      },
+      {
+        "ordinal": 3,
+        "name": "signing_date",
+        "type_info": "Date"
+      },
+      {
+        "ordinal": 4,
+        "name": "ccp",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 5,
+        "name": "object_brief_description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "initial_contractual_price",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 7,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 8,
+        "name": "regime",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 9,
+        "name": "contract_status",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 10,
+        "name": "non_written_contract_justification_types",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 11,
+        "name": "contract_types",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 12,
+        "name": "execution_deadline_days",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 13,
+        "name": "execution_place",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 14,
+        "name": "contract_fundamentation_type",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 15,
+        "name": "contracting_procedure_url",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 16,
+        "name": "announcement_id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 17,
+        "name": "direct_award_fundamentation_type",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 18,
+        "name": "observations",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 19,
+        "name": "end_of_contract_type",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 20,
+        "name": "close_date",
+        "type_info": "Date"
+      },
+      {
+        "ordinal": 21,
+        "name": "total_effective_price",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 22,
+        "name": "causes_deadline_change",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 23,
+        "name": "causes_price_change",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "34d415a8c28d70d2863896d610283157bc694f1ed3e9b890e03920f204f4a8ac"
+}

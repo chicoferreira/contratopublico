@@ -11,6 +11,7 @@ COPY --from=planner /backend/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 
 COPY . .
+ENV SQLX_OFFLINE=true
 RUN cargo build --release --bin backend
 
 FROM debian:bookworm-slim AS runtime
