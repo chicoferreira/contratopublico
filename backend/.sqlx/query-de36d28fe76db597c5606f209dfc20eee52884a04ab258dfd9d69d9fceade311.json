@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO cpv (code, designation) VALUES ($1, $2) ON CONFLICT (code) DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "de36d28fe76db597c5606f209dfc20eee52884a04ab258dfd9d69d9fceade311"
+}
