@@ -6,7 +6,7 @@ use std::{
 };
 
 use anyhow::Context;
-use common::Contract;
+use common::{Contract, SearchableContract};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 
@@ -111,8 +111,10 @@ impl Store {
         let index = self.client.index("contracts");
         let id = contract.id;
 
+        let searchable_contract: SearchableContract = contract.into();
+
         index
-            .add_documents(&[contract], Some("id"))
+            .add_documents(&[searchable_contract], Some("id"))
             .await
             .context("Failed to save contract in meilisearch")?;
 

@@ -105,10 +105,17 @@ where
 
     let fields: CpvFields = Deserialize::deserialize(deserializer)?;
 
-    let code_split = fields.code.split(" | ");
-    let designation_split = fields.designation.split(" | ");
+    let code_split: Vec<_> = fields.code.split(" | ").collect();
+    let designation_split: Vec<_> = fields.designation.split(" | ").collect();
+
+    if code_split.len() != designation_split.len() {
+        return Err(serde::de::Error::custom(
+            "Mismatched number of codes and designations",
+        ));
+    }
 
     Ok(code_split
+        .into_iter()
         .zip(designation_split)
         .map(|(code, designation)| BaseGovCpv {
             code: code.trim().to_string(),
