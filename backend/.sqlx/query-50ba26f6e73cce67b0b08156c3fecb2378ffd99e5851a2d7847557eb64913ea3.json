@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT d.id, d.description\n        FROM contract_documents cd\n        JOIN documents d ON d.id = cd.document_id\n        WHERE cd.contract_id = $1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "description",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "50ba26f6e73cce67b0b08156c3fecb2378ffd99e5851a2d7847557eb64913ea3"
+}

@@ -1,0 +1,12 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "REFRESH MATERIALIZED VIEW contract_spent_daily",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": []
+  },
+  "hash": "57392a4ba79612ce8a5d582ce983727451f35dee0df48dbbd49ebc2b54ecbecc"
+}
