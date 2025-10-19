@@ -74,8 +74,8 @@ impl AppState {
         }
     }
 
-    pub fn get_client(&self) -> Arc<meilisearch_sdk::client::Client> {
-        Arc::clone(&self.meilisearch)
+    pub fn get_pg_pool(&self) -> PgPool {
+        self.pg_pool.clone()
     }
 
     pub fn set_statistics(&self, new_statistics: Statistics) {
