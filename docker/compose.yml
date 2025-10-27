@@ -15,6 +15,7 @@ services:
       - ${DATA_FOLDER}/meili_data:/meili_data
 
   postgres:
+    restart: unless-stopped
     image: postgres
     environment:
       - POSTGRES_DB=contratopublico
