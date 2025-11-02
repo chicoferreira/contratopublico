@@ -3,9 +3,9 @@ title: Changelog
 ---
 
 <script>
-import Muted from "../../components/markdown/Muted.svelte"
-import MonthCommits from "../../components/markdown/MonthCommits.svelte"
-import GithubBadge from "../../components/markdown/GithubBadge.svelte"
+import Muted from "./Muted.svelte"
+import MonthCommits from "./MonthCommits.svelte"
+import GithubBadge from "./GithubBadge.svelte"
 </script>
 
 # Changelog da Plataforma
@@ -14,6 +14,7 @@ Este changelog documenta todas as alterações, melhorias e atualizações feita
 
 ## Novembro de 2025 <MonthCommits startDate="2025-11-01" endDate="2025-11-30" />
 
+- Na página de pesquisa, os contratos agora exibem os códigos CPV e os NIFs das entidades contratantes e contratadas. <GithubBadge commit="3d4fa3bdfb48808bc7a4d23a6e1a5348b9622e8e"/> <Muted>(02/11/2025)</Muted>
 - O painel de filtros agora abre automaticamente quando há filtros ativos e pode ser fechado clicando no título. <GithubBadge issue="37"/> <GithubBadge commit="1f7232aecc2a625bcbbd9a543d29f9b485f0eb1e"/> <Muted>(02/11/2025)</Muted>
 
 ## Setembro de 2025 <MonthCommits startDate="2025-09-01" endDate="2025-09-30" />

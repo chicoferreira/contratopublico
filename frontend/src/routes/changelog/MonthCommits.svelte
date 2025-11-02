@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Link from "../Link.svelte";
+    import Link from "../../components/Link.svelte";
 
     const { startDate, endDate } = $props();
 
