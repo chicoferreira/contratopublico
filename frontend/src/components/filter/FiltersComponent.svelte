@@ -20,10 +20,15 @@
   let {
     filters = $bindable(),
     activeFiltersCount,
-  }: { filters: Filters; activeFiltersCount: number } = $props();
+    filtersOpen = $bindable(),
+  }: { filters: Filters; activeFiltersCount: number; filtersOpen: boolean } = $props();
 
   let displayMinPrice = $state("");
   let displayMaxPrice = $state("");
+
+  function closeFiltersPanel() {
+    filtersOpen = false;
+  }
 
   const priceFormatter = new Intl.NumberFormat("pt-PT", {
     minimumFractionDigits: 2,
@@ -101,8 +106,10 @@
 <div class="bg-card rounded-md border px-6 py-5">
   <div class="flex items-center pb-4">
     <div class="flex flex-grow items-center gap-3 text-lg font-semibold">
-      <Funnel class="h-5 w-5" />
-      Filtros Avançados
+      <button type="button" class="group flex cursor-pointer items-center gap-3 text-left" onclick={closeFiltersPanel} aria-label="Fechar filtros">
+        <Funnel class="h-5 w-5" />
+        <span class="group-hover:underline">Filtros Avançados</span>
+      </button>
       {#if activeFiltersCount > 0}
         <span
           class="bg-primary text-primary-foreground hidden rounded-full px-2 py-0.5 text-xs font-medium md:block"
