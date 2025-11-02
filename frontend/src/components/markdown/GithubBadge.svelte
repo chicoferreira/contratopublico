@@ -1,8 +1,6 @@
 <script lang="ts">
   import { Badge } from "$lib/components/ui/badge/index.js";
 
-  type Variant = "commit" | "issue" | "pull";
-
   type Props = { pr: number | string } | { issue: number | string } | { commit: string };
 
   const props: Props = $props();

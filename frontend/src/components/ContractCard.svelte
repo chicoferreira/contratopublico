@@ -6,6 +6,8 @@
   import ContractTypeBadge from "./ContractProcedureTypeBadge.svelte";
   import Link from "./Link.svelte";
   import ContractPrice from "./ContractPrice.svelte";
+  import ContractNifDescriptionPopover from "./ContractNifDescriptionPopover.svelte";
+  import ContractCpvPopover from "./ContractCpvPopover.svelte";
 
   let { contract }: { contract: Contract & MatchingRanges } = $props();
 
@@ -45,6 +47,10 @@
           <ContractTypeBadge
             type={contract.contractingProcedureType}
             highlightRanges={renderHighlightedField("contractingProcedureType").ranges} />
+
+          {#each contract.cpvs as cpv, index}
+            <ContractCpvPopover {cpv} {index} ranges={contract.matchingRanges} />
+          {/each}
         </div>
       </div>
       <ContractPrice initialContractualPrice={contract.initialContractualPrice} {baseGovUrl} />
@@ -71,6 +77,13 @@
                 content={contracting.description}
                 ranges={contract.matchingRanges["contracting.description"]}
                 {index} />
+
+              <ContractNifDescriptionPopover>
+                <Highlighted
+                  content={contracting.nif}
+                  ranges={contract.matchingRanges["contracting.nif"]}
+                  {index} />
+              </ContractNifDescriptionPopover>
             </p>
           {/each}
         {/snippet}
@@ -92,6 +105,13 @@
                 content={contracted.description}
                 ranges={contract.matchingRanges["contracted.description"]}
                 {index} />
+
+              <ContractNifDescriptionPopover>
+                <Highlighted
+                  content={contracted.nif}
+                  ranges={contract.matchingRanges["contracted.nif"]}
+                  {index} />
+              </ContractNifDescriptionPopover>
             </p>
           {/each}
         {/snippet}
