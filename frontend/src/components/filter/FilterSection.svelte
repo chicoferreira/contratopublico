@@ -1,10 +1,9 @@
 <script lang="ts">
   import { Badge } from "$lib/components/ui/badge/index.js";
   import * as Collapsible from "$lib/components/ui/collapsible/index.js";
-  import Button from "$lib/components/ui/button/button.svelte";
   import { ChevronDown, X } from "@lucide/svelte";
   import type { Filters } from "$lib/types/api";
-  import type { Component } from "svelte";
+  import { untrack, type Component } from "svelte";
   import { blur, fade, slide } from "svelte/transition";
 
   type Props = {
@@ -18,8 +17,7 @@
   let { title, IconComponent, filter, fields, children }: Props = $props();
 
   let hasActiveFilters = $derived(fields.some((field) => filter[field] !== undefined));
-  // svelte-ignore state_referenced_locally
-  let isOpen = $state(hasActiveFilters);
+  let isOpen = $state(untrack(() => hasActiveFilters));
 </script>
 
 <Collapsible.Root bind:open={isOpen}>
