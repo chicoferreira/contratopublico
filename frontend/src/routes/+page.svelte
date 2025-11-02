@@ -44,11 +44,11 @@
   let error = $state<string | null>(data.error);
   let loading = $state(false);
 
-  let filtersOpen = $state(false);
-
   const activeFiltersCount = $derived.by(
     () => Object.values(filters).filter((v) => v != null && v !== "").length,
   );
+  
+  let filtersOpen = $state(untrack(() => activeFiltersCount > 0));
 
   async function updateUrl(query: string, sort: Sort.SortBy, page: number) {
     const params = new URLSearchParams();
@@ -202,7 +202,7 @@
     {#if filtersOpen}
       <div transition:slide={{ duration: 200 }}>
         <div transition:blur={{ duration: 200 }}>
-          <FiltersComponent bind:filters {activeFiltersCount} />
+          <FiltersComponent bind:filters {activeFiltersCount} bind:filtersOpen />
         </div>
       </div>
     {/if}
