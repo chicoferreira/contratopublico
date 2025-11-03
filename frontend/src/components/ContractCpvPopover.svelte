@@ -30,7 +30,7 @@
 
         <div class="flex flex-wrap items-baseline gap-2">
           <dt class="text-primary text-xs font-semibold tracking-wide uppercase">Designação</dt>
-          <dd class="leading-snug">
+          <dd class="leading-snug flex-1 min-w-0 break-words">
             <Highlighted content={cpv.designation} ranges={ranges["cpvs.designation"]} {index} />
           </dd>
         </div>
