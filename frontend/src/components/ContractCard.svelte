@@ -72,7 +72,7 @@
 
         {#snippet value()}
           {#each contract.contracting as contracting, index}
-            <p>
+            <div>
               <Highlighted
                 content={contracting.description}
                 ranges={contract.matchingRanges["contracting.description"]}
@@ -84,7 +84,7 @@
                   ranges={contract.matchingRanges["contracting.nif"]}
                   {index} />
               </ContractNifDescriptionPopover>
-            </p>
+            </div>
           {/each}
         {/snippet}
       </ContractCardInfoRow>
@@ -100,7 +100,7 @@
         {/snippet}
         {#snippet value()}
           {#each contract.contracted as contracted, index}
-            <p>
+            <div>
               <Highlighted
                 content={contracted.description}
                 ranges={contract.matchingRanges["contracted.description"]}
@@ -112,7 +112,7 @@
                   ranges={contract.matchingRanges["contracted.nif"]}
                   {index} />
               </ContractNifDescriptionPopover>
-            </p>
+            </div>
           {/each}
         {/snippet}
       </ContractCardInfoRow>
