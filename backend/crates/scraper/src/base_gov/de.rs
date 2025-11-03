@@ -105,6 +105,10 @@ where
 
     let fields: CpvFields = Deserialize::deserialize(deserializer)?;
 
+    if fields.code.is_empty() && fields.designation.is_empty() {
+        return Ok(vec![]);
+    }
+
     let code_split: Vec<_> = fields.code.split(" | ").collect();
     let designation_split: Vec<_> = fields.designation.split(" | ").collect();
 
