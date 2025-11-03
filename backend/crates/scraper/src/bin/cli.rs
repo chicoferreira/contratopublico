@@ -2,6 +2,8 @@ use std::{path::PathBuf, sync::Arc};
 
 use anyhow::Context;
 use clap::Parser;
+use common::Contract;
+use log::info;
 use reqwest::Url;
 use scraper::{
     base_gov::client::BaseGovClient,
@@ -24,6 +26,10 @@ enum Command {
         #[command(flatten)]
         meilisearch_config: MeilisearchConfig,
         saved_pages_path: PathBuf,
+        base_gov_client_proxy: Option<Url>,
+    },
+    Fetch {
+        contract_id: u64,
         base_gov_client_proxy: Option<Url>,
     },
     ExportOldFormatToJson {
@@ -62,6 +68,16 @@ async fn main() -> anyhow::Result<()> {
 
             let base_gov_client = BaseGovClient::new(base_gov_client_proxy);
             scraper::scraper::scrape(Arc::new(store), base_gov_client).await;
+        }
+        Command::Fetch {
+            contract_id,
+            base_gov_client_proxy,
+        } => {
+            let base_gov_client = BaseGovClient::new(base_gov_client_proxy);
+            let contract = base_gov_client.get_contract_details(contract_id).await?;
+            let contract: Contract = contract.into();
+
+            info!("Fetched contract: {contract:#?}")
         }
         Command::MigrateToPostgres {
             postgres_config,
