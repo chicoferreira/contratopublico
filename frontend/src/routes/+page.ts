@@ -1,5 +1,5 @@
 import { fetchStatistics } from "$lib/index";
-import { searchContracts, DEFAULT_SEARCH_REQUEST, parseSearchRequestFromParams } from "$lib/index";
+import { searchContracts, parseSearchRequestFromParams } from "$lib/index";
 import type { SearchContractsResponse, Statistics } from "$lib/types/api";
 import type { PageLoad } from "./$types";
 

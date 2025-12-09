@@ -106,7 +106,11 @@
 <div class="bg-card rounded-md border px-6 py-5">
   <div class="flex items-center pb-4">
     <div class="flex flex-grow items-center gap-3 text-lg font-semibold">
-      <button type="button" class="group flex cursor-pointer items-center gap-3 text-left" onclick={closeFiltersPanel} aria-label="Fechar filtros">
+      <button
+        type="button"
+        class="group flex cursor-pointer items-center gap-3 text-left"
+        onclick={closeFiltersPanel}
+        aria-label="Fechar filtros">
         <Funnel class="h-5 w-5" />
         <span class="group-hover:underline">Filtros Avançados</span>
       </button>

@@ -16,7 +16,6 @@
   import FiltersDropdown from "../components/filter/FiltersDropdown.svelte";
   import ContractsFound from "../components/ContractsFound.svelte";
   import StatisticsInsights from "../components/StatisticsInsights.svelte";
-  import { TriangleAlert } from "@lucide/svelte";
 
   let { data } = $props();
   const {
@@ -47,7 +46,7 @@
   const activeFiltersCount = $derived.by(
     () => Object.values(filters).filter((v) => v != null && v !== "").length,
   );
-  
+
   let filtersOpen = $state(untrack(() => activeFiltersCount > 0));
 
   async function updateUrl(query: string, sort: Sort.SortBy, page: number) {
@@ -72,7 +71,7 @@
     });
 
     const paramsString = params.toString();
-    replaceState(paramsString ? `?${paramsString}` : "/", "");
+    replaceState(paramsString ? `?${paramsString}` : "/", {});
   }
 
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -159,7 +158,7 @@
     }
   });
 
-  // On URL change, update the search parameters
+  // On URL change, update the search parameters (BROKEN)
   $effect(() => {
     const urlParams = sveltePage.url.searchParams;
     const request = parseSearchRequestFromParams(urlParams);
