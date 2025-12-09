@@ -1,18 +1,10 @@
 <script lang="ts">
   import { Popover, PopoverContent, PopoverTrigger } from "$lib/components/ui/popover";
+  import { formatMoney } from "$lib/utils";
   import InfoPopover from "./InfoPopover.svelte";
   import Link from "./Link.svelte";
 
   const { baseGovUrl, initialContractualPrice } = $props();
-
-  const formatter = new Intl.NumberFormat("pt-PT", {
-    style: "currency",
-    currency: "EUR",
-  });
-
-  function formatMoney(value: number) {
-    return formatter.format(value / 100);
-  }
 </script>
 
 <Popover>

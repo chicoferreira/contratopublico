@@ -6,21 +6,7 @@
   import * as Popover from "$lib/components/ui/popover/index.js";
   import InfoPopover from "./InfoPopover.svelte";
   import Link from "./Link.svelte";
-
-  const moneyFormatter = new Intl.NumberFormat("pt-PT", {
-    style: "currency",
-    currency: "EUR",
-  });
-
-  const numberFormatter = new Intl.NumberFormat("pt-PT");
-
-  function formatMoney(value: number) {
-    return moneyFormatter.format(value / 100);
-  }
-
-  function formatNumber(value: number) {
-    return numberFormatter.format(value);
-  }
+  import { formatMoney, formatNumber } from "$lib/utils";
 
   let { statistics }: { statistics: Statistics } = $props();
 

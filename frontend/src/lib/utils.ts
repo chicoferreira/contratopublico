@@ -21,3 +21,32 @@ export const validateEnumOrDefault = <T extends string>(
 ): T => {
   return value && allowedValues.includes(value as T) ? (value as T) : defaultValue;
 };
+
+const moneyFormatter = new Intl.NumberFormat("pt-PT", {
+  style: "currency",
+  currency: "EUR",
+});
+
+const numberFormatter = new Intl.NumberFormat("pt-PT");
+
+export function formatMoney(value: number | null | undefined) {
+  if (value == null) return "—";
+  return moneyFormatter.format(value / 100);
+}
+
+export function formatNumber(value: number | null | undefined) {
+  if (value == null) return "—";
+  return numberFormatter.format(value);
+}
+
+export const dateToString = (date: Date) =>
+  date.toLocaleDateString("pt-PT", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+
+export function formatDate(value: string | null | undefined) {
+  if (!value) return "—";
+  return dateToString(new Date(value));
+}

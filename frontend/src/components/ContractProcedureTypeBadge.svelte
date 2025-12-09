@@ -18,7 +18,10 @@
     );
   }
 
-  let { type, highlightRanges }: { type: string; highlightRanges: MatchingRange[] } = $props();
+  let {
+    type,
+    ranges: highlightRanges = [],
+  }: { type: string; ranges?: MatchingRange[] | undefined } = $props();
 
   const colorVariants = {
     blue: "bg-blue-600 dark:bg-blue-600/70",

@@ -20,6 +20,10 @@ export interface Contract {
   invitees: Entity[];
   documents: Document[];
   ccp: boolean;
+  contractingProcedureUrl: string;
+  announcementId: number | null;
+  directAwardFundamentationType: string;
+  observations: string | null;
   endOfContractType: string | null;
   closeDate: string | null;
   totalEffectivePrice: number | null;
@@ -58,6 +62,8 @@ export interface SearchContractsResponse {
   elapsedMillis: number;
   hitsPerPage: number;
 }
+
+export type GetContractResponse = Contract | null;
 
 export namespace Sort {
   export interface SortBy {

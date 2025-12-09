@@ -4,10 +4,12 @@
   import ContractCardInfoRow from "./ContractCardInfoRow.svelte";
   import Highlighted from "./Highlighted.svelte";
   import ContractTypeBadge from "./ContractProcedureTypeBadge.svelte";
-  import Link from "./Link.svelte";
   import ContractPrice from "./ContractPrice.svelte";
   import ContractNifDescriptionPopover from "./ContractNifDescriptionPopover.svelte";
   import ContractCpvPopover from "./ContractCpvPopover.svelte";
+  import ContractPlacePopover from "./ContractPlacePopover.svelte";
+  import { getBaseGovContractUrl } from "$lib";
+  import { formatDate } from "$lib/utils";
 
   let { contract }: { contract: Contract & MatchingRanges } = $props();
 
@@ -17,18 +19,6 @@
       ranges: contract.matchingRanges[field],
     };
   }
-
-  const baseGovUrl = $derived(
-    `https://www.base.gov.pt/Base4/pt/detalhe/?type=contratos&id=${contract.id}`,
-  );
-
-  function formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString("pt-PT", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
-  }
 </script>
 
 <div class="bg-card rounded-md border px-6 py-5">
@@ -36,24 +26,32 @@
   <div class="pb-3">
     <div class="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
       <div class="space-y-1">
-        <h3 class="text-base-content text-lg leading-tight font-semibold">
-          <Highlighted {...renderHighlightedField("objectBriefDescription")} />
-        </h3>
-        <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <Link url={baseGovUrl} title="Ver detalhes no base.gov.pt">
-            base.gov.pt (#<Highlighted {...renderHighlightedField("id")} />)
-          </Link>
-
+        <a
+          class="text-base-content group text-lg leading-tight font-semibold"
+          href={"/contract/" + contract.id}
+          title={`Ver detalhes do contrato #${contract.id}`}
+          aria-label={`Ver detalhes do contrato #${contract.id}`}>
+          <Highlighted
+            class="group-hover:underline"
+            {...renderHighlightedField("objectBriefDescription")} />
+        </a>
+        <div class="flex flex-wrap items-start gap-x-2 gap-y-1">
           <ContractTypeBadge
             type={contract.contractingProcedureType}
-            highlightRanges={renderHighlightedField("contractingProcedureType").ranges} />
+            ranges={renderHighlightedField("contractingProcedureType").ranges} />
+
+          <ContractPlacePopover
+            executionPlace={contract.executionPlace}
+            ranges={contract.matchingRanges["executionPlace"]} />
 
           {#each contract.cpvs as cpv, index}
             <ContractCpvPopover {cpv} {index} ranges={contract.matchingRanges} />
           {/each}
         </div>
       </div>
-      <ContractPrice initialContractualPrice={contract.initialContractualPrice} {baseGovUrl} />
+      <ContractPrice
+        initialContractualPrice={contract.initialContractualPrice}
+        baseGovUrl={getBaseGovContractUrl(contract.id)} />
     </div>
   </div>
 
