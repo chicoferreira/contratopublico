@@ -1,6 +1,7 @@
 import {
   Sort,
   type Filters,
+  type GetContractResponse,
   type SearchContractsRequest,
   type SearchContractsResponse,
   type Statistics,
@@ -26,6 +27,20 @@ export async function searchContracts(
     body: JSON.stringify(data),
     headers: { "Content-Type": "application/json" },
     signal,
+  });
+
+  if (!response.ok || response.status !== 200) {
+    const errorData = await response.json().catch(() => ({ message: "Unknown error occurred" }));
+    throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
+  }
+
+  return await response.json();
+}
+
+export async function getContract(id: number, fetchFn = fetch): Promise<GetContractResponse> {
+  const response = await fetchFn(`/api/contract/${id}`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
   });
 
   if (!response.ok || response.status !== 200) {
@@ -91,4 +106,12 @@ export async function fetchStatistics(fetchFn = fetch): Promise<Statistics> {
   }
 
   return await response.json();
+}
+
+export function getBaseGovContractUrl(contractId: number) {
+  return `https://www.base.gov.pt/Base4/pt/detalhe/?type=contratos&id=${contractId}`;
+}
+
+export function getBaseGovDocumentUrl(documentId: number) {
+  return `https://www.base.gov.pt/Base4/pt/resultados/?type=doc_documentos&id=${documentId}`;
 }

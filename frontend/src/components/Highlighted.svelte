@@ -66,6 +66,6 @@
   {#if segment.highlighted}
     <mark class={cn("rounded bg-yellow-200 px-0", className)}>{segment.text}</mark>
   {:else}
-    {segment.text}
+    <span class={className}>{segment.text}</span>
   {/if}
 {/each}
