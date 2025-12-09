@@ -17,7 +17,6 @@ services:
     restart: unless-stopped
   warp:
     image: caomingjun/warp
-    container_name: warp
     restart: unless-stopped
     device_cgroup_rules:
       - "c 10:200 rwm"
