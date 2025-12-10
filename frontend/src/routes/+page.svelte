@@ -1,21 +1,21 @@
 <script lang="ts">
   import "../app.css";
 
-  import Search from "../components/Search.svelte";
-  import ContractCard from "../components/ContractCard.svelte";
-  import SortDropdown from "../components/SortDropdown.svelte";
-  import ErrorDisplay from "../components/ErrorDisplay.svelte";
+  import Search from "$lib/components/Search.svelte";
+  import ContractCard from "$lib/components/ContractCard.svelte";
+  import SortDropdown from "$lib/components/SortDropdown.svelte";
+  import ErrorDisplay from "$lib/components/ErrorDisplay.svelte";
   import { blur, fade, slide } from "svelte/transition";
   import { DEFAULT_SEARCH_REQUEST, parseSearchRequestFromParams, searchContracts } from "$lib";
-  import ContractPagination from "../components/ContractPagination.svelte";
+  import ContractPagination from "$lib/components/ContractPagination.svelte";
   import { replaceState } from "$app/navigation";
   import { page as sveltePage } from "$app/state";
   import { Sort } from "$lib/types/api";
   import { untrack } from "svelte";
-  import FiltersComponent from "../components/filter/FiltersComponent.svelte";
-  import FiltersDropdown from "../components/filter/FiltersDropdown.svelte";
-  import ContractsFound from "../components/ContractsFound.svelte";
-  import StatisticsInsights from "../components/StatisticsInsights.svelte";
+  import FiltersComponent from "$lib/components/filter/FiltersComponent.svelte";
+  import FiltersDropdown from "$lib/components/filter/FiltersDropdown.svelte";
+  import ContractsFound from "$lib/components/ContractsFound.svelte";
+  import StatisticsInsights from "$lib/components/StatisticsInsights.svelte";
 
   let { data } = $props();
   const {

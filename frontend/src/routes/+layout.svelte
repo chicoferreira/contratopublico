@@ -4,9 +4,8 @@
 
   import { ModeWatcher } from "mode-watcher";
   import { NotebookText } from "@lucide/svelte";
-  import { goto } from "$app/navigation";
-  import DarkModeToggle from "../components/DarkModeToggle.svelte";
-  import Footer from "../components/Footer.svelte";
+  import DarkModeToggle from "$lib/components/DarkModeToggle.svelte";
+  import Footer from "$lib/components/Footer.svelte";
 </script>
 
 <ModeWatcher />
