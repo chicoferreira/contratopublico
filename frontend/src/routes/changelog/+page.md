@@ -15,7 +15,7 @@ Este changelog documenta todas as alterações, melhorias e atualizações mais 
 ## Dezembro de 2025 <MonthCommits startDate="2025-12-01" endDate="2025-12-31" />
 
 - Cada contrato passou a ter uma página dedicada com todos os detalhes, acessível pelo seu título na página de pesquisa principal. <GithubBadge issue="39"/> <GithubBadge commit="f4366b7020958901479e394ec93dcb6639d9fc3e"/> <Muted>(09/12/2025)</Muted>
-- Na página de pesquisa, os contratos agora exibem a sua localização de execução. <GithubBadge issue="39"/> <GithubBadge commit="f4366b7020958901479e394ec93dcb6639d9fc3e"/> <Muted>(09/12/2025)</Muted>
+- Na página de pesquisa, os contratos agora exibem a sua localização de execução. <GithubBadge issue="51"/> <GithubBadge commit="f4366b7020958901479e394ec93dcb6639d9fc3e"/> <Muted>(09/12/2025)</Muted>
 
 ## Novembro de 2025 <MonthCommits startDate="2025-11-01" endDate="2025-11-30" />
 
