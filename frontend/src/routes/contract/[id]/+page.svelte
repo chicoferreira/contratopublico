@@ -175,7 +175,9 @@
           <p class="text-muted-foreground">
             Peças do Procedimento:
             {#if contract.contractingProcedureUrl}
-              <Link url={contract.contractingProcedureUrl}>{procedingUrlTitle}</Link>
+              <Link url={contract.contractingProcedureUrl} class="break-all">
+                {procedingUrlTitle}
+              </Link>
             {:else}
               <span class="text-foreground font-medium">Não disponível</span>
             {/if}
@@ -237,7 +239,7 @@
           fallback="Sem documentos associados">
           {#snippet renderElement(doc)}
             <GridSubCard class="text-sm">
-              <Link url={getBaseGovDocumentUrl(doc.id)} class="font-medium">
+              <Link url={getBaseGovDocumentUrl(doc.id)} class="font-medium break-all">
                 {doc.description}
               </Link>
               <span class="text-muted-foreground ml-2">#{doc.id}</span>
