@@ -65,11 +65,15 @@ impl Filters {
         }
         if let Some(entity) = &self.contracted {
             let escaped = Self::escape_string_value(entity);
-            filters.push(format!("contracted.description = '{escaped}'"));
+            filters.push(format!(
+                "contracted.description = '{escaped}' OR contracted.nif = '{escaped}'"
+            ));
         }
         if let Some(entity) = &self.contracting {
             let escaped = Self::escape_string_value(entity);
-            filters.push(format!("contracting.description = '{escaped}'"));
+            filters.push(format!(
+                "contracting.description = '{escaped}' OR contracting.nif = '{escaped}'"
+            ));
         }
         if let Some(price) = self.min_price {
             filters.push(format!("initialContractualPrice >= {price}"));
