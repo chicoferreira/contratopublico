@@ -276,17 +276,17 @@
           onClear={() => delete filters.contracting}
           labelContent="Entidade Contratante (Exata)"
           IconComponent={Building}
-          descriptionContent="Nome completo exato da entidade pública responsável pela contratação (adjudicante)"
+          descriptionContent="NIF (recomendado) ou nome completo exato da entidade pública responsável pela contratação (adjudicante)"
           type="text"
-          placeholder="Ex: Câmara Municipal de Lisboa" />
+          placeholder="Ex: Câmara Municipal de Lisboa ou 500051070" />
         <FilterLabel
           bind:value={filters.contracted}
           onClear={() => delete filters.contracted}
           labelContent="Entidade Contratada (Exata)"
           IconComponent={Building}
-          descriptionContent="Nome completo exato da entidade selecionada para a prestação de serviços (adjudicatária)"
+          descriptionContent="NIF (recomendado) ou nome completo exato da entidade selecionada para a prestação de serviços (adjudicatária)"
           type="text"
-          placeholder="Ex: Empresa XPTO, Lda." />
+          placeholder="Ex: Empresa XPTO, Lda. ou 123456789" />
       </div>
     </FilterSection>
   </div>
