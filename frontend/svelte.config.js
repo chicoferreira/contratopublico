@@ -9,7 +9,7 @@ const config = {
     vitePreprocess(),
     mdsvex({
       extensions: [".md"],
-      layout: import.meta.dirname + "/src/components/markdown/MarkdownLayout.svelte",
+      layout: import.meta.dirname + "/src/lib/components/markdown/MarkdownLayout.svelte",
     }),
   ],
 

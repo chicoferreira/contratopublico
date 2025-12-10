@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Link from "../../../components/Link.svelte";
+  import Link from "$lib/components/Link.svelte";
   import {
     BadgeEuro,
     Building,
@@ -16,11 +16,11 @@
   import GridCardTitle from "./GridCardTitle.svelte";
   import GridSubCard from "./GridSubCard.svelte";
   import GridSubCardList from "./GridSubCardList.svelte";
-  import ContractProcedureTypeBadge from "../../../components/ContractProcedureTypeBadge.svelte";
+  import ContractProcedureTypeBadge from "$lib/components/ContractProcedureTypeBadge.svelte";
   import GridCardTitleList from "./GridCardTitleList.svelte";
   import { dateToString, formatDate, formatMoney } from "$lib/utils";
   import { getBaseGovContractUrl, getBaseGovDocumentUrl } from "$lib";
-  import ErrorDisplay from "../../../components/ErrorDisplay.svelte";
+  import ErrorDisplay from "$lib/components/ErrorDisplay.svelte";
 
   const { data } = $props();
   const contract = data.contract;
