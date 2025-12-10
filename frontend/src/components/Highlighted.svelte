@@ -62,10 +62,12 @@
   );
 </script>
 
-{#each highlightedSegments as segment}
-  {#if segment.highlighted}
-    <mark class={cn("rounded bg-yellow-200 px-0", className)}>{segment.text}</mark>
-  {:else}
-    <span class={className}>{segment.text}</span>
-  {/if}
-{/each}
+<span class={className}>
+  {#each highlightedSegments as segment}
+    {#if segment.highlighted}
+      <mark class="rounded bg-yellow-200 px-0">{segment.text}</mark>
+    {:else}
+      {segment.text}
+    {/if}
+  {/each}
+</span>
