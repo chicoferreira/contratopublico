@@ -10,7 +10,7 @@
 
 The official Portal BASE [has very poor performance, even for simple contract searches](https://www.base.gov.pt/Base4/pt/pesquisa/?type=contratos&texto=Porto&tipo=0&tipocontrato=0&cpv=&aqinfo=&adjudicante=&adjudicataria=&sel_price=price_c1&desdeprecocontrato=&ateprecocontrato=&desdeprecoefectivo=&ateprecoefectivo=&desdeprazoexecucao=&ateprazoexecucao=&sel_date=date_c1&desdedatacontrato=&atedatacontrato=&desdedatapublicacao=&atedatapublicacao=&desdedatafecho=&atedatafecho=&pais=0&distrito=0&concelho=0), often taking more than 5 seconds per search, and [some queries can take over 50 seconds](https://www.base.gov.pt/Base4/pt/pesquisa/?type=contratos&texto=&tipo=0&tipocontrato=0&cpv=&aqinfo=&adjudicante=Municipio+de+Santo+Tirso&adjudicataria=&sel_price=price_c1&desdeprecocontrato=&ateprecocontrato=&desdeprecoefectivo=&ateprecoefectivo=&desdeprazoexecucao=&ateprazoexecucao=&sel_date=date_c1&desdedatacontrato=&atedatacontrato=&desdedatapublicacao=&atedatapublicacao=&desdedatafecho=&atedatafecho=&pais=0&distrito=0&concelho=0).
 
-Although this is not a direct and exact comparison, since our data collection only retrieves the superficial information shown in the Portal BASE search results and does not include fields like _location_ or _competing entities_ (see [issue #28](https://github.com/chicoferreira/contratopublico/issues/28) for progress), the difference in response times remains astronomical. The [same simple search](https://contratopublico.pt/?query=Porto) and [search with the same filters](https://contratopublico.pt/?contracting=Municipio+de+Santo+Tirso) on [contratopublico.pt](https://contratopublico.pt) return results in just a few milliseconds, making the search practically instantaneous.
+The [same simple search](https://contratopublico.pt/?query=Porto) and [search with the same filters](https://contratopublico.pt/?contracting=Municipio+de+Santo+Tirso) on [contratopublico.pt](https://contratopublico.pt) return results in just a few milliseconds, making the search practically instantaneous.
 
 More extensive and interactive information about this performance topic is planned in [issue #10](https://github.com/chicoferreira/contratopublico/issues/10).
 
@@ -18,15 +18,13 @@ More extensive and interactive information about this performance topic is plann
 
 ## Planned Features
 
-Currently, this project allows you to search public contracts based on simple information such as contract title, contracting authority, contractor, dates, among others.
+Currently, this project allows you to search public contracts based on simple information such as contract title, contracting authority, contractor, dates, among others, and view dedicated pages for each contract with detailed information.
 
 Several new features are planned to make the project more informative. These include the integration of interactive statistics, such as charts showing daily, monthly, and yearly spending on contracts, highlights of the most expensive contracts, and which locations/institutions have the highest spending.
 
-There are also plans to implement dedicated pages for each contract, with more detailed information, avoiding the need for the user to visit the Portal BASE to get more data.
-
 In addition, there are plans to track changes to contracts after their publication and to create a page with information on each entity, showing its contract history and related statistics.
 
-For the full list of planned features, check the [issues](https://github.com/chicoferreira/contratopublico/issues/). Contributions are welcome. If you have suggestions or new ideas, create an _issue_ describing them.
+For the full list of planned features, check the [issues](https://github.com/chicoferreira/contratopublico/issues/). Contributions are welcome. If you have suggestions or new ideas, create an _issue_ describing them, or if you are comfortable implementing it, feel free to open a PR.
 
 ## Project Structure
 
@@ -34,7 +32,8 @@ For the full list of planned features, check the [issues](https://github.com/chi
 
 - **Backend**: Rust with Axum
 - **Search Engine**: Meilisearch
-- **Frontend**: SvelteKit + Tailwind + TypeScript
+- **Database**: Postgres
+- **Frontend**: SvelteKit + Tailwind + shadcn + TypeScript
 - **Monitoring**: Prometheus + Grafana
 
 ```
@@ -51,7 +50,7 @@ rpxy/                   # Reverse proxy configuration
 
 ### Scraping
 
-The backend service continuously collects data from the Portal BASE using the `scraper` crate and adds new contracts to Meilisearch.
+The backend service continuously collects data from the Portal BASE using the `scraper` crate and adds new contracts to Meilisearch (for contract search) and to the Postgres database (for detailed contract information).
 
 ### Monitoring
 
@@ -68,33 +67,34 @@ A simple `k6` benchmark script is also included in `monitoring/bench`.
 2. Run the compose:
 
 ```
-docker compose -f docker/docker-compose.yml up -d
+docker compose -f docker/compose.yml up -d
 ```
 
 This will start:
 
-- `meilisearch` (data in `backend/data/meili_data`)
+- `meilisearch`
+- `postgres`
 - `backend`
 - `frontend`
 - `prometheus` and `grafana`
 - `rpxy` (reverse proxy)
 
-By default, the ports are not exposed. In production, you should provide your own proxy (for example, `docker-compose-cftunnels.yml` starts a Cloudflare Tunnel). For local use, you can:
+By default, the ports are not exposed. In production, you should provide your own proxy (for example, `compose-cftunnels.yml` starts a Cloudflare Tunnel). For local use, you can:
 
 - Run the services locally without Docker (see next section), or:
-  1. Add `ports:` to `rpxy` in `docker/docker-compose.yml` to expose port 80.
+  1. Add `ports:` to `rpxy` in `docker/compose.yml` to expose port 80.
   2. Change `server_name` from `contratopublico.pt` to `localhost` in `rpxy/config/config.toml`.
 
 ## Local Development
 
-You can run Meilisearch in Docker, the backend with Cargo, and the frontend with Bun/Node.
+You can run Meilisearch and Postgres in Docker, the backend with Cargo, and the frontend with Bun/Node.
 
 ### 1. Meilisearch
 
-Start Meilisearch in Docker:
+Start Meilisearch and Postgres in Docker:
 
 ```
-docker compose -f docker/docker-compose-meilisearch.yml up -d
+docker compose -f docker/compose-meilisearch.yml up -d
 ```
 
 ### 2. Backend (Rust)
@@ -132,4 +132,4 @@ The port where the frontend is exposed will be shown.
 
 ## License
 
-See the usage license in [LICENSE](https://github.com/chicoferreira/contratopublico/blob/main/LICENSE)
+Check the usage license in [LICENSE](https://github.com/chicoferreira/contratopublico/blob/main/LICENSE)
