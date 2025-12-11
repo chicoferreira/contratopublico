@@ -115,7 +115,8 @@ cargo run --release --bin backend
 The backend will (by default):
 
 - Prepare Meilisearch settings
-- Start a periodic scraping cycle
+- Execute migrations in Postgres
+- Start a periodic scraping cycle (use `--no-scraper` flag to not start)
 - Expose the API on `:3000` and metrics on `:3001/metrics`
 
 ### 3. Frontend (SvelteKit)
