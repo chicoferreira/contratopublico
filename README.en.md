@@ -2,9 +2,9 @@
 
 # Contrato Público (Public Contracts)
 
-[contratopublico.pt](https://contratopublico.pt/) is a search service for public contracts executed in Portugal. It aggregates data from the official database [Portal BASE](https://www.base.gov.pt/base4)[^1], making it available on a platform that is far more usable, faster, and intuitive.
+[contratopublico.pt](https://contratopublico.pt/) is a search service for public contracts executed in Portugal. It aggregates data from the official website [Portal BASE](https://www.base.gov.pt/base4)[^1], making it available on a platform that is far more usable, faster, and intuitive.
 
-<img width="1334" height="834" alt="image" src="https://github.com/user-attachments/assets/90aac3d9-8959-474f-ae45-940be8ac5b53" />
+<img width="1334" height="834" alt="image" src="https://github.com/user-attachments/assets/c7fb7044-9466-41d0-ba49-7b57114bbe3d" />
 
 [^1]: Not affiliated in any way with the Government of Portugal or IMPIC.
 
@@ -15,6 +15,8 @@ The [same simple search](https://contratopublico.pt/?query=Porto) and [search wi
 More extensive and interactive information about this performance topic is planned in [issue #10](https://github.com/chicoferreira/contratopublico/issues/10).
 
 [contratopublico.pt](https://contratopublico.pt) also offers a much more intuitive and accessible search experience, with features like automatic search, detailed descriptions for technical terms that may be unfamiliar to the general public, and a significantly more appealing and functional interface.
+
+<img width="1334" height="894" alt="image" src="https://github.com/user-attachments/assets/27396df4-1a0d-4a52-98d4-aed2bfa888e1" />
 
 ## Planned Features
 
@@ -113,7 +115,8 @@ cargo run --release --bin backend
 The backend will (by default):
 
 - Prepare Meilisearch settings
-- Start a periodic scraping cycle
+- Execute migrations in Postgres
+- Start a periodic scraping cycle (use `--no-scraper` flag to not start)
 - Expose the API on `:3000` and metrics on `:3001/metrics`
 
 ### 3. Frontend (SvelteKit)
