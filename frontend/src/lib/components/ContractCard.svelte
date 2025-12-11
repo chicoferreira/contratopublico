@@ -40,9 +40,11 @@
             type={contract.contractingProcedureType}
             ranges={renderHighlightedField("contractingProcedureType").ranges} />
 
-          <ContractPlacePopover
-            executionPlace={contract.executionPlace}
-            ranges={contract.matchingRanges["executionPlace"]} />
+          {#if contract.executionPlace}
+            <ContractPlacePopover
+              executionPlace={contract.executionPlace}
+              ranges={contract.matchingRanges["executionPlace"]} />
+          {/if}
 
           {#each contract.cpvs as cpv, index}
             <ContractCpvPopover {cpv} {index} ranges={contract.matchingRanges} />
