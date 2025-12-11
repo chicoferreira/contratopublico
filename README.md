@@ -4,7 +4,7 @@
 
 O [contratopublico.pt](https://contratopublico.pt/) é um serviço de pesquisa de contratos públicos realizados em Portugal que agrega dados do [Portal BASE](https://www.base.gov.pt/base4)[^1], disponibilizando-os numa plataforma muito mais usável, rápida e intuitiva.
 
-<img width="1334" height="834" alt="image" src="https://github.com/user-attachments/assets/90aac3d9-8959-474f-ae45-940be8ac5b53" />
+<img width="1334" height="834" alt="image" src="https://github.com/user-attachments/assets/c7fb7044-9466-41d0-ba49-7b57114bbe3d" />
 
 [^1]: Sem qualquer afiliação com o Governo de Portugal ou o IMPIC.
 
@@ -13,6 +13,8 @@ O Portal BASE oficial apresenta [um desempenho muito fraco, mesmo para pesquisas
 A [mesma pesquisa simples](https://contratopublico.pt/?query=Porto) e [a pesquisa com os mesmos filtros](https://contratopublico.pt/?contracting=Municipio+de+Santo+Tirso) no [contratopublico.pt](https://contratopublico.pt) devolvem resultados em apenas alguns milissegundos, tornando a pesquisa praticamente instantânea.
 
 O [contratopublico.pt](https://contratopublico.pt) também proporciona uma experiência de pesquisa muito mais intuitiva e acessível, com funcionalidades de pesquisa automática, descrições detalhadas para termos técnicos menos familiares ao público geral e uma interface significativamente mais apelativa e funcional.
+
+<img width="1334" height="894" alt="image" src="https://github.com/user-attachments/assets/27396df4-1a0d-4a52-98d4-aed2bfa888e1" />
 
 ## Funcionalidades Planeadas
 
