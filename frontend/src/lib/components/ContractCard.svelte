@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Contract, MatchingRanges } from "$lib/types/api";
-  import { Building, CalendarDays, Signature, FileText } from "@lucide/svelte";
+  import { Building, CalendarDays, Signature, FileText, ExternalLink } from "@lucide/svelte";
   import ContractCardInfoRow from "./ContractCardInfoRow.svelte";
   import Highlighted from "./Highlighted.svelte";
   import ContractTypeBadge from "./ContractProcedureTypeBadge.svelte";
@@ -27,13 +27,16 @@
     <div class="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
       <div class="space-y-1">
         <a
-          class="text-base-content group text-lg leading-tight font-semibold"
+          class="text-base-content group inline-flex min-w-0 items-start gap-2 text-lg leading-tight font-semibold"
           href={"/contract/" + contract.id}
           title={`Ver detalhes do contrato #${contract.id}`}
           aria-label={`Ver detalhes do contrato #${contract.id}`}>
           <Highlighted
-            class="group-hover:underline"
+            class="min-w-0 group-hover:underline"
             {...renderHighlightedField("objectBriefDescription")} />
+          <ExternalLink
+            aria-hidden="true"
+            class="text-muted-foreground/80 group-hover:text-primary mt-[3px] h-4 w-4 shrink-0 transition-colors" />
         </a>
         <div class="flex flex-wrap items-start gap-x-2 gap-y-1">
           <ContractTypeBadge
