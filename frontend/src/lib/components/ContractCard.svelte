@@ -30,7 +30,9 @@
           class="text-base-content group inline-flex min-w-0 items-start gap-2 text-lg leading-tight font-semibold"
           href={"/contract/" + contract.id}
           title={`Ver detalhes do contrato #${contract.id}`}
-          aria-label={`Ver detalhes do contrato #${contract.id}`}>
+          aria-label={`Ver detalhes do contrato #${contract.id}`}
+          target="_blank"
+          rel="noopener noreferrer">
           <Highlighted
             class="min-w-0 group-hover:underline"
             {...renderHighlightedField("objectBriefDescription")} />
