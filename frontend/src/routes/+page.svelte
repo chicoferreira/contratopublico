@@ -6,11 +6,11 @@
   import SortDropdown from "$lib/components/SortDropdown.svelte";
   import ErrorDisplay from "$lib/components/ErrorDisplay.svelte";
   import { blur, fade, slide } from "svelte/transition";
-  import { DEFAULT_SEARCH_REQUEST, parseSearchRequestFromParams, searchContracts } from "$lib";
+  import { buildSearchParams } from "$lib";
   import ContractPagination from "$lib/components/ContractPagination.svelte";
-  import { replaceState } from "$app/navigation";
+  import { goto } from "$app/navigation";
   import { page as sveltePage } from "$app/state";
-  import { Sort } from "$lib/types/api";
+  import { type SearchContractsRequest } from "$lib/types/api";
   import { untrack } from "svelte";
   import FiltersComponent from "$lib/components/filter/FiltersComponent.svelte";
   import FiltersDropdown from "$lib/components/filter/FiltersDropdown.svelte";
@@ -18,122 +18,62 @@
   import StatisticsInsights from "$lib/components/StatisticsInsights.svelte";
 
   let { data } = $props();
-  const {
-    query: initialQuery,
-    sort: initialSort,
-    filters: initialFilters,
-    page: initialPage,
-  } = data.searchRequest;
+  const getInitialSearchRequest = () => data.searchRequest;
+  const getInitialSearchResponse = () => data.searchResponse;
+  const getInitialStatistics = () => data.statisticsResponse;
+  const getInitialError = () => data.error;
 
-  let statistics = data.statisticsResponse;
+  const initialRequest = getInitialSearchRequest();
 
-  let query = $state(initialQuery);
-  let sort = $state(initialSort);
-  let page = $state(initialPage);
-  let filters = $state(initialFilters);
-  let searchResults = $state(data.searchResponse);
-
-  let lastRequest = $state({
-    query: initialQuery,
-    sort: initialSort,
-    page: initialPage,
-    filters: initialFilters,
-  });
-
-  let error = $state<string | null>(data.error);
-  let loading = $state(false);
+  let query = $state(initialRequest.query);
+  let sort = $state(initialRequest.sort);
+  let page = $state(initialRequest.page);
+  let filters = $state(initialRequest.filters);
+  let searchResults = $state(getInitialSearchResponse());
+  let statistics = $state(getInitialStatistics());
+  let error = $state<string | null>(getInitialError());
 
   const activeFiltersCount = $derived.by(
     () => Object.values(filters).filter((v) => v != null && v !== "").length,
   );
 
-  let filtersOpen = $state(untrack(() => activeFiltersCount > 0));
+  let loading = $state(false);
 
-  async function updateUrl(query: string, sort: Sort.SortBy, page: number) {
-    const params = new URLSearchParams();
+  const initialActiveFiltersCount = () => activeFiltersCount;
+  let filtersOpen = $state(initialActiveFiltersCount() > 0);
 
-    if (query) params.set("query", query);
+  let navigationTimeout: ReturnType<typeof setTimeout> | null = null;
+  let lastNavigatedSearch = $state("");
 
-    const defaultSort = DEFAULT_SEARCH_REQUEST.sort;
-    if (sort.field !== defaultSort.field || sort.direction !== defaultSort.direction) {
-      params.set("sortField", sort.field);
-      params.set("sortDirection", sort.direction);
-    }
-
-    if (page > DEFAULT_SEARCH_REQUEST.page) {
-      params.set("page", page.toString());
-    }
-
-    Object.entries(filters).forEach(([field, value]) => {
-      if (value || value === 0) {
-        params.set(field, value);
-      }
-    });
-
-    const paramsString = params.toString();
-    replaceState(paramsString ? `?${paramsString}` : "/", {});
+  function snapshotRequest(): Required<SearchContractsRequest> {
+    return {
+      query,
+      sort: $state.snapshot(sort),
+      page,
+      filters: $state.snapshot(filters),
+    };
   }
 
-  let timeoutId: ReturnType<typeof setTimeout> | null = null;
-  let currentController: AbortController | null = null;
-
-  async function runSearchDebounced() {
-    if (timeoutId) clearTimeout(timeoutId);
-    timeoutId = setTimeout(async () => {
-      const currentQuery = query;
-      const currentSort = $state.snapshot(sort);
-      const currentPage = page;
-      const currentFilters = $state.snapshot(filters);
-
-      if (currentController) currentController.abort("new search");
-      currentController = new AbortController();
-      loading = true;
-
-      const request = {
-        query: currentQuery,
-        sort: currentSort,
-        filters: currentFilters,
-        page: currentPage,
-      };
-      try {
-        const result = await searchContracts(request, undefined, currentController.signal);
-
-        // Only update the search results if the result is from the current search
-        if (
-          query === currentQuery &&
-          sort.direction === currentSort.direction &&
-          sort.field === currentSort.field &&
-          page === currentPage &&
-          JSON.stringify(filters) === JSON.stringify(currentFilters)
-        ) {
-          searchResults = result;
-          lastRequest = request;
-          await updateUrl(currentQuery, currentSort, currentPage);
-          // Clear any previous errors on successful request
-          error = null;
-        }
-
-        loading = false;
-      } catch (err) {
-        loading = false;
-        if (!(err instanceof Error) || err.name === "AbortError") {
-          return;
-        }
-        console.error("Search error:", err);
-
-        error = err.message || "Erro desconhecido";
-      }
-    }, 150);
-  }
-
-  // Execute query whenever on each parameter change
+  // Keep local mutable state synced with readonly `page.data`.
   $effect(() => {
-    const last = untrack(() => lastRequest);
+    const request = data.searchRequest;
+    query = request.query;
+    sort = request.sort;
+    page = request.page;
+    filters = request.filters;
+    searchResults = data.searchResponse;
+    statistics = data.statisticsResponse;
+    error = data.error;
+    loading = false;
+    lastNavigatedSearch = sveltePage.url.searchParams.toString();
+  });
 
+  // User edits update URL; URL updates rerun `load`, which refreshes `page.data`.
+  $effect(() => {
     query;
-    sort;
+    sort.field;
+    sort.direction;
     page;
-    filters;
     filters.minId;
     filters.maxId;
     filters.startPublicationDate;
@@ -145,34 +85,44 @@
     filters.minPrice;
     filters.maxPrice;
 
-    // Only send the request if the parameters have changed
-    // This also avoids double requesting on page load
-    if (
-      last.query !== query ||
-      last.sort.direction !== sort.direction ||
-      last.sort.field !== sort.field ||
-      last.page !== page ||
-      JSON.stringify(last.filters) !== JSON.stringify(filters)
-    ) {
-      runSearchDebounced();
+    const nextSearch = buildSearchParams(snapshotRequest()).toString();
+    const currentSearch = untrack(() => sveltePage.url.searchParams.toString());
+    const lastSubmitted = untrack(() => lastNavigatedSearch);
+
+    if (nextSearch === currentSearch || nextSearch === lastSubmitted) {
+      return;
     }
+
+    if (navigationTimeout) clearTimeout(navigationTimeout);
+    navigationTimeout = setTimeout(async () => {
+      const latestSearch = buildSearchParams(snapshotRequest()).toString();
+      const latestCurrent = sveltePage.url.searchParams.toString();
+
+      if (latestSearch === latestCurrent) return;
+
+      loading = true;
+      lastNavigatedSearch = latestSearch;
+
+      try {
+        await goto(latestSearch ? `?${latestSearch}` : "/", {
+          replaceState: true,
+          keepFocus: true,
+          noScroll: true,
+        });
+      } catch (navigationError) {
+        loading = false;
+        console.error("Navigation error:", navigationError);
+      }
+    }, 250);
   });
 
-  // On URL change, update the search parameters (BROKEN)
+  // Keep page inside available bounds from latest results.
   $effect(() => {
-    const urlParams = sveltePage.url.searchParams;
-    const request = parseSearchRequestFromParams(urlParams);
-
-    query = request.query;
-    sort = request.sort;
-    page = request.page;
-    filters = request.filters;
-  });
-
-  // Clamp page number to the maximum allowed value
-  $effect(() => {
-    if (searchResults && page > searchResults.totalPages) {
-      page = Math.max(1, searchResults.totalPages);
+    if (searchResults.totalPages > 0 && page > searchResults.totalPages) {
+      page = searchResults.totalPages;
+    }
+    if (page < 1) {
+      page = 1;
     }
   });
 </script>
@@ -217,8 +167,8 @@
     {#if searchResults.totalPages > 1}
       <ContractPagination
         bind:page
-        bind:total={searchResults.total}
-        bind:hitsPerPage={searchResults.hitsPerPage} />
+        total={searchResults.total}
+        hitsPerPage={searchResults.hitsPerPage} />
     {/if}
 
     {#each searchResults.contracts as contract (contract.id)}
@@ -229,8 +179,8 @@
 
     <ContractPagination
       bind:page
-      bind:total={searchResults.total}
-      bind:hitsPerPage={searchResults.hitsPerPage}
+      total={searchResults.total}
+      hitsPerPage={searchResults.hitsPerPage}
       scrolToElement="[data-change-page-scroll-target]"
       scrollOffset={-10} />
   {/if}

@@ -30,15 +30,13 @@
           class="text-base-content group inline-flex min-w-0 items-start gap-2 text-lg leading-tight font-semibold"
           href={"/contract/" + contract.id}
           title={`Ver detalhes do contrato #${contract.id}`}
-          aria-label={`Ver detalhes do contrato #${contract.id}`}
-          target="_blank"
-          rel="noopener noreferrer">
+          aria-label={`Ver detalhes do contrato #${contract.id}`}>
           <Highlighted
             class="min-w-0 group-hover:underline"
             {...renderHighlightedField("objectBriefDescription")} />
           <ExternalLink
             aria-hidden="true"
-            class="text-muted-foreground/80 group-hover:text-primary mt-[3px] h-4 w-4 shrink-0 transition-colors" />
+            class="text-muted-foreground/80 group-hover:text-primary mt-0.75 h-4 w-4 shrink-0 transition-colors" />
         </a>
         <div class="flex flex-wrap items-start gap-x-2 gap-y-1">
           <ContractTypeBadge

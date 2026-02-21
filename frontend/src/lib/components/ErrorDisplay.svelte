@@ -9,14 +9,14 @@
 
   let { message }: Props = $props();
 
-  const title = encodeURIComponent(`Error: ${message}`);
-  const issueUrl = `https://github.com/chicoferreira/contratopublico/issues/new?title=${title}`;
+  const title = $derived(encodeURIComponent(`Error: ${message}`));
+  const issueUrl = $derived(`https://github.com/chicoferreira/contratopublico/issues/new?title=${title}`);
 </script>
 
 <div
   class="border-destructive/20 bg-destructive/5 text-destructive space-y-3 rounded-lg border px-6 py-5">
   <div class="flex items-start gap-3">
-    <AlertTriangle class="text-destructive h-8 w-8 flex-shrink-0 self-center" />
+    <AlertTriangle class="text-destructive h-8 w-8 shrink-0 self-center" />
     <div class="flex-1">
       <h3 class="text-sm font-semibold">Algo correu mal :(</h3>
       <p class="mt-1 text-sm">
@@ -47,7 +47,7 @@
       <li class="pl-2">
         <Link
           url={issueUrl}
-          class="!text-destructive hover:!text-destructive/60 !underline"
+          class="text-destructive! hover:text-destructive/60! underline!"
           showIcon={false}>
           Crie um <em>issue</em> no GitHub
         </Link>

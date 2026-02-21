@@ -23,8 +23,8 @@
   import ErrorDisplay from "$lib/components/ErrorDisplay.svelte";
 
   const { data } = $props();
-  const contract = data.contract;
-  const error = data.error;
+  const contract = $derived(data.contract);
+  const error = $derived(data.error);
 
   const procedingUrlTitle = $derived.by(() => {
     if (!contract) return undefined;

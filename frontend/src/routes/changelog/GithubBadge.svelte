@@ -5,11 +5,13 @@
 
   const props: Props = $props();
 
-  const pr = "pr" in props ? props.pr : undefined;
-  const issue = "issue" in props ? props.issue : undefined;
-  const commit = "commit" in props ? props.commit : undefined;
+  const pr = $derived("pr" in props ? props.pr : undefined);
+  const issue = $derived("issue" in props ? props.issue : undefined);
+  const commit = $derived("commit" in props ? props.commit : undefined);
 
-  const type = commit !== undefined ? "commit" : issue !== undefined ? "issue" : "pull";
+  const id = $derived(String(pr ?? issue ?? commit));
+
+  const type = $derived(commit !== undefined ? "commit" : issue !== undefined ? "issue" : "pull");
 
   const segments = {
     commit: "commit",
@@ -17,19 +19,17 @@
     pull: "pull",
   } as const;
 
+  const url = $derived(`https://github.com/chicoferreira/contratopublico/${segments[type]}/${id}`);
+
+  const label = $derived(type === "commit" ? id.slice(0, 7) : `#${id}`);
+
   const badges = {
     commit: "bg-blue-500 dark:bg-blue-600",
     issue: "bg-green-500 dark:bg-green-600",
     pull: "bg-yellow-500 dark:bg-yellow-600",
   } as const;
 
-  const id = String(pr ?? issue ?? commit);
-
-  const url = `https://github.com/chicoferreira/contratopublico/${segments[type]}/${id}`;
-
-  const label = type === "commit" ? id.slice(0, 7) : `#${id}`;
-
-  const badgeClass = badges[type];
+  const badgeClass = $derived(badges[type]);
 </script>
 
 <Badge variant="secondary" class={badgeClass}>
