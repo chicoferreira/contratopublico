@@ -4,12 +4,15 @@ use std::{
 };
 
 use anyhow::Context;
-use common::{Contract, SearchableContract};
+use common::{
+    Contract, SearchableContract, db::ContractDatabase, searchdb::SearchDatabase,
+    statistics::Statistics,
+};
 use meilisearch_sdk::settings::{PaginationSetting, Settings};
 use serde::Serialize;
 use sqlx::PgPool;
 
-use crate::{error::AppResult, filter::Filters, sort::SortField, statistics::Statistics};
+use crate::{error::AppResult, filter::Filters, sort::SortField};
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -50,16 +53,16 @@ impl From<meilisearch_sdk::search::MatchRange> for MatchingRange {
 }
 
 pub struct AppState {
-    meilisearch: Arc<meilisearch_sdk::client::Client>,
-    pg_pool: PgPool,
+    search_database: SearchDatabase,
+    contract_database: ContractDatabase,
     statistics: Arc<RwLock<Statistics>>,
 }
 
 impl Clone for AppState {
     fn clone(&self) -> Self {
         Self {
-            meilisearch: Arc::clone(&self.meilisearch),
-            pg_pool: self.pg_pool.clone(), // PgPool is already an Arc
+            search_database: self.search_database.clone(),
+            contract_database: self.contract_database.clone(),
             statistics: Arc::clone(&self.statistics),
         }
     }
@@ -67,20 +70,12 @@ impl Clone for AppState {
 
 impl AppState {
     pub fn new(meilisearch: meilisearch_sdk::client::Client, pg_pool: PgPool) -> Self {
+        let search_database = SearchDatabase::new(meilisearch);
+        let contract_database = ContractDatabase::new(pg_pool);
         Self {
-            meilisearch: Arc::new(meilisearch),
-            pg_pool,
+            search_database,
+            contract_database,
             statistics: Default::default(),
-        }
-    }
-
-    pub fn get_pg_pool(&self) -> PgPool {
-        self.pg_pool.clone()
-    }
-
-    pub fn set_statistics(&self, new_statistics: Statistics) {
-        if let Ok(mut statistics) = self.statistics.write() {
-            *statistics = new_statistics;
         }
     }
 
@@ -88,8 +83,27 @@ impl AppState {
         self.statistics.read().unwrap().clone()
     }
 
+    pub async fn reload_statistics(&self) -> anyhow::Result<()> {
+        self.contract_database
+            .refresh_statistics_view()
+            .await
+            .context("Failed to refresh statistics view")?;
+
+        let new_statistics = self
+            .contract_database
+            .get_statistics()
+            .await
+            .context("Failed to compute statistics")?;
+
+        if let Ok(mut statistics) = self.statistics.write() {
+            *statistics = new_statistics;
+        }
+
+        Ok(())
+    }
+
     pub async fn prepare_settings(&self) -> anyhow::Result<()> {
-        let contracts_index = self.meilisearch.index("contracts");
+        let contracts_index = self.search_database.index();
 
         let settings = Settings::new()
             .with_sortable_attributes(SortField::to_meilisearch_all())
@@ -128,8 +142,8 @@ impl AppState {
         let filters_ref = filters.iter().map(String::as_str).collect();
 
         let results = self
-            .meilisearch
-            .index("contracts")
+            .search_database
+            .index()
             .search()
             .with_query(query)
             .with_array_filter(filters_ref)
@@ -165,7 +179,8 @@ impl AppState {
     }
 
     pub async fn get_contract(&self, id: u64) -> AppResult<Option<Contract>> {
-        common::db::get_contract(id, &self.pg_pool)
+        self.contract_database
+            .get_contract(id)
             .await
             .map_err(Into::into)
     }
