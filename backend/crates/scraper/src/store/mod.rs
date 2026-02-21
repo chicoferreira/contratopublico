@@ -6,7 +6,7 @@ use std::{
 };
 
 use anyhow::Context;
-use common::{Contract, SearchableContract};
+use common::{Contract, db::ContractDatabase, searchdb::SearchDatabase};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 
@@ -15,8 +15,8 @@ use crate::store::rangeset::RangeSet;
 pub mod rangeset;
 
 pub struct Store {
-    client: meilisearch_sdk::client::Client,
-    pg_pool: PgPool,
+    search_database: SearchDatabase,
+    contract_database: ContractDatabase,
     scrape_progress: Mutex<ScrapeProgress>,
     path: PathBuf,
 }
@@ -79,10 +79,12 @@ impl Store {
         path: PathBuf,
     ) -> anyhow::Result<Self> {
         let scrape_progress = Self::load_progress(&path).context("Failed to load progress")?;
+        let contract_database = ContractDatabase::new(pg_pool);
+        let search_database = SearchDatabase::new(client);
 
         Ok(Self {
-            client,
-            pg_pool,
+            search_database,
+            contract_database,
             scrape_progress: Mutex::new(scrape_progress),
             path,
         })
@@ -98,25 +100,25 @@ impl Store {
                 .map_or(false, |entry| entry.contains(&id))
     }
 
-    pub async fn save_contract(
+    pub async fn save_contract(&self, contract: Contract) -> anyhow::Result<()> {
+        self.contract_database
+            .insert_contract(&contract)
+            .await
+            .context("Failed to save contract in database")?;
+
+        self.search_database.save_contract(contract).await?;
+
+        Ok(())
+    }
+
+    pub async fn save_scraped_contract(
         &self,
         contract: Contract,
         page: usize,
         contracts_per_page: usize,
     ) -> anyhow::Result<()> {
-        common::db::insert_contract(&contract, &self.pg_pool)
-            .await
-            .context("Failed to save contract in database")?;
-
-        let index = self.client.index("contracts");
         let id = contract.id;
-
-        let searchable_contract: SearchableContract = contract.into();
-
-        index
-            .add_documents(&[searchable_contract], Some("id"))
-            .await
-            .context("Failed to save contract in meilisearch")?;
+        self.save_contract(contract).await?;
 
         let mut scrape_progress = self.scrape_progress.lock().unwrap();
         scrape_progress.update(page, contracts_per_page, id);

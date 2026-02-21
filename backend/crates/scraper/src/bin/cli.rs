@@ -8,7 +8,7 @@ use reqwest::Url;
 use scraper::{
     base_gov::client::BaseGovClient,
     config::{MeilisearchConfig, PostgresConfig},
-    export, migrate,
+    export,
 };
 
 #[derive(clap::Parser)]
@@ -36,13 +36,6 @@ enum Command {
         #[command(flatten)]
         meilisearch_config: MeilisearchConfig,
         output_path: PathBuf,
-    },
-    MigrateToPostgres {
-        #[command(flatten)]
-        postgres_config: PostgresConfig,
-        #[command(flatten)]
-        meilisearch_config: MeilisearchConfig,
-        contracts_path: PathBuf,
     },
 }
 
@@ -78,18 +71,6 @@ async fn main() -> anyhow::Result<()> {
             let contract: Contract = contract.into();
 
             info!("Fetched contract: {contract:#?}")
-        }
-        Command::MigrateToPostgres {
-            postgres_config,
-            meilisearch_config,
-            contracts_path,
-        } => {
-            let meili_client = meilisearch_config.create_client()?;
-            let pg_pool = postgres_config.create_pool().await?;
-
-            migrate::migrate_contracts_to_postgres(contracts_path, meili_client, pg_pool)
-                .await
-                .context("Failed to import contracts")?;
         }
         Command::ExportOldFormatToJson {
             meilisearch_config,

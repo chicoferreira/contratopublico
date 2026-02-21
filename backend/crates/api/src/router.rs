@@ -4,7 +4,7 @@ use axum::{
     middleware,
     routing::{get, post},
 };
-use common::Contract;
+use common::{Contract, statistics::Statistics};
 use serde::Deserialize;
 use tracing::debug;
 
@@ -15,7 +15,6 @@ use crate::{
     metrics,
     sort::SortBy,
     state::{AppState, SearchResponse},
-    statistics::Statistics,
 };
 
 pub fn router(app_state: AppState) -> Router {
