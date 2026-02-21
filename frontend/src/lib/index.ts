@@ -94,6 +94,33 @@ export function parseSearchRequestFromParams(
   return { query, sort, filters, page };
 }
 
+export function buildSearchParams(request: Required<SearchContractsRequest>): URLSearchParams {
+  const params = new URLSearchParams();
+
+  if (request.query) params.set("query", request.query);
+
+  const defaultSort = DEFAULT_SEARCH_REQUEST.sort;
+  if (
+    request.sort.field !== defaultSort.field ||
+    request.sort.direction !== defaultSort.direction
+  ) {
+    params.set("sortField", request.sort.field);
+    params.set("sortDirection", request.sort.direction);
+  }
+
+  if (request.page > DEFAULT_SEARCH_REQUEST.page) {
+    params.set("page", request.page.toString());
+  }
+
+  Object.entries(request.filters).forEach(([field, value]) => {
+    if (value != null && value !== "") {
+      params.set(field, `${value}`);
+    }
+  });
+
+  return params;
+}
+
 export async function fetchStatistics(fetchFn = fetch): Promise<Statistics> {
   const response = await fetchFn(`/api/statistics`, {
     method: "GET",
