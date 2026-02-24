@@ -1,5 +1,6 @@
 ---
 title: Dados e Privacidade
+description: Política de privacidade e proteção de dados do Contrato Público.
 ---
 
 # Política de Privacidade e Proteção de Dados

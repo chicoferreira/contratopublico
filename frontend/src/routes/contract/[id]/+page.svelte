@@ -21,6 +21,8 @@
   import { dateToString, formatDate, formatMoney } from "$lib/utils";
   import { getBaseGovContractUrl, getBaseGovDocumentUrl } from "$lib";
   import ErrorDisplay from "$lib/components/ErrorDisplay.svelte";
+  import HeadMeta from "$lib/components/HeadMeta.svelte";
+  import { DEFAULT_DESCRIPTION, SITE_NAME } from "$lib/meta";
 
   const { data } = $props();
   const contract = $derived(data.contract);
@@ -52,11 +54,27 @@
       console.error("Invalid execution date:", error);
     }
   });
+
+  const metaTitle = $derived.by(() => {
+    if (contract && contract.objectBriefDescription && contract.id) {
+      return `${SITE_NAME} - ${contract.objectBriefDescription} (#${contract.id})`;
+    }
+    return `${SITE_NAME} - Não encontrado`;
+  });
+
+  const metaDescription = $derived.by(() => {
+    if (contract) {
+      const description = contract.description || contract.objectBriefDescription;
+      const executionPlaceStr = contract.executionPlace
+        ? ` (${contract.executionPlace.slice(0, 200)})`
+        : "";
+      return `Contrato #${contract.id} - ${description}${executionPlaceStr}`;
+    }
+    return DEFAULT_DESCRIPTION;
+  });
 </script>
 
-<svelte:head>
-  <title>Contrato Público {contract ? `#${contract.id}` : ""}</title>
-</svelte:head>
+<HeadMeta title={metaTitle} description={metaDescription} />
 
 {#if error}
   <ErrorDisplay message={error} />

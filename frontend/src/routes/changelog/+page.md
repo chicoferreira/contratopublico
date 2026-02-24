@@ -1,5 +1,6 @@
 ---
 title: Changelog
+description: Atualizações e melhorias da plataforma Contrato Público.
 ---
 
 <script>
