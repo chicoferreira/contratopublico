@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        SELECT c.code, c.designation\n        FROM contract_cpvs cc\n        JOIN cpv c ON c.code = cc.cpv_code\n        WHERE cc.contract_id = $1\n        ",
+  "query": "\n            SELECT c.code, c.designation\n            FROM contract_cpvs cc\n            JOIN cpv c ON c.code = cc.cpv_code\n            WHERE cc.contract_id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -24,5 +24,5 @@
       false
     ]
   },
-  "hash": "72a11ee101f781e53fabb3e22c9df11521392802a496503226788978481f1b9c"
+  "hash": "6885c83ffa6681699cc71919ac397c378fa138683206eec653e4a5142adddda2"
 }
