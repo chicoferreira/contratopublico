@@ -16,6 +16,8 @@
   import FiltersDropdown from "$lib/components/filter/FiltersDropdown.svelte";
   import ContractsFound from "$lib/components/ContractsFound.svelte";
   import StatisticsInsights from "$lib/components/StatisticsInsights.svelte";
+  import HeadMeta from "$lib/components/HeadMeta.svelte";
+  import { DEFAULT_DESCRIPTION } from "$lib/meta";
 
   let { data } = $props();
   const getInitialSearchRequest = () => data.searchRequest;
@@ -44,6 +46,21 @@
 
   let navigationTimeout: ReturnType<typeof setTimeout> | null = null;
   let lastNavigatedSearch = $state("");
+
+  const truncate = (value: string, maxLength = 80) => {
+    if (value.length <= maxLength) return value;
+    return `${value.slice(0, maxLength - 1)}…`;
+  };
+
+  const normalizedQuery = $derived(query.trim());
+  const metaTitle = $derived(
+    normalizedQuery ? `Contrato Público - ${truncate(normalizedQuery)}` : "Contrato Público",
+  );
+  const metaDescription = $derived(
+    normalizedQuery
+      ? `Resultados para "${truncate(normalizedQuery, 60)}" no motor de pesquisa de contratos públicos portugueses.`
+      : DEFAULT_DESCRIPTION,
+  );
 
   function snapshotRequest(): Required<SearchContractsRequest> {
     return {
@@ -127,9 +144,7 @@
   });
 </script>
 
-<svelte:head>
-  <title>Contrato Público {query ? `- ${query}` : ""}</title>
-</svelte:head>
+<HeadMeta title={metaTitle} description={metaDescription} />
 
 <div class="space-y-4">
   <div class="space-y-2.5">

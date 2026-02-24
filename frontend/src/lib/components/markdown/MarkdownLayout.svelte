@@ -1,12 +1,13 @@
 <script lang="ts">
   import { ArrowLeft } from "@lucide/svelte";
+  import HeadMeta from "$lib/components/HeadMeta.svelte";
+  import { DEFAULT_DESCRIPTION, SITE_NAME } from "$lib/meta";
 
-  const { title, children } = $props();
+  const { title, description = DEFAULT_DESCRIPTION, children } = $props();
+  const pageTitle = $derived(title ? `${SITE_NAME} - ${title}` : SITE_NAME);
 </script>
 
-<svelte:head>
-  <title>Contrato Público - {title}</title>
-</svelte:head>
+<HeadMeta title={pageTitle} {description} />
 
 <a
   href="/"

@@ -9,9 +9,6 @@
 </script>
 
 <ModeWatcher />
-<svelte:head>
-  <title>Contrato Público</title>
-</svelte:head>
 
 <div class="bg-background flex min-h-screen flex-col">
   <div class="bg-muted/60 border-y">
