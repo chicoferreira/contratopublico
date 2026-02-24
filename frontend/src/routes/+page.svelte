@@ -17,7 +17,7 @@
   import ContractsFound from "$lib/components/ContractsFound.svelte";
   import StatisticsInsights from "$lib/components/StatisticsInsights.svelte";
   import HeadMeta from "$lib/components/HeadMeta.svelte";
-  import { DEFAULT_DESCRIPTION } from "$lib/meta";
+  import { DEFAULT_DESCRIPTION, SITE_NAME } from "$lib/meta";
 
   let { data } = $props();
   const getInitialSearchRequest = () => data.searchRequest;
@@ -54,11 +54,11 @@
 
   const normalizedQuery = $derived(query.trim());
   const metaTitle = $derived(
-    normalizedQuery ? `Contrato Público - ${truncate(normalizedQuery)}` : "Contrato Público",
+    normalizedQuery ? `${SITE_NAME} - ${truncate(normalizedQuery)}` : SITE_NAME,
   );
   const metaDescription = $derived(
     normalizedQuery
-      ? `Resultados para "${truncate(normalizedQuery, 60)}" no motor de pesquisa de contratos públicos portugueses.`
+      ? `Resultados para "${truncate(normalizedQuery, 60)}" no ${SITE_NAME}.`
       : DEFAULT_DESCRIPTION,
   );
 
