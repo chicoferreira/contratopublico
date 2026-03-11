@@ -23,3 +23,5 @@ reqwest = { workspace = true }
 sqlx = { workspace = true }
 governor = { workspace = true }
 tower = { workspace = true }
+tower-http = { workspace = true }
+dashmap = { workspace = true }
