@@ -5,7 +5,7 @@ description: Política de privacidade e proteção de dados do Contrato Público
 
 # Política de Privacidade e Proteção de Dados
 
-_Última atualização: Dezembro de 2025_
+_Última atualização: Março de 2026_
 
 ## Sobre os Dados dos Contratos
 
@@ -37,4 +37,4 @@ O Portal BASE aplica as medidas de proteção necessárias, incluindo a omissão
 
 ### Dados de Utilização
 
-Não recolhemos dados pessoais nem guardamos o histórico das pesquisas. Não usamos cookies nossos para recolha de dados nem partilhamos informação com terceiros. O tráfego passa pelo Cloudflare, que pode aplicar cookies próprios para segurança e desempenho; não os controlamos nem os usamos para identificar utilizadores. Para monitorizar fiabilidade e desempenho, recolhemos apenas métricas técnicas e contagens agregadas (ex.: erros, tempos de resposta, disponibilidade), sem possibilidade de identificar utilizadores.
+Não recolhemos dados pessoais nem guardamos o histórico das pesquisas. Não usamos cookies nossos para recolha de dados nem partilhamos informação com terceiros. O tráfego passa pelo Cloudflare, que pode aplicar cookies próprios para segurança e desempenho; não os controlamos nem os usamos para identificar utilizadores. Para monitorizar fiabilidade e desempenho, recolhemos apenas métricas técnicas e contagens agregadas (ex.: erros, tempos de resposta, disponibilidade), sem possibilidade de identificar utilizadores. Para garantir a estabilidade e equidade no acesso ao serviço, poderemos recolher e processar temporariamente o endereço IP dos utilizadores para fins de limitação de taxa de pedidos (_rate limiting_); esta informação não é utilizada para identificar utilizadores, não é partilhada com terceiros e não é retida além do estritamente necessário para esse fim.
