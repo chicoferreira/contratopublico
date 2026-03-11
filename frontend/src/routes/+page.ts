@@ -31,40 +31,41 @@ async function getCachedStatistics(fetchFn = fetch): Promise<Statistics> {
     return cachedStatistics;
   }
 
-  try {
-    const statistics = await fetchStatistics(fetchFn);
-    cachedStatistics = statistics;
+  const result = await fetchStatistics(fetchFn);
+
+  if (result.ok) {
+    cachedStatistics = result.data;
     cachedAt = now;
-    return statistics;
-  } catch (error) {
-    console.error(error);
-    return cachedStatistics ?? EMPTY_STATISTICS;
+    return result.data;
   }
+
+  console.error(result.message);
+  return cachedStatistics ?? EMPTY_STATISTICS;
 }
 
 export const load: PageLoad = async ({ fetch, url }) => {
   const searchRequest = parseSearchRequestFromParams(url.searchParams);
-  const statisticsPromise = getCachedStatistics(fetch);
+  const [searchResult, statisticsResponse] = await Promise.all([
+    searchContracts(searchRequest, fetch),
+    getCachedStatistics(fetch),
+  ]);
 
-  try {
-    const [searchResponse, statisticsResponse] = await Promise.all([
-      searchContracts(searchRequest, fetch),
-      statisticsPromise,
-    ]);
-    return {
-      searchResponse,
-      searchRequest,
-      statisticsResponse,
-      error: null,
-    };
-  } catch (error) {
-    console.error(error);
-
+  if (!searchResult.ok) {
+    const rateLimited = searchResult.status === 429;
     return {
       searchResponse: EMPTY_SEARCH_RESPONSE,
       searchRequest,
-      statisticsResponse: await statisticsPromise,
-      error: error instanceof Error ? error.message : "Erro desconhecido",
+      statisticsResponse,
+      rateLimited,
+      error: rateLimited ? null : searchResult.message,
     };
   }
+
+  return {
+    searchResponse: searchResult.data,
+    searchRequest,
+    statisticsResponse,
+    rateLimited: false,
+    error: null,
+  };
 };

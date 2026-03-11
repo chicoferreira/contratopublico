@@ -5,17 +5,19 @@ export const load: PageLoad = async ({ params, fetch }) => {
   const contractId = Number(params.id);
 
   if (Number.isNaN(contractId)) {
-    return { contract: undefined, error: null };
+    return { contract: undefined, rateLimited: false, error: null };
   }
 
-  try {
-    const contract = await getContract(contractId, fetch);
-    return { contract, error: null };
-  } catch (err) {
-    console.error("Failed to load contract:", err);
+  const result = await getContract(contractId, fetch);
+
+  if (!result.ok) {
+    const rateLimited = result.status === 429;
     return {
       contract: undefined,
-      error: err instanceof Error ? err.message : "Erro desconhecido",
+      rateLimited,
+      error: rateLimited ? null : result.message,
     };
   }
+
+  return { contract: result.data, rateLimited: false, error: null };
 };

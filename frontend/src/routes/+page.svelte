@@ -5,6 +5,7 @@
   import ContractCard from "$lib/components/ContractCard.svelte";
   import SortDropdown from "$lib/components/SortDropdown.svelte";
   import ErrorDisplay from "$lib/components/ErrorDisplay.svelte";
+  import SlowDown from "$lib/components/SlowDown.svelte";
   import { blur, fade, slide } from "svelte/transition";
   import { buildSearchParams } from "$lib";
   import ContractPagination from "$lib/components/ContractPagination.svelte";
@@ -23,6 +24,7 @@
   const getInitialSearchRequest = () => data.searchRequest;
   const getInitialSearchResponse = () => data.searchResponse;
   const getInitialStatistics = () => data.statisticsResponse;
+  const getInitialRateLimited = () => data.rateLimited;
   const getInitialError = () => data.error;
 
   const initialRequest = getInitialSearchRequest();
@@ -33,6 +35,7 @@
   let filters = $state(initialRequest.filters);
   let searchResults = $state(getInitialSearchResponse());
   let statistics = $state(getInitialStatistics());
+  let rateLimited = $state(getInitialRateLimited());
   let error = $state<string | null>(getInitialError());
 
   const activeFiltersCount = $derived.by(
@@ -80,6 +83,7 @@
     filters = request.filters;
     searchResults = data.searchResponse;
     statistics = data.statisticsResponse;
+    rateLimited = data.rateLimited;
     error = data.error;
     loading = false;
     lastNavigatedSearch = sveltePage.url.searchParams.toString();
@@ -176,7 +180,9 @@
     <ContractsFound {loading} {searchResults} />
   </div>
 
-  {#if error}
+  {#if rateLimited}
+    <SlowDown />
+  {:else if error}
     <ErrorDisplay message={error} />
   {:else}
     {#if searchResults.totalPages > 1}

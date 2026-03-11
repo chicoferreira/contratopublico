@@ -21,11 +21,13 @@
   import { dateToString, formatDate, formatMoney } from "$lib/utils";
   import { getBaseGovContractUrl, getBaseGovDocumentUrl } from "$lib";
   import ErrorDisplay from "$lib/components/ErrorDisplay.svelte";
+  import SlowDown from "$lib/components/SlowDown.svelte";
   import HeadMeta from "$lib/components/HeadMeta.svelte";
   import { DEFAULT_DESCRIPTION, SITE_NAME } from "$lib/meta";
 
   const { data } = $props();
   const contract = $derived(data.contract);
+  const rateLimited = $derived(data.rateLimited);
   const error = $derived(data.error);
 
   const procedingUrlTitle = $derived.by(() => {
@@ -76,7 +78,9 @@
 
 <HeadMeta title={metaTitle} description={metaDescription} />
 
-{#if error}
+{#if rateLimited}
+  <SlowDown />
+{:else if error}
   <ErrorDisplay message={error} />
 {:else if contract}
   <div class="space-y-4">
