@@ -21,3 +21,5 @@ chrono = { workspace = true }
 itertools = { workspace = true }
 reqwest = { workspace = true }
 sqlx = { workspace = true }
+governor = { workspace = true }
+tower = { workspace = true }

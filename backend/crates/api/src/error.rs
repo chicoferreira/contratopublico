@@ -11,6 +11,10 @@ pub enum AppError {
     JsonParseError(String),
     #[error(transparent)]
     DatabaseError(#[from] sqlx::Error),
+    #[error("Could not determine client IP address")]
+    MissingClientIp,
+    #[error("Too many requests")]
+    RateLimited,
 }
 
 pub type AppResult<T> = Result<T, AppError>;
@@ -41,6 +45,14 @@ impl IntoResponse for AppError {
                     format!("A failure from Database has occurred"),
                 )
             }
+            AppError::MissingClientIp => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Could not determine client IP address"),
+            ),
+            AppError::RateLimited => (
+                StatusCode::TOO_MANY_REQUESTS,
+                format!("Too many requests"),
+            ),
         };
         let error_body = ErrorBody { message };
         (error_code, axum::Json(error_body)).into_response()
