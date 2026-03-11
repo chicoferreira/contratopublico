@@ -5,8 +5,12 @@
     page = $bindable(),
     total = $bindable(),
     hitsPerPage = $bindable(),
-    scrolToElement = undefined,
-    scrollOffset = 0,
+    onPageChange,
+  }: {
+    page: number;
+    total: number;
+    hitsPerPage: number;
+    onPageChange?: (newPage: number) => void;
   } = $props();
 
   function getPage() {
@@ -14,14 +18,7 @@
   }
 
   function setPage(newPage: number) {
-    if (newPage > page && scrolToElement) {
-      const targetElement = document.querySelector(scrolToElement) as HTMLElement | null;
-      if (targetElement) {
-        const elementPosition = targetElement.getBoundingClientRect().top;
-        const target = elementPosition + window.scrollY + scrollOffset;
-        window.scrollTo({ top: target, behavior: "smooth" });
-      }
-    }
+    onPageChange?.(newPage);
     page = newPage;
   }
 </script>

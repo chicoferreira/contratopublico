@@ -9,7 +9,7 @@
   import { blur, fade, slide } from "svelte/transition";
   import { buildSearchParams } from "$lib";
   import ContractPagination from "$lib/components/ContractPagination.svelte";
-  import { goto } from "$app/navigation";
+  import { afterNavigate, goto } from "$app/navigation";
   import { page as sveltePage } from "$app/state";
   import { type SearchContractsRequest } from "$lib/types/api";
   import { untrack } from "svelte";
@@ -43,6 +43,7 @@
   );
 
   let loading = $state(false);
+  let pendingScrollToTop = false;
 
   const initialActiveFiltersCount = () => activeFiltersCount;
   let filtersOpen = $state(initialActiveFiltersCount() > 0);
@@ -87,6 +88,17 @@
     error = data.error;
     loading = false;
     lastNavigatedSearch = sveltePage.url.searchParams.toString();
+  });
+
+  afterNavigate(() => {
+    if (pendingScrollToTop) {
+      pendingScrollToTop = false;
+      const el = document.querySelector("[data-change-page-scroll-target]") as HTMLElement | null;
+      if (el) {
+        const top = el.getBoundingClientRect().top + window.scrollY - 10;
+        window.scrollTo({ top, behavior: "smooth" });
+      }
+    }
   });
 
   // User edits update URL; URL updates rerun `load`, which refreshes `page.data`.
@@ -193,7 +205,7 @@
     {/if}
 
     {#each searchResults.contracts as contract (contract.id)}
-      <div transition:fade={{ duration: 150 }}>
+      <div in:fade={{ duration: 150 }}>
         <ContractCard {contract} />
       </div>
     {/each}
@@ -202,7 +214,6 @@
       bind:page
       total={searchResults.total}
       hitsPerPage={searchResults.hitsPerPage}
-      scrolToElement="[data-change-page-scroll-target]"
-      scrollOffset={-10} />
+      onPageChange={() => (pendingScrollToTop = true)} />
   {/if}
 </div>
