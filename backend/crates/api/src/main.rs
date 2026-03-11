@@ -4,7 +4,7 @@ use clap::Parser;
 use meilisearch_sdk::client::Client;
 use reqwest::Url;
 use scraper::{base_gov::client::BaseGovClient, store::Store};
-use std::{path::PathBuf, sync::Arc};
+use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 use tokio::signal;
 use tracing::{Level, event, info};
 
@@ -12,6 +12,7 @@ mod error;
 mod extractors;
 mod filter;
 mod metrics;
+mod rate_limit;
 mod router;
 mod sort;
 mod state;
@@ -98,7 +99,8 @@ async fn main() -> anyhow::Result<()> {
 
     tokio::spawn(statistics::run_reload_statistics_task(app_state.clone()));
 
-    let backend_router = router::router(app_state);
+    let backend_router =
+        router::router(app_state).into_make_service_with_connect_info::<SocketAddr>();
 
     let backend_listener = tokio::net::TcpListener::bind(args.bind_url)
         .await

@@ -1,3 +1,5 @@
+use std::{num::NonZero, time::Duration};
+
 use axum::{
     Router,
     extract::{Path, State},
@@ -5,6 +7,7 @@ use axum::{
     routing::{get, post},
 };
 use common::{Contract, statistics::Statistics};
+use governor::Quota;
 use serde::Deserialize;
 use tracing::debug;
 
@@ -13,15 +16,24 @@ use crate::{
     extractors::Json,
     filter::Filters,
     metrics,
+    rate_limit::RateLimitLayer,
     sort::SortBy,
     state::{AppState, SearchResponse},
 };
 
 pub fn router(app_state: AppState) -> Router {
+    let contract_rate_limit = Quota::with_period(Duration::from_millis(200))
+        .unwrap()
+        .allow_burst(NonZero::try_from(2).unwrap());
+
     Router::new()
-        .route("/api/search", post(search))
+        .merge(
+            Router::new()
+                .route("/api/search", post(search))
+                .route("/api/contract/{id}", get(contract))
+                .route_layer(RateLimitLayer::new(contract_rate_limit)),
+        )
         .route("/api/statistics", get(statistics))
-        .route("/api/contract/{id}", get(contract))
         .route_layer(middleware::from_fn(metrics::track_metrics_layer))
         .with_state(app_state)
 }
@@ -42,7 +54,6 @@ pub struct SearchQuery {
 
 #[tracing::instrument(skip(state))]
 #[axum::debug_handler]
-// TODO: add rate limiting
 pub async fn search(
     State(state): State<AppState>,
     Json(query): Json<SearchQuery>,
