@@ -9,7 +9,8 @@ use axum::{
 use common::{Contract, statistics::Statistics};
 use governor::Quota;
 use serde::Deserialize;
-use tracing::debug;
+use tower_http::trace::{DefaultMakeSpan, TraceLayer};
+use tracing::{Level, debug};
 
 use crate::{
     error::AppError,
@@ -35,6 +36,7 @@ pub fn router(app_state: AppState) -> Router {
         )
         .route("/api/statistics", get(statistics))
         .route_layer(middleware::from_fn(metrics::track_metrics_layer))
+        .layer(TraceLayer::new_for_http().make_span_with(DefaultMakeSpan::new().level(Level::INFO)))
         .with_state(app_state)
 }
 
