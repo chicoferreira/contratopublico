@@ -8,6 +8,36 @@ import {
 } from "$lib/types/api";
 import { validateEnumOrDefault } from "./utils";
 
+export type ApiResult<T> =
+  | { ok: true; data: T }
+  | { ok: false; status: number; message: string };
+
+async function apiFetch<T>(
+  fetchFn: typeof fetch,
+  input: string,
+  init?: RequestInit,
+): Promise<ApiResult<T>> {
+  try {
+    const response = await fetchFn(input, {
+      headers: { "Content-Type": "application/json" },
+      ...init,
+    });
+
+    if (!response.ok || response.status !== 200) {
+      const errorData = await response.json().catch(() => ({ message: "Erro desconhecido" }));
+      return {
+        ok: false,
+        status: response.status,
+        message: errorData.message || `Error ${response.status}: ${response.statusText}`,
+      };
+    }
+
+    return { ok: true, data: await response.json() };
+  } catch (e) {
+    return { ok: false, status: 0, message: e instanceof Error ? e.message : "Erro desconhecido" };
+  }
+}
+
 export const DEFAULT_SEARCH_REQUEST = {
   query: "",
   sort: {
@@ -17,38 +47,20 @@ export const DEFAULT_SEARCH_REQUEST = {
   page: 1,
 } as const;
 
-export async function searchContracts(
+export function searchContracts(
   data: SearchContractsRequest,
   fetchFn = fetch,
   signal?: AbortSignal,
-): Promise<SearchContractsResponse> {
-  const response = await fetchFn(`/api/search`, {
+): Promise<ApiResult<SearchContractsResponse>> {
+  return apiFetch(fetchFn, `/api/search`, {
     method: "POST",
     body: JSON.stringify(data),
-    headers: { "Content-Type": "application/json" },
     signal,
   });
-
-  if (!response.ok || response.status !== 200) {
-    const errorData = await response.json().catch(() => ({ message: "Unknown error occurred" }));
-    throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
-  }
-
-  return await response.json();
 }
 
-export async function getContract(id: number, fetchFn = fetch): Promise<GetContractResponse> {
-  const response = await fetchFn(`/api/contract/${id}`, {
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-  });
-
-  if (!response.ok || response.status !== 200) {
-    const errorData = await response.json().catch(() => ({ message: "Unknown error occurred" }));
-    throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
-  }
-
-  return await response.json();
+export function getContract(id: number, fetchFn = fetch): Promise<ApiResult<GetContractResponse>> {
+  return apiFetch(fetchFn, `/api/contract/${id}`);
 }
 
 export function parseSearchRequestFromParams(
@@ -121,18 +133,8 @@ export function buildSearchParams(request: Required<SearchContractsRequest>): UR
   return params;
 }
 
-export async function fetchStatistics(fetchFn = fetch): Promise<Statistics> {
-  const response = await fetchFn(`/api/statistics`, {
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-  });
-
-  if (!response.ok || response.status !== 200) {
-    const errorData = await response.json().catch(() => ({ message: "Unknown error occurred" }));
-    throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
-  }
-
-  return await response.json();
+export function fetchStatistics(fetchFn = fetch): Promise<ApiResult<Statistics>> {
+  return apiFetch(fetchFn, `/api/statistics`);
 }
 
 export function getBaseGovContractUrl(contractId: number) {
