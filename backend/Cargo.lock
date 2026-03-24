@@ -2211,6 +2211,7 @@ dependencies = [
  "common",
  "env_logger",
  "governor",
+ "itertools",
  "log",
  "meilisearch-sdk",
  "nonzero_ext",

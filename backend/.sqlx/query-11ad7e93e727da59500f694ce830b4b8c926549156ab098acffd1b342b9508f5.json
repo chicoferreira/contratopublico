@@ -71,7 +71,7 @@
       {
         "ordinal": 13,
         "name": "execution_place",
-        "type_info": "Text"
+        "type_info": "TextArray"
       },
       {
         "ordinal": 14,
@@ -125,9 +125,7 @@
       }
     ],
     "parameters": {
-      "Left": [
-        "Int8"
-      ]
+      "Left": ["Int8"]
     },
     "nullable": [
       false,

@@ -94,7 +94,7 @@ mod tests {
             non_written_contract_justification_types: String::new(),
             contract_types: String::new(),
             execution_deadline_days: 0,
-            execution_place: String::new(),
+            execution_place: Vec::new(),
             contract_fundamentation_type: String::new(),
             contestants: Vec::new(),
             invitees: Vec::new(),

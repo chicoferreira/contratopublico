@@ -62,8 +62,9 @@ pub struct BaseGovContract {
     // TODO: Add documentation here
     pub execution_deadline_days: usize,
 
-    /// The place where the contract will be executed.
-    pub execution_place: String,
+    #[serde(deserialize_with = "de::deserialize_execution_place")]
+    /// The places where the contract will be executed.
+    pub execution_place: Vec<String>,
 
     // TODO: Add documentation here
     pub contract_fundamentation_type: String,
