@@ -51,6 +51,27 @@ services:
       - POSTGRES_DB=contratopublico
       - BIND_URL=0.0.0.0:3000
 
+  cli:
+    profiles: ["manual"]
+    restart: "no"
+    depends_on:
+      - meilisearch
+      - postgres
+    build:
+      context: ../backend
+    volumes:
+      - ${DATA_FOLDER}/scraper:/data/scraper
+    environment:
+      - RUST_LOG=info
+      - MEILISEARCH_URL=http://meilisearch:7700
+      - MEILI_MASTER_KEY
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=contratopublico
+      - POSTGRES_PASSWORD=contratopublico
+      - POSTGRES_DB=contratopublico
+    entrypoint: ["/usr/local/bin/cli"]
+
   frontend:
     restart: unless-stopped
     depends_on:
