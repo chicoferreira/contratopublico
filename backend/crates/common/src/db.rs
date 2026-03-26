@@ -70,6 +70,28 @@ impl ContractDatabase {
         Self { pool }
     }
 
+    pub async fn list_contract_ids_after(
+        &self,
+        last_id: u64,
+        limit: usize,
+    ) -> Result<Vec<u64>, sqlx::Error> {
+        let ids = sqlx::query_scalar::<_, i64>(
+            r#"
+            SELECT id
+            FROM contracts
+            WHERE id > $1
+            ORDER BY id
+            LIMIT $2
+            "#,
+        )
+        .bind(last_id as i64)
+        .bind(limit as i64)
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(ids.into_iter().map(|id| id as u64).collect())
+    }
+
     pub async fn get_contract(&self, id: u64) -> Result<Option<Contract>, sqlx::Error> {
         let main: Option<ContractMainRow> = sqlx::query_as!(
             ContractMainRow,

@@ -2,13 +2,13 @@ use std::{path::PathBuf, sync::Arc};
 
 use anyhow::Context;
 use clap::Parser;
-use common::Contract;
+use common::{Contract, db::ContractDatabase, searchdb::SearchDatabase};
 use log::info;
 use reqwest::Url;
 use scraper::{
     base_gov::client::BaseGovClient,
     config::{MeilisearchConfig, PostgresConfig},
-    export,
+    export, search,
 };
 
 #[derive(clap::Parser)]
@@ -36,6 +36,12 @@ enum Command {
         #[command(flatten)]
         meilisearch_config: MeilisearchConfig,
         output_path: PathBuf,
+    },
+    RebuildSearchIndex {
+        #[command(flatten)]
+        postgres_config: PostgresConfig,
+        #[command(flatten)]
+        meilisearch_config: MeilisearchConfig,
     },
 }
 
@@ -79,6 +85,17 @@ async fn main() -> anyhow::Result<()> {
             let meili_client = meilisearch_config.create_client()?;
 
             export::export_old_format_to_json(meili_client, output_path).await?;
+        }
+        Command::RebuildSearchIndex {
+            postgres_config,
+            meilisearch_config,
+        } => {
+            let pg_pool = postgres_config.create_pool().await?;
+
+            let contract_database = ContractDatabase::new(pg_pool);
+            let search_database = SearchDatabase::new(meilisearch_config.create_client()?);
+
+            search::rebuild::rebuild_search_index(&contract_database, &search_database).await?;
         }
     }
 
