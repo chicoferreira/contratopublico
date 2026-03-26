@@ -1,3 +1,4 @@
+use anyhow::Context;
 use chrono::NaiveDate;
 use sqlx::PgPool;
 
@@ -65,7 +66,41 @@ pub struct ContractDatabase {
     pub(crate) pool: PgPool,
 }
 
+#[derive(clap::Parser)]
+pub struct PostgresConfig {
+    #[clap(long, env = "POSTGRES_HOST", default_value = "localhost")]
+    pub postgres_host: String,
+    #[clap(long, env = "POSTGRES_PORT", default_value = "5432")]
+    pub postgres_port: u16,
+    #[clap(long, env = "POSTGRES_USER", default_value = "contratopublico")]
+    pub postgres_user: String,
+    #[clap(long, env = "POSTGRES_PASSWORD", default_value = "contratopublico")]
+    pub postgres_password: String,
+    #[clap(long, env = "POSTGRES_DB", default_value = "contratopublico")]
+    pub postgres_db: String,
+}
+
 impl ContractDatabase {
+    pub async fn new_from_config(config: PostgresConfig) -> anyhow::Result<Self> {
+        let options = sqlx::postgres::PgConnectOptions::new()
+            .host(&config.postgres_host)
+            .port(config.postgres_port)
+            .username(&config.postgres_user)
+            .password(&config.postgres_password)
+            .database(&config.postgres_db);
+
+        let pg_pool = PgPool::connect_with(options)
+            .await
+            .context("Failed to connect to database")?;
+
+        sqlx::migrate!("../../migrations")
+            .run(&pg_pool)
+            .await
+            .context("Failed to run migrations")?;
+
+        Ok(Self::new(pg_pool))
+    }
+
     pub fn new(pool: PgPool) -> Self {
         Self { pool }
     }
