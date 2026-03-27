@@ -14,7 +14,7 @@ export interface Contract {
   nonWrittenContractJustificationTypes: string;
   contractTypes: string;
   executionDeadlineDays: number;
-  executionPlace: string;
+  executionPlace: string[];
   contractFundamentationType: string;
   contestants: Entity[];
   invitees: Entity[];

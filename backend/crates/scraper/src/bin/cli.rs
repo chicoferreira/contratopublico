@@ -7,17 +7,9 @@ use common::{
     db::{ContractDatabase, PostgresConfig},
     searchdb::{MeilisearchConfig, SearchDatabase},
 };
-use common::{Contract, dsb::ContractDatabase, searchdb::SearchDatabase};
-use log::info;
 use log::info;
 use reqwest::Url;
-use reqwest::Url;
-use scraper::{
-    base_gov::client::BaseGovClient,
-    config::{MeilisearchConfig, PostgresConfig},
-    export, search,
-};
-use scraper::{base_gov::client::BaseGovClient, export};
+use scraper::{base_gov::client::BaseGovClient, export, search};
 
 #[derive(clap::Parser)]
 #[command(version, about)]
@@ -98,9 +90,7 @@ async fn main() -> anyhow::Result<()> {
             postgres_config,
             meilisearch_config,
         } => {
-            let pg_pool = postgres_config.create_pool().await?;
-
-            let contract_database = ContractDatabase::new(pg_pool);
+            let contract_database = ContractDatabase::new_from_config(postgres_config).await?;
             let search_database = SearchDatabase::new(meilisearch_config.create_client()?);
 
             search::rebuild::rebuild_search_index(&contract_database, &search_database).await?;

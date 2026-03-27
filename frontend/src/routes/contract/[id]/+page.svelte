@@ -4,6 +4,7 @@
     BadgeEuro,
     Building,
     CalendarDays,
+    ChevronDown,
     ClipboardCheck,
     FileStack,
     FileText,
@@ -20,6 +21,8 @@
   import GridCardTitleList from "./GridCardTitleList.svelte";
   import { dateToString, formatDate, formatMoney } from "$lib/utils";
   import { getBaseGovContractUrl, getBaseGovDocumentUrl } from "$lib";
+  import * as Collapsible from "$lib/components/ui/collapsible/index.js";
+  import { blur, fade, slide } from "svelte/transition";
   import ErrorDisplay from "$lib/components/ErrorDisplay.svelte";
   import SlowDown from "$lib/components/SlowDown.svelte";
   import HeadMeta from "$lib/components/HeadMeta.svelte";
@@ -29,6 +32,7 @@
   const contract = $derived(data.contract);
   const rateLimited = $derived(data.rateLimited);
   const error = $derived(data.error);
+  let executionPlacesOpen = $state(false);
 
   const procedingUrlTitle = $derived.by(() => {
     if (!contract) return undefined;
@@ -67,13 +71,21 @@
   const metaDescription = $derived.by(() => {
     if (contract) {
       const description = contract.description || contract.objectBriefDescription;
-      const executionPlaceStr = contract.executionPlace
-        ? ` (${contract.executionPlace.slice(0, 200)})`
-        : "";
+      const executionPlace = contract.executionPlace.join(", ");
+      const executionPlaceStr = executionPlace ? ` (${executionPlace.slice(0, 200)})` : "";
       return `Contrato #${contract.id} - ${description}${executionPlaceStr}`;
     }
     return DEFAULT_DESCRIPTION;
   });
+
+  const executionPlaceCount = $derived(contract?.executionPlace.length ?? 0);
+  const firstExecutionPlace = $derived(contract?.executionPlace[0] ?? "—");
+  const remainingExecutionPlaces = $derived(contract?.executionPlace.slice(1) ?? []);
+  const executionPlacesToggleLabel = $derived(
+    executionPlacesOpen
+      ? "Mostrar menos"
+      : `Ver mais ${remainingExecutionPlaces.length} ${remainingExecutionPlaces.length === 1 ? "local" : "locais"}`,
+  );
 </script>
 
 <HeadMeta title={metaTitle} description={metaDescription} />
@@ -84,24 +96,22 @@
   <ErrorDisplay message={error} />
 {:else if contract}
   <div class="space-y-4">
-    <div class="space-y-1">
-      <GridCard class="space-y-1.5">
-        <div class="space-y-0.5">
-          <div class="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
-            Contrato #{contract.id}
-          </div>
-          <div>
-            <h1 class="text-2xl leading-snug font-semibold">{contract.objectBriefDescription}</h1>
-            {#if contract.description && contract.description != contract.objectBriefDescription}
-              <p class="text-muted-foreground">{contract.description}</p>
-            {/if}
-          </div>
-        </div>
-        <Link url={getBaseGovContractUrl(contract.id)}>Versão original no Portal BASE</Link>
-      </GridCard>
+    <div class="space-y-0.5 text-lg">
+      <div class="text-muted-foreground text-sm font-semibold tracking-wide uppercase">
+        Contrato #{contract.id}
+      </div>
+      <div class="-space-y-1">
+        <h1 class="text-3xl leading-snug font-semibold">{contract.objectBriefDescription}</h1>
+        {#if contract.description && contract.description != contract.objectBriefDescription}
+          <p class="text-muted-foreground">{contract.description}</p>
+        {/if}
+      </div>
+      <Link class="text-base" url={getBaseGovContractUrl(contract.id)}>
+        Versão original no Portal BASE
+      </Link>
     </div>
 
-    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div class="grid items-start gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <GridCardTitle title="Valor contratual inicial" icon={BadgeEuro} compact={true}>
         <p class="text-lg font-semibold">{formatMoney(contract.initialContractualPrice)}</p>
         <p class="text-muted-foreground text-sm">Valor inicial estabelecido no contrato</p>
@@ -117,9 +127,52 @@
         <p class="text-muted-foreground text-sm">Data de formalização do contrato</p>
       </GridCardTitle>
 
-      <GridCardTitle title="Local de execução" icon={MapPin} compact={true}>
-        <p class="text-lg font-semibold">{contract.executionPlace || "—"}</p>
-        <p class="text-muted-foreground text-sm">Área geográfica abrangida</p>
+      <GridCardTitle
+        title={executionPlaceCount <= 1
+          ? `Local de execução`
+          : `Locais de execução (${executionPlaceCount})`}
+        icon={MapPin}
+        compact={true}>
+        <Collapsible.Root bind:open={executionPlacesOpen} class="flex flex-col">
+          <p
+            title={firstExecutionPlace}
+            class="text-lg font-semibold"
+            class:truncate={!executionPlacesOpen}>
+            {firstExecutionPlace}
+          </p>
+
+          {#if remainingExecutionPlaces.length > 0}
+            <Collapsible.Content forceMount class="overflow-hidden">
+              {#snippet child({ open, props })}
+                {#if open}
+                  <div {...props} transition:slide={{ duration: 220 }}>
+                    <div class="space-y-0.5 pt-0.5" transition:blur={{ duration: 180 }}>
+                      {#each remainingExecutionPlaces as executionPlace (`${executionPlace}`)}
+                        <p
+                          title={executionPlace}
+                          class="text-lg font-semibold"
+                          transition:fade={{ duration: 160 }}>
+                          {executionPlace}
+                        </p>
+                      {/each}
+                    </div>
+                  </div>
+                {/if}
+              {/snippet}
+            </Collapsible.Content>
+
+            <Collapsible.Trigger>
+              <p
+                class="text-muted-foreground hover:text-muted-foreground/80 flex cursor-pointer items-center gap-0.5 text-sm transition-colors">
+                {executionPlacesToggleLabel}
+                <ChevronDown
+                  class="h-4 w-4 transition-transform {executionPlacesOpen ? 'rotate-180' : ''}" />
+              </p>
+            </Collapsible.Trigger>
+          {:else}
+            <p class="text-muted-foreground text-sm">Área geográfica abrangida</p>
+          {/if}
+        </Collapsible.Root>
       </GridCardTitle>
     </div>
 
