@@ -92,8 +92,12 @@ async fn main() -> anyhow::Result<()> {
         } => {
             let contract_database = ContractDatabase::new_from_config(postgres_config).await?;
             let search_database = SearchDatabase::new(meilisearch_config.create_client()?);
-
-            search::rebuild::rebuild_search_index(&contract_database, &search_database).await?;
+            tokio::select! {
+                result = search::rebuild::rebuild_search_index(&contract_database, &search_database) => result?,
+                _ = tokio::signal::ctrl_c() => {
+                    info!("Rebuild search index interrupted by user");
+                },
+            }
         }
     }
 
