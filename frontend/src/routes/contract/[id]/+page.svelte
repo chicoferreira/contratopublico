@@ -71,16 +71,16 @@
   const metaDescription = $derived.by(() => {
     if (contract) {
       const description = contract.description || contract.objectBriefDescription;
-      const executionPlace = contract.executionPlace.join(", ");
-      const executionPlaceStr = executionPlace ? ` (${executionPlace.slice(0, 200)})` : "";
-      return `Contrato #${contract.id} - ${description}${executionPlaceStr}`;
+      const placesLine = contract.executionPlaces.join(", ");
+      const placesLineStr = placesLine ? ` (${placesLine.slice(0, 200)})` : "";
+      return `Contrato #${contract.id} - ${description}${placesLineStr}`;
     }
     return DEFAULT_DESCRIPTION;
   });
 
-  const executionPlaceCount = $derived(contract?.executionPlace.length ?? 0);
-  const firstExecutionPlace = $derived(contract?.executionPlace[0] ?? "—");
-  const remainingExecutionPlaces = $derived(contract?.executionPlace.slice(1) ?? []);
+  const executionPlacesCount = $derived(contract?.executionPlaces.length ?? 0);
+  const firstExecutionPlace = $derived(contract?.executionPlaces[0] ?? "—");
+  const remainingExecutionPlaces = $derived(contract?.executionPlaces.slice(1) ?? []);
   const executionPlacesToggleLabel = $derived(
     executionPlacesOpen
       ? "Mostrar menos"
@@ -128,9 +128,9 @@
       </GridCardTitle>
 
       <GridCardTitle
-        title={executionPlaceCount <= 1
+        title={executionPlacesCount <= 1
           ? `Local de execução`
-          : `Locais de execução (${executionPlaceCount})`}
+          : `Locais de execução (${executionPlacesCount})`}
         icon={MapPin}
         compact={true}>
         <Collapsible.Root bind:open={executionPlacesOpen} class="flex flex-col">
@@ -147,12 +147,12 @@
                 {#if open}
                   <div {...props} transition:slide={{ duration: 220 }}>
                     <div class="space-y-0.5 pt-0.5" transition:blur={{ duration: 180 }}>
-                      {#each remainingExecutionPlaces as executionPlace (`${executionPlace}`)}
+                      {#each remainingExecutionPlaces as place (`${place}`)}
                         <p
-                          title={executionPlace}
+                          title={place}
                           class="text-lg font-semibold"
                           transition:fade={{ duration: 160 }}>
-                          {executionPlace}
+                          {place}
                         </p>
                       {/each}
                     </div>

@@ -22,4 +22,4 @@ ALTER TABLE contracts
 DROP COLUMN execution_place;
 
 ALTER TABLE contracts
-RENAME COLUMN execution_place_array TO execution_place;
+RENAME COLUMN execution_place_array TO execution_places;

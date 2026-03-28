@@ -62,9 +62,12 @@ pub struct BaseGovContract {
     // TODO: Add documentation here
     pub execution_deadline_days: usize,
 
-    #[serde(deserialize_with = "de::deserialize_execution_place")]
+    #[serde(
+        rename = "executionPlace",
+        deserialize_with = "de::deserialize_execution_place"
+    )]
     /// The places where the contract will be executed.
-    pub execution_place: Vec<String>,
+    pub execution_places: Vec<String>,
 
     // TODO: Add documentation here
     pub contract_fundamentation_type: String,
@@ -158,7 +161,7 @@ impl From<BaseGovContract> for Contract {
                 .non_written_contract_justification_types,
             contract_types: contract.contract_types,
             execution_deadline_days: contract.execution_deadline_days,
-            execution_place: contract.execution_place,
+            execution_places: contract.execution_places,
             contract_fundamentation_type: contract.contract_fundamentation_type,
             contestants: contract.contestants.into_iter().map(Into::into).collect(),
             invitees: contract.invitees.into_iter().map(Into::into).collect(),
