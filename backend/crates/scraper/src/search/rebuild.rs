@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use anyhow::Context;
 use common::{SearchableContract, db::ContractDatabase, searchdb::SearchDatabase};
 use futures::{StreamExt, TryStreamExt, stream};
@@ -49,7 +51,7 @@ pub async fn rebuild_search_index(
                 .delete_index(&index_name)
                 .await
                 .context("Failed to delete migration index")?
-                .wait_for_completion(client, None, None)
+                .wait_for_completion(client, None, Some(Duration::from_mins(30)))
                 .await?;
         }
     }
@@ -98,7 +100,7 @@ pub async fn rebuild_search_index(
 
     info!("Waiting for {total_indexed} add_documents tasks to complete...");
     for task in add_documents_tasks {
-        task.wait_for_completion(client, None, None)
+        task.wait_for_completion(client, None, Some(Duration::from_hours(1)))
             .await
             .with_context(|| format!("Failed to complete add_documents task"))?;
     }
@@ -111,7 +113,7 @@ pub async fn rebuild_search_index(
         .swap_indexes([&swap_indexes])
         .await
         .with_context(|| format!("Failed to swap rebuilt index {index_name} into contracts"))?
-        .wait_for_completion(client, None, None)
+        .wait_for_completion(client, None, Some(Duration::from_mins(30)))
         .await?;
 
     info!("Swapped rebuilt index {index_name} into contracts");
@@ -120,7 +122,7 @@ pub async fn rebuild_search_index(
         .delete_index(&index_name)
         .await
         .with_context(|| format!("Failed to delete old contracts index at {index_name}"))?
-        .wait_for_completion(client, None, None)
+        .wait_for_completion(client, None, Some(Duration::from_mins(30)))
         .await?;
 
     info!("Deleted old contracts index now stored at {index_name}");
