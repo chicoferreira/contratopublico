@@ -1,3 +1,4 @@
+use anyhow::Context;
 use chrono::NaiveDate;
 use sqlx::PgPool;
 
@@ -17,7 +18,7 @@ struct ContractMainRow {
     non_written_contract_justification_types: String,
     contract_types: String,
     execution_deadline_days: i32,
-    execution_place: String,
+    execution_places: Vec<String>,
     contract_fundamentation_type: String,
     contracting_procedure_url: Option<String>,
     announcement_id: Option<i64>,
@@ -65,9 +66,65 @@ pub struct ContractDatabase {
     pub(crate) pool: PgPool,
 }
 
+#[derive(clap::Parser)]
+pub struct PostgresConfig {
+    #[clap(long, env = "POSTGRES_HOST", default_value = "localhost")]
+    pub postgres_host: String,
+    #[clap(long, env = "POSTGRES_PORT", default_value = "5432")]
+    pub postgres_port: u16,
+    #[clap(long, env = "POSTGRES_USER", default_value = "contratopublico")]
+    pub postgres_user: String,
+    #[clap(long, env = "POSTGRES_PASSWORD", default_value = "contratopublico")]
+    pub postgres_password: String,
+    #[clap(long, env = "POSTGRES_DB", default_value = "contratopublico")]
+    pub postgres_db: String,
+}
+
 impl ContractDatabase {
+    pub async fn new_from_config(config: PostgresConfig) -> anyhow::Result<Self> {
+        let options = sqlx::postgres::PgConnectOptions::new()
+            .host(&config.postgres_host)
+            .port(config.postgres_port)
+            .username(&config.postgres_user)
+            .password(&config.postgres_password)
+            .database(&config.postgres_db);
+
+        let pg_pool = PgPool::connect_with(options)
+            .await
+            .context("Failed to connect to database")?;
+
+        sqlx::migrate!("../../migrations")
+            .run(&pg_pool)
+            .await
+            .context("Failed to run migrations")?;
+
+        Ok(Self::new(pg_pool))
+    }
+
     pub fn new(pool: PgPool) -> Self {
         Self { pool }
+    }
+
+    pub async fn list_contract_ids_after(
+        &self,
+        last_id: u64,
+        limit: usize,
+    ) -> Result<Vec<u64>, sqlx::Error> {
+        let ids = sqlx::query_scalar::<_, i64>(
+            r#"
+            SELECT id
+            FROM contracts
+            WHERE id > $1
+            ORDER BY id
+            LIMIT $2
+            "#,
+        )
+        .bind(last_id as i64)
+        .bind(limit as i64)
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(ids.into_iter().map(|id| id as u64).collect())
     }
 
     pub async fn get_contract(&self, id: u64) -> Result<Option<Contract>, sqlx::Error> {
@@ -78,7 +135,7 @@ impl ContractDatabase {
                 id, contracting_procedure_type, publication_date, signing_date,
                 ccp, object_brief_description, initial_contractual_price, description,
                 regime, contract_status, non_written_contract_justification_types,
-                contract_types, execution_deadline_days, execution_place,
+                contract_types, execution_deadline_days, execution_places,
                 contract_fundamentation_type, contracting_procedure_url, announcement_id,
                 direct_award_fundamentation_type, observations, end_of_contract_type,
                 close_date, total_effective_price, causes_deadline_change, causes_price_change
@@ -203,7 +260,7 @@ impl ContractDatabase {
             non_written_contract_justification_types: main.non_written_contract_justification_types,
             contract_types: main.contract_types,
             execution_deadline_days: main.execution_deadline_days as usize,
-            execution_place: main.execution_place,
+            execution_places: main.execution_places,
             contract_fundamentation_type: main.contract_fundamentation_type,
             contestants,
             invitees,
@@ -265,7 +322,7 @@ impl ContractDatabase {
                 id, contracting_procedure_type, publication_date, signing_date,
                 ccp, object_brief_description, initial_contractual_price, description,
                 regime, contract_status, non_written_contract_justification_types,
-                contract_types, execution_deadline_days, execution_place,
+                contract_types, execution_deadline_days, execution_places,
                 contract_fundamentation_type, contracting_procedure_url, announcement_id,
                 direct_award_fundamentation_type, observations, end_of_contract_type,
                 close_date, total_effective_price, causes_deadline_change, causes_price_change
@@ -286,7 +343,7 @@ impl ContractDatabase {
             contract.non_written_contract_justification_types,
             contract.contract_types,
             contract.execution_deadline_days as i32,
-            contract.execution_place,
+            &contract.execution_places,
             contract.contract_fundamentation_type,
             contract.contracting_procedure_url,
             contract.announcement_id.map(|id| id as i64),
@@ -408,7 +465,7 @@ mod tests {
             non_written_contract_justification_types: "Emergency".to_string(),
             contract_types: "Service".to_string(),
             execution_deadline_days: 90,
-            execution_place: "Lisbon, Portugal".to_string(),
+            execution_places: vec!["Lisbon, Portugal".to_string()],
             contract_fundamentation_type: "Legal basis".to_string(),
             contestants: vec![],
             invitees: vec![],

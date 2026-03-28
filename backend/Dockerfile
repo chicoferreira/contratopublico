@@ -12,7 +12,7 @@ RUN cargo chef cook --release --recipe-path recipe.json
 
 COPY . .
 ENV SQLX_OFFLINE=true
-RUN cargo build --release --bin backend
+RUN cargo build --release --bin backend --bin cli
 
 FROM debian:bookworm-slim AS runtime
 WORKDIR /backend
@@ -20,5 +20,6 @@ RUN apt-get update && apt-get install -y \
     libssl3 \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
-COPY --from=builder /backend/target/release/backend /usr/local/bin
+COPY --from=builder /backend/target/release/backend /usr/local/bin/backend
+COPY --from=builder /backend/target/release/cli /usr/local/bin/cli
 ENTRYPOINT ["/usr/local/bin/backend"]

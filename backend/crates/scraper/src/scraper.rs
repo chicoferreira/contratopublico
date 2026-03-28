@@ -187,7 +187,10 @@ async fn run_fetch_details_task(
             let contract = contract.into();
             info!("Fetched details for contract {id}");
 
-            if let Err(e) = store.save_scraped_contract(contract, page, MAX_PAGE_SIZE).await {
+            if let Err(e) = store
+                .save_scraped_contract(contract, page, MAX_PAGE_SIZE)
+                .await
+            {
                 error!("Failed to save details for ID {id}:\n{:?}", e);
             }
         });

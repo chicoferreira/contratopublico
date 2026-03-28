@@ -49,10 +49,7 @@ impl IntoResponse for AppError {
                 StatusCode::INTERNAL_SERVER_ERROR,
                 format!("Could not determine client IP address"),
             ),
-            AppError::RateLimited => (
-                StatusCode::TOO_MANY_REQUESTS,
-                format!("Too many requests"),
-            ),
+            AppError::RateLimited => (StatusCode::TOO_MANY_REQUESTS, format!("Too many requests")),
         };
         let error_body = ErrorBody { message };
         (error_code, axum::Json(error_body)).into_response()

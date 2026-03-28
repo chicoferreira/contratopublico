@@ -2,14 +2,14 @@ use std::{path::PathBuf, sync::Arc};
 
 use anyhow::Context;
 use clap::Parser;
-use common::Contract;
+use common::{
+    Contract,
+    db::{ContractDatabase, PostgresConfig},
+    searchdb::{MeilisearchConfig, SearchDatabase},
+};
 use log::info;
 use reqwest::Url;
-use scraper::{
-    base_gov::client::BaseGovClient,
-    config::{MeilisearchConfig, PostgresConfig},
-    export,
-};
+use scraper::{base_gov::client::BaseGovClient, export, search};
 
 #[derive(clap::Parser)]
 #[command(version, about)]
@@ -37,6 +37,12 @@ enum Command {
         meilisearch_config: MeilisearchConfig,
         output_path: PathBuf,
     },
+    RebuildSearchIndex {
+        #[command(flatten)]
+        postgres_config: PostgresConfig,
+        #[command(flatten)]
+        meilisearch_config: MeilisearchConfig,
+    },
 }
 
 #[tokio::main]
@@ -53,11 +59,12 @@ async fn main() -> anyhow::Result<()> {
             postgres_config,
             meilisearch_config,
         } => {
-            let meili_client = meilisearch_config.create_client()?;
-            let pg_pool = postgres_config.create_pool().await?;
+            let search_database = SearchDatabase::new_from_config(meilisearch_config)?;
+            let contract_database = ContractDatabase::new_from_config(postgres_config).await?;
 
-            let store = scraper::store::Store::new(meili_client, pg_pool, saved_pages_path)
-                .context("Failed to create store")?;
+            let store =
+                scraper::store::Store::new(search_database, contract_database, saved_pages_path)
+                    .context("Failed to create store")?;
 
             let base_gov_client = BaseGovClient::new(base_gov_client_proxy);
             scraper::scraper::scrape(Arc::new(store), base_gov_client).await;
@@ -76,9 +83,17 @@ async fn main() -> anyhow::Result<()> {
             meilisearch_config,
             output_path,
         } => {
-            let meili_client = meilisearch_config.create_client()?;
+            let meilisearch_client = meilisearch_config.create_client()?;
+            export::export_old_format_to_json(meilisearch_client, output_path).await?;
+        }
+        Command::RebuildSearchIndex {
+            postgres_config,
+            meilisearch_config,
+        } => {
+            let contract_database = ContractDatabase::new_from_config(postgres_config).await?;
+            let search_database = SearchDatabase::new(meilisearch_config.create_client()?);
 
-            export::export_old_format_to_json(meili_client, output_path).await?;
+            search::rebuild::rebuild_search_index(&contract_database, &search_database).await?;
         }
     }
 
