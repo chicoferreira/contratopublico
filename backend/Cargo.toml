@@ -29,3 +29,4 @@ itertools = "0.14.0"
 num-traits = "0.2.19"
 sqlx = { version = "0.8.6", features = ["runtime-tokio-rustls", "postgres", "chrono", "macros"] }
 dashmap = "6.1.0"
+futures = { version = "0.3.32" }

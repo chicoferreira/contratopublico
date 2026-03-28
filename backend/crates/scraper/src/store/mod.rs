@@ -8,7 +8,6 @@ use std::{
 use anyhow::Context;
 use common::{Contract, db::ContractDatabase, searchdb::SearchDatabase};
 use serde::{Deserialize, Serialize};
-use sqlx::PgPool;
 
 use crate::store::rangeset::RangeSet;
 
@@ -74,19 +73,18 @@ impl Store {
     }
 
     pub fn new(
-        client: meilisearch_sdk::client::Client,
-        pg_pool: PgPool,
-        path: PathBuf,
+        search_database: SearchDatabase,
+        contract_database: ContractDatabase,
+        scrape_progress_path: PathBuf,
     ) -> anyhow::Result<Self> {
-        let scrape_progress = Self::load_progress(&path).context("Failed to load progress")?;
-        let contract_database = ContractDatabase::new(pg_pool);
-        let search_database = SearchDatabase::new(client);
+        let scrape_progress =
+            Self::load_progress(&scrape_progress_path).context("Failed to load progress")?;
 
         Ok(Self {
             search_database,
             contract_database,
             scrape_progress: Mutex::new(scrape_progress),
-            path,
+            path: scrape_progress_path,
         })
     }
 

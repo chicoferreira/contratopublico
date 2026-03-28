@@ -1,5 +1,6 @@
 use chrono::NaiveDate;
 use common::Currency;
+use itertools::Itertools;
 use serde::{Deserialize, Deserializer};
 
 use crate::base_gov::BaseGovCpv;
@@ -68,6 +69,23 @@ where
     let days: usize = date_str.parse().map_err(serde::de::Error::custom)?;
 
     Ok(days)
+}
+
+pub fn deserialize_execution_place<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let place_str: String = Deserialize::deserialize(deserializer)?;
+
+    let places = place_str
+        .split("<BR/>")
+        .filter(|s| !s.is_empty())
+        .map(str::trim)
+        .unique()
+        .map(str::to_string)
+        .collect_vec();
+
+    Ok(places)
 }
 
 pub fn deserialize_announcement_id<'de, D>(deserializer: D) -> Result<Option<usize>, D::Error>

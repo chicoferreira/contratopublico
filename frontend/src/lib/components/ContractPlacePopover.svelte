@@ -6,24 +6,24 @@
   import InfoPopover from "./InfoPopover.svelte";
 
   let {
-    executionPlace,
+    place,
     ranges: matchingRanges = [],
-  }: { executionPlace: string; ranges?: MatchingRange[] | undefined } = $props();
+  }: { place: string; ranges?: MatchingRange[] | undefined } = $props();
 </script>
 
 <Popover>
   <PopoverTrigger>
     <Badge variant="secondary" class="h-6 min-h-6">
       <Highlighted
-        content={executionPlace.length > 30
-          ? executionPlace.substring(0, 30) + "..."
-          : executionPlace}
+        content={place.length > 30
+          ? place.substring(0, 30) + "..."
+          : place}
         ranges={matchingRanges} />
     </Badge>
   </PopoverTrigger>
   <PopoverContent>
     <InfoPopover title="Localização da Execução do Contrato">
-      <div>Este contrato foi executado em {executionPlace}.</div>
+      <div>Este contrato foi executado em {place}.</div>
     </InfoPopover>
   </PopoverContent>
 </Popover>

@@ -10,7 +10,6 @@ use common::{
 };
 use meilisearch_sdk::settings::{PaginationSetting, Settings};
 use serde::Serialize;
-use sqlx::PgPool;
 
 use crate::{error::AppResult, filter::Filters, sort::SortField};
 
@@ -69,9 +68,7 @@ impl Clone for AppState {
 }
 
 impl AppState {
-    pub fn new(meilisearch: meilisearch_sdk::client::Client, pg_pool: PgPool) -> Self {
-        let search_database = SearchDatabase::new(meilisearch);
-        let contract_database = ContractDatabase::new(pg_pool);
+    pub fn new(search_database: SearchDatabase, contract_database: ContractDatabase) -> Self {
         Self {
             search_database,
             contract_database,

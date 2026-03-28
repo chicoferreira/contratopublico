@@ -1,7 +1,10 @@
 use crate::state::AppState;
 use anyhow::Context;
 use clap::Parser;
-use meilisearch_sdk::client::Client;
+use common::{
+    db::{ContractDatabase, PostgresConfig},
+    searchdb::{MeilisearchConfig, SearchDatabase},
+};
 use reqwest::Url;
 use scraper::{base_gov::client::BaseGovClient, store::Store};
 use std::{net::SocketAddr, path::PathBuf, sync::Arc};
@@ -20,10 +23,6 @@ mod statistics;
 
 #[derive(Parser)]
 struct Args {
-    #[clap(long, env, default_value = "http://localhost:7700")]
-    meilisearch_url: String,
-    #[clap(long, env = "MEILI_MASTER_KEY", default_value = "masterKey")]
-    meilisearch_master_key: Option<String>,
     #[clap(long, env, default_value = "0.0.0.0:3000")]
     bind_url: String,
     #[clap(long, env, default_value = "0.0.0.0:3001")]
@@ -32,16 +31,10 @@ struct Args {
     scraper_interval_secs: u64,
     #[clap(long, env, default_value = "../data/scraper/saved_pages.json")]
     saved_pages_path: PathBuf,
-    #[clap(long, env, default_value = "localhost")]
-    postgres_host: String,
-    #[clap(long, env, default_value = "5432")]
-    postgres_port: u16,
-    #[clap(long, env, default_value = "contratopublico")]
-    postgres_user: String,
-    #[clap(long, env, default_value = "contratopublico")]
-    postgres_password: String,
-    #[clap(long, env, default_value = "contratopublico")]
-    postgres_db: String,
+    #[clap(flatten)]
+    meilisearch_config: MeilisearchConfig,
+    #[clap(flatten)]
+    postgres_config: PostgresConfig,
     #[clap(long, env)]
     no_scraper: bool,
     #[clap(long, env)]
@@ -53,34 +46,20 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::fmt().init();
 
     let args = Args::parse();
-    let meilisearch = Client::new(
-        &args.meilisearch_url,
-        args.meilisearch_master_key.as_deref(),
-    )
-    .context("Failed to create Meilisearch client")?;
 
-    let pg_options = sqlx::postgres::PgConnectOptions::new()
-        .host(&args.postgres_host)
-        .port(args.postgres_port)
-        .username(&args.postgres_user)
-        .password(&args.postgres_password)
-        .database(&args.postgres_db);
-
-    let pg_pool = sqlx::postgres::PgPool::connect_with(pg_options)
-        .await
-        .context("Failed to connect to PostgreSQL")?;
-
-    sqlx::migrate!("../../migrations")
-        .run(&pg_pool)
-        .await
-        .context("Failed to run migrations")?;
+    let search_database = SearchDatabase::new_from_config(args.meilisearch_config)?;
+    let contract_database = ContractDatabase::new_from_config(args.postgres_config).await?;
 
     let scraper_store = Arc::new(
-        Store::new(meilisearch.clone(), pg_pool.clone(), args.saved_pages_path)
-            .context("Failed to create scraper store")?,
+        Store::new(
+            search_database.clone(),
+            contract_database.clone(),
+            args.saved_pages_path,
+        )
+        .context("Failed to create scraper store")?,
     );
 
-    let app_state = AppState::new(meilisearch, pg_pool);
+    let app_state = AppState::new(search_database, contract_database);
     app_state
         .prepare_settings()
         .await
