@@ -9,19 +9,19 @@ use crate::base_gov::{BaseGovContract, ContractSearchResponse};
 const URL: &str = "https://www.base.gov.pt/Base4/pt/resultados/";
 const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36";
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct ContractSort {
     pub method: ContractSortMethod,
     pub order: SortOrder,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, clap::ValueEnum)]
 pub enum SortOrder {
     Ascending,
     Descending,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Copy, Serialize, clap::ValueEnum)]
 #[serde(rename_all = "camelCase")]
 pub enum ContractSortMethod {
     PublicationDate,
