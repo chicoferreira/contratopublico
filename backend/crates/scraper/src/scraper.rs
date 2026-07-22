@@ -17,7 +17,7 @@ const CONTRACT_SORT_ORDER: ContractSort = base_gov::client::ContractSort {
     order: base_gov::client::SortOrder::Ascending,
 };
 
-// Max consecutive failures when the API keeps failing since the start making it so we don't know the number of pages to scrape
+// Max consecutive failures before giving up (stops the scrape when the API keeps failing)
 const MAX_CONSECUTIVE_FAILURES: usize = 3;
 
 const MAX_CONCURRENT_REQUESTS: usize = 1;
@@ -63,13 +63,12 @@ async fn run_fetch_ids_task(
     let mut current_page = 0_usize;
 
     loop {
-        let should_continue = match total_pages {
-            Some(total_pages) => current_page < total_pages,
-            None => consecutive_failures < MAX_CONSECUTIVE_FAILURES,
-        };
+        if consecutive_failures >= MAX_CONSECUTIVE_FAILURES {
+            error!("Couldn't fetch IDs for {MAX_CONSECUTIVE_FAILURES} consecutive times, stopping");
+            break;
+        }
 
-        if !should_continue {
-            error!("Couldn't fetch IDs for over {MAX_CONSECUTIVE_FAILURES} consecutive times");
+        if total_pages.is_some_and(|total_pages| current_page >= total_pages) {
             break;
         }
 
