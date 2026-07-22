@@ -11,7 +11,7 @@ use log::{error, info, warn};
 use std::{num::NonZeroU32, sync::Arc};
 use tokio::task::JoinHandle;
 
-const MAX_PAGE_SIZE: usize = 50;
+pub const MAX_PAGE_SIZE: usize = 50;
 const CONTRACT_SORT_ORDER: ContractSort = base_gov::client::ContractSort {
     method: base_gov::client::ContractSortMethod::Id,
     order: base_gov::client::SortOrder::Ascending,

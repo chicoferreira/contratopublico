@@ -9,7 +9,10 @@ use common::{
 };
 use log::info;
 use reqwest::Url;
-use scraper::{base_gov::client::BaseGovClient, export, search};
+use scraper::{
+    base_gov::client::{BaseGovClient, ContractSort, ContractSortMethod, SortOrder},
+    export, search,
+};
 
 #[derive(clap::Parser)]
 #[command(version, about)]
@@ -26,6 +29,16 @@ enum Command {
         #[command(flatten)]
         meilisearch_config: MeilisearchConfig,
         saved_pages_path: PathBuf,
+        base_gov_client_proxy: Option<Url>,
+    },
+    FetchPage {
+        #[arg(long, default_value = "id")]
+        contract_sort_method: ContractSortMethod,
+        #[arg(long, default_value = "ascending")]
+        contract_sort_order: SortOrder,
+        page: usize,
+        #[arg(default_value_t = scraper::scraper::MAX_PAGE_SIZE)]
+        size: usize,
         base_gov_client_proxy: Option<Url>,
     },
     Fetch {
@@ -68,6 +81,22 @@ async fn main() -> anyhow::Result<()> {
 
             let base_gov_client = BaseGovClient::new(base_gov_client_proxy);
             scraper::scraper::scrape(Arc::new(store), base_gov_client).await;
+        }
+        Command::FetchPage {
+            contract_sort_method,
+            contract_sort_order,
+            page,
+            size,
+            base_gov_client_proxy,
+        } => {
+            let base_gov_client = BaseGovClient::new(base_gov_client_proxy);
+            let sort = ContractSort {
+                method: contract_sort_method,
+                order: contract_sort_order,
+            };
+            let response = base_gov_client.fetch_page(sort, page, size).await?;
+
+            info!("Fetched page: {response:#?}")
         }
         Command::Fetch {
             contract_id,
