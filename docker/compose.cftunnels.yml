@@ -31,6 +31,18 @@ services:
       - net.ipv4.conf.all.src_valid_mark=1
     volumes:
       - ${DATA_FOLDER}/warp-data:/var/lib/cloudflare-warp
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        /entrypoint.sh &
+        while true; do
+          sleep 3600
+          echo "Rotating WARP registration for a new exit IP..."
+          warp-cli disconnect
+          warp-cli registration delete
+          warp-cli registration new
+          warp-cli connect
+        done
     healthcheck:
       test:
         [
