@@ -21,7 +21,7 @@ const CONTRACT_SORT_ORDER: ContractSort = base_gov::client::ContractSort {
 const MAX_CONSECUTIVE_FAILURES: usize = 3;
 
 const MAX_CONCURRENT_REQUESTS: usize = 5;
-const MAX_REQUEST_QUOTA: Quota = Quota::per_second(NonZeroU32::new(2).unwrap());
+const MAX_REQUEST_QUOTA: Quota = Quota::per_second(NonZeroU32::new(1).unwrap());
 
 pub async fn scrape(store: Arc<Store>, base_gov_client: BaseGovClient) {
     let client = Arc::new(base_gov_client);
