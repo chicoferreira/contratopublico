@@ -99,13 +99,21 @@ impl BaseGovClient {
             .form(&payload)
             .send()
             .await
-            .context("Failed to send POST request")?
-            .json::<serde_json::Value>()
-            .await
-            .context("Failed to parse contracts as JSON")?;
+            .context("Failed to send POST request")?;
 
-        serde_json::from_value(response)
-            .context("Failed to parse JSON response to contract details")
+        let status = response.status();
+        let body = response
+            .text()
+            .await
+            .context("Failed to read response body")?;
+
+        let value = serde_json::from_str::<serde_json::Value>(&body).with_context(|| {
+            format!("Failed to parse response as JSON (status {status}): {body}")
+        })?;
+
+        serde_json::from_value(value).with_context(|| {
+            format!("Failed to parse JSON response to contract details (status {status}): {body}")
+        })
     }
 }
 
