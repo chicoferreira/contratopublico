@@ -8,7 +8,7 @@ use crate::{
 };
 use governor::Quota;
 use log::{error, info, warn};
-use std::{num::NonZeroU32, sync::Arc};
+use std::{sync::Arc, time::Duration};
 use tokio::task::JoinHandle;
 
 pub const MAX_PAGE_SIZE: usize = 50;
@@ -20,12 +20,15 @@ const CONTRACT_SORT_ORDER: ContractSort = base_gov::client::ContractSort {
 // Max consecutive failures when the API keeps failing since the start making it so we don't know the number of pages to scrape
 const MAX_CONSECUTIVE_FAILURES: usize = 3;
 
-const MAX_CONCURRENT_REQUESTS: usize = 5;
-const MAX_REQUEST_QUOTA: Quota = Quota::per_second(NonZeroU32::new(1).unwrap());
+const MAX_CONCURRENT_REQUESTS: usize = 1;
+
+fn max_request_quota() -> Quota {
+    Quota::with_period(Duration::from_secs(2)).unwrap()
+}
 
 pub async fn scrape(store: Arc<Store>, base_gov_client: BaseGovClient) {
     let client = Arc::new(base_gov_client);
-    let throttler = Arc::new(Throttler::new(MAX_CONCURRENT_REQUESTS, MAX_REQUEST_QUOTA));
+    let throttler = Arc::new(Throttler::new(MAX_CONCURRENT_REQUESTS, max_request_quota()));
 
     let (id_tx, id_rx) = tokio::sync::mpsc::channel(MAX_CONCURRENT_REQUESTS);
     let (exit_tx, exit_rx) = tokio::sync::oneshot::channel();
