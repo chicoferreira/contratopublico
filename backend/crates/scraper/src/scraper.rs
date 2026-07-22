@@ -80,10 +80,12 @@ async fn run_fetch_ids_task(
 
         info!("Fetching page {current_page}/{total_pages_str}...");
 
-        let _permit = throttler.throttle().await;
-        let response = client
-            .fetch_page(CONTRACT_SORT_ORDER, current_page, MAX_PAGE_SIZE)
-            .await;
+        let response = {
+            let _permit = throttler.throttle().await;
+            client
+                .fetch_page(CONTRACT_SORT_ORDER, current_page, MAX_PAGE_SIZE)
+                .await
+        };
 
         let response = match response {
             Ok(response) => response,
