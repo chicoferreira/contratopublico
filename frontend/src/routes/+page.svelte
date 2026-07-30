@@ -49,7 +49,9 @@
   let filtersOpen = $state(initialActiveFiltersCount() > 0);
 
   let navigationTimeout: ReturnType<typeof setTimeout> | null = null;
-  let lastNavigatedSearch = $state("");
+  // Canonical search params of the last navigation this page dispatched or adopted. Used to tell
+  // apart the echo of our own navigation from an external one (back/forward, logo, shared link).
+  let lastNavigatedSearch = "";
 
   const truncate = (value: string, maxLength = 80) => {
     if (value.length <= maxLength) return value;
@@ -77,17 +79,27 @@
 
   // Keep local mutable state synced with readonly `page.data`.
   $effect(() => {
-    const request = data.searchRequest;
-    query = request.query;
-    sort = request.sort;
-    page = request.page;
-    filters = request.filters;
     searchResults = data.searchResponse;
     statistics = data.statisticsResponse;
     rateLimited = data.rateLimited;
     error = data.error;
-    loading = false;
-    lastNavigatedSearch = sveltePage.url.searchParams.toString();
+
+    const request = data.searchRequest;
+    const incomingSearch = buildSearchParams(request).toString();
+
+    // `load` reruns both for the navigations we dispatch below and for external ones. Adopting the
+    // incoming request unconditionally would throw away whatever the user changed while the request
+    // was in flight, so only external navigations are allowed to overwrite the inputs.
+    if (incomingSearch !== lastNavigatedSearch) {
+      lastNavigatedSearch = incomingSearch;
+      query = request.query;
+      sort = request.sort;
+      page = request.page;
+      filters = request.filters;
+    }
+
+    // The inputs may already have moved past these results, in which case a navigation is queued.
+    loading = untrack(() => buildSearchParams(snapshotRequest()).toString()) !== incomingSearch;
   });
 
   afterNavigate(() => {
@@ -120,13 +132,11 @@
 
     const nextSearch = buildSearchParams(snapshotRequest()).toString();
     const currentSearch = untrack(() => sveltePage.url.searchParams.toString());
-    const lastSubmitted = untrack(() => lastNavigatedSearch);
 
-    if (nextSearch === currentSearch || nextSearch === lastSubmitted) {
+    if (nextSearch === currentSearch || nextSearch === lastNavigatedSearch) {
       return;
     }
 
-    if (navigationTimeout) clearTimeout(navigationTimeout);
     navigationTimeout = setTimeout(async () => {
       const latestSearch = buildSearchParams(snapshotRequest()).toString();
       const latestCurrent = sveltePage.url.searchParams.toString();
@@ -144,9 +154,17 @@
         });
       } catch (navigationError) {
         loading = false;
+        // Back to the params still in the URL, otherwise retrying the same search is a no-op.
+        lastNavigatedSearch = buildSearchParams(data.searchRequest).toString();
         console.error("Navigation error:", navigationError);
       }
     }, 250);
+
+    // Also drops the timer when leaving the page, so a navigation queued moments before clicking a
+    // contract does not pull the user back here.
+    return () => {
+      if (navigationTimeout) clearTimeout(navigationTimeout);
+    };
   });
 
   // Keep page inside available bounds from latest results.
