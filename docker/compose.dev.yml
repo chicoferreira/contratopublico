@@ -7,7 +7,7 @@ services:
       - "7700:7700"
     environment:
       - MEILI_MASTER_KEY=masterKey
-      - MEILI_EXPERIMENTAL_DUMPLESS_UPGRADE=true
+      - MEILI_UPGRADE_DB=true
     volumes:
       - ${DATA_FOLDER}/meili_data:/meili_data
   postgres:
