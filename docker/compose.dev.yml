@@ -2,12 +2,13 @@ name: contratopublico-dev
 
 services:
   meilisearch:
-    image: getmeili/meilisearch:v1
+    image: getmeili/meilisearch:v1.54.2
     ports:
       - "7700:7700"
     environment:
       - MEILI_MASTER_KEY=masterKey
       - MEILI_UPGRADE_DB=true
+      - MEILI_EXPERIMENTAL_LEGACY_SEARCH=true
     volumes:
       - ${DATA_FOLDER}/meili_data:/meili_data
   postgres:

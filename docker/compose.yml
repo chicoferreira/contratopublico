@@ -3,7 +3,7 @@ name: contratopublico
 services:
   meilisearch:
     restart: unless-stopped
-    image: getmeili/meilisearch:v1
+    image: getmeili/meilisearch:v1.54.2
     # ports:
     # - "7700:7700"
     environment:
@@ -11,6 +11,7 @@ services:
       - MEILI_EXPERIMENTAL_SEARCH_QUEUE_SIZE=3000
       - MEILI_LOG_LEVEL=WARN
       - MEILI_UPGRADE_DB=true
+      - MEILI_EXPERIMENTAL_LEGACY_SEARCH=true
     volumes:
       - ${DATA_FOLDER}/meili_data:/meili_data
 
