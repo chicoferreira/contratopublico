@@ -130,7 +130,7 @@
     {
       "id": 3,
       "type": "stat",
-      "title": "Requests / s",
+      "title": "Requests / min",
       "description": "Current request rate across the selected routes.",
       "datasource": {
         "type": "prometheus",
@@ -157,8 +157,8 @@
               }
             ]
           },
-          "unit": "reqps",
-          "decimals": 2
+          "unit": "suffix: req/min",
+          "decimals": 1
         },
         "overrides": []
       },
@@ -184,8 +184,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(rate(http_requests_total{path=~\"$path\"}[$__rate_interval]))",
-          "legendFormat": "req/s",
+          "expr": "sum(rate(http_requests_total{path=~\"$path\"}[$__rate_interval])) * 60",
+          "legendFormat": "req/min",
           "range": true,
           "instant": false
         }
@@ -563,16 +563,16 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Avg req/s"
+              "options": "Avg req/min"
             },
             "properties": [
               {
                 "id": "unit",
-                "value": "reqps"
+                "value": "suffix: req/min"
               },
               {
                 "id": "decimals",
-                "value": 3
+                "value": 2
               }
             ]
           },
@@ -812,7 +812,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (path) (rate(http_requests_total{path=~\"$path\"}[$__range]))",
+          "expr": "sum by (path) (rate(http_requests_total{path=~\"$path\"}[$__range])) * 60",
           "legendFormat": "",
           "range": false,
           "instant": true,
@@ -909,7 +909,7 @@
             "renameByName": {
               "path": "Route",
               "Value #A": "Requests",
-              "Value #B": "Avg req/s",
+              "Value #B": "Avg req/min",
               "Value #C": "5xx",
               "Value #D": "429",
               "Value #E": "p50",
@@ -936,7 +936,7 @@
     {
       "id": 11,
       "type": "timeseries",
-      "title": "Requests / s by route",
+      "title": "Requests / min by route",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -961,7 +961,7 @@
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 25,
+            "fillOpacity": 10,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -979,7 +979,7 @@
             "spanNulls": false,
             "stacking": {
               "group": "A",
-              "mode": "normal"
+              "mode": "none"
             },
             "thresholdsStyle": {
               "mode": "off"
@@ -995,7 +995,7 @@
               }
             ]
           },
-          "unit": "reqps",
+          "unit": "suffix: req/min",
           "min": 0
         },
         "overrides": [
@@ -1066,7 +1066,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (path) (rate(http_requests_total{path=~\"$path\"}[$__rate_interval]))",
+          "expr": "sum by (path) (rate(http_requests_total{path=~\"$path\"}[$__rate_interval])) * 60",
           "legendFormat": "{{path}}",
           "range": true,
           "instant": false
@@ -1076,7 +1076,7 @@
     {
       "id": 12,
       "type": "timeseries",
-      "title": "Requests / s by status",
+      "title": "Requests / min by status",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -1101,7 +1101,7 @@
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 25,
+            "fillOpacity": 10,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -1119,7 +1119,7 @@
             "spanNulls": false,
             "stacking": {
               "group": "A",
-              "mode": "normal"
+              "mode": "none"
             },
             "thresholdsStyle": {
               "mode": "off"
@@ -1135,7 +1135,7 @@
               }
             ]
           },
-          "unit": "reqps",
+          "unit": "suffix: req/min",
           "min": 0
         },
         "overrides": [
@@ -1236,7 +1236,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (status) (rate(http_requests_total{path=~\"$path\"}[$__rate_interval]))",
+          "expr": "sum by (status) (rate(http_requests_total{path=~\"$path\"}[$__rate_interval])) * 60",
           "legendFormat": "{{status}}",
           "range": true,
           "instant": false
@@ -1815,7 +1815,7 @@
     {
       "id": 19,
       "type": "timeseries",
-      "title": "Non-2xx responses / s",
+      "title": "Non-2xx responses / min",
       "description": "Every response that wasn't a success, by status and route.",
       "datasource": {
         "type": "prometheus",
@@ -1875,7 +1875,7 @@
               }
             ]
           },
-          "unit": "reqps",
+          "unit": "suffix: req/min",
           "min": 0
         },
         "overrides": [
@@ -1976,7 +1976,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (status, path) (rate(http_requests_total{path=~\"$path\",status!~\"2..\"}[$__rate_interval]))",
+          "expr": "sum by (status, path) (rate(http_requests_total{path=~\"$path\",status!~\"2..\"}[$__rate_interval])) * 60",
           "legendFormat": "{{status}} {{path}}",
           "range": true,
           "instant": false
@@ -2734,7 +2734,7 @@
     {
       "id": 30,
       "type": "timeseries",
-      "title": "base.gov requests / s",
+      "title": "base.gov requests / min",
       "description": "Successful requests by type (search result pages and contract details), and failed requests.",
       "datasource": {
         "type": "prometheus",
@@ -2794,7 +2794,7 @@
               }
             ]
           },
-          "unit": "reqps",
+          "unit": "suffix: req/min",
           "min": 0
         },
         "overrides": [
@@ -2865,7 +2865,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (kind) (rate(scraper_base_gov_requests_total{result=\"ok\"}[$__rate_interval]))",
+          "expr": "sum by (kind) (rate(scraper_base_gov_requests_total{result=\"ok\"}[$__rate_interval])) * 60",
           "legendFormat": "{{kind}}",
           "range": true,
           "instant": false,
@@ -2877,7 +2877,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(rate(scraper_base_gov_requests_total{result=\"error\"}[$__rate_interval]))",
+          "expr": "sum(rate(scraper_base_gov_requests_total{result=\"error\"}[$__rate_interval])) * 60",
           "legendFormat": "errors",
           "range": true,
           "instant": false,
