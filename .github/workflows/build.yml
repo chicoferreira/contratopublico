@@ -125,6 +125,7 @@ jobs:
           tags: |
             type=raw,value=latest
             type=sha
+            type=sha,format=long
 
       - name: Build and push image
         uses: docker/build-push-action@v6
