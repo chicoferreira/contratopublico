@@ -3,13 +3,14 @@ use crate::{
         self,
         client::{BaseGovClient, ContractSort},
     },
+    metrics::{self, ContractFailure, RequestKind},
     scraper::throttle::Throttler,
     store::Store,
 };
 use governor::Quota;
 use log::{error, info, warn};
 use std::{sync::Arc, time::Duration};
-use tokio::task::JoinHandle;
+use tokio::{task::JoinHandle, time::Instant};
 
 pub const MAX_PAGE_SIZE: usize = 50;
 const CONTRACT_SORT_ORDER: ContractSort = base_gov::client::ContractSort {
@@ -27,6 +28,9 @@ fn max_request_quota() -> Quota {
 }
 
 pub async fn scrape(store: Arc<Store>, base_gov_client: BaseGovClient) {
+    let start = Instant::now();
+    metrics::run_started();
+
     let client = Arc::new(base_gov_client);
     let throttler = Arc::new(Throttler::new(MAX_CONCURRENT_REQUESTS, max_request_quota()));
 
@@ -42,7 +46,9 @@ pub async fn scrape(store: Arc<Store>, base_gov_client: BaseGovClient) {
     );
     let details_task = run_fetch_details_task(client, store, throttler, exit_rx, id_tx, id_rx);
 
-    tokio::join!(fetch_task, details_task);
+    let (completed, ()) = tokio::join!(fetch_task, details_task);
+
+    metrics::run_finished(completed, start.elapsed());
 }
 
 struct ContractLocation {
@@ -57,7 +63,8 @@ async fn run_fetch_ids_task(
     throttler: Arc<Throttler>,
     exit_tx: tokio::sync::oneshot::Sender<()>,
     id_tx: tokio::sync::mpsc::Sender<ContractLocation>,
-) {
+) -> bool {
+    let mut completed = false;
     let mut total_pages = None;
     let mut consecutive_failures = 0_usize;
     let mut current_page = 0_usize;
@@ -69,10 +76,12 @@ async fn run_fetch_ids_task(
         }
 
         if total_pages.is_some_and(|total_pages| current_page >= total_pages) {
+            completed = true;
             break;
         }
 
         current_page = store.get_next_page_to_query(current_page);
+        metrics::page_progress(current_page, total_pages);
 
         let total_pages_str = total_pages
             .map(|s| s.to_string())
@@ -82,9 +91,12 @@ async fn run_fetch_ids_task(
 
         let response = {
             let _permit = throttler.throttle().await;
-            client
+            let request_start = Instant::now();
+            let response = client
                 .fetch_page(CONTRACT_SORT_ORDER, current_page, MAX_PAGE_SIZE)
-                .await
+                .await;
+            metrics::request(RequestKind::Page, response.is_ok(), request_start.elapsed());
+            response
         };
 
         let response = match response {
@@ -125,6 +137,8 @@ async fn run_fetch_ids_task(
     }
 
     let _ = exit_tx.send(());
+
+    completed
 }
 
 async fn run_fetch_details_task(
@@ -164,7 +178,13 @@ async fn run_fetch_details_task(
             let _permit = permit; // hold permit until task ends
 
             info!("Fetching details for contract {id}...");
+            let request_start = Instant::now();
             let response = client.get_contract_details(id).await;
+            metrics::request(
+                RequestKind::Details,
+                response.is_ok(),
+                request_start.elapsed(),
+            );
 
             let contract = match response {
                 Ok(response) => response,
@@ -176,6 +196,7 @@ async fn run_fetch_details_task(
                             "Failed to fetch details for ID {id} after {} retries:\n{e:?}",
                             MAX_CONSECUTIVE_FAILURES
                         );
+                        metrics::contract_failed(ContractFailure::Fetch);
                         // do not retry
                     } else {
                         error!("Failed to fetch details for ID {id}:\n{:?}", e);
@@ -191,11 +212,15 @@ async fn run_fetch_details_task(
             let contract = contract.into();
             info!("Fetched details for contract {id}");
 
-            if let Err(e) = store
+            match store
                 .save_scraped_contract(contract, page, MAX_PAGE_SIZE)
                 .await
             {
-                error!("Failed to save details for ID {id}:\n{:?}", e);
+                Ok(()) => metrics::contract_saved(),
+                Err(e) => {
+                    error!("Failed to save details for ID {id}:\n{:?}", e);
+                    metrics::contract_failed(ContractFailure::Save);
+                }
             }
         });
 

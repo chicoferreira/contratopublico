@@ -47,6 +47,8 @@ async fn main() -> anyhow::Result<()> {
 
     let args = Args::parse();
 
+    let metrics_router = metrics::metrics_router()?;
+
     let search_database = SearchDatabase::new_from_config(args.meilisearch_config)?;
     let contract_database = ContractDatabase::new_from_config(args.postgres_config).await?;
 
@@ -70,8 +72,9 @@ async fn main() -> anyhow::Result<()> {
             loop {
                 let base_gov_client = BaseGovClient::new(args.base_gov_client_proxy.clone());
                 scraper::scraper::scrape(scraper_store.clone(), base_gov_client).await;
-                tokio::time::sleep(tokio::time::Duration::from_secs(args.scraper_interval_secs))
-                    .await;
+                let interval = tokio::time::Duration::from_secs(args.scraper_interval_secs);
+                scraper::metrics::next_run_in(interval);
+                tokio::time::sleep(interval).await;
             }
         });
     }
@@ -87,8 +90,6 @@ async fn main() -> anyhow::Result<()> {
 
     let backend_ip = backend_listener.local_addr().unwrap();
     event!(Level::INFO, "Backend listening on {backend_ip}");
-
-    let metrics_router = metrics::metrics_router()?;
 
     let metrics_listener = tokio::net::TcpListener::bind(args.metrics_bind_url)
         .await

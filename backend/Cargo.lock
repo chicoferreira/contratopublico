@@ -2210,6 +2210,7 @@ dependencies = [
  "itertools",
  "log",
  "meilisearch-sdk",
+ "metrics",
  "nonzero_ext",
  "num-traits",
  "reqwest",

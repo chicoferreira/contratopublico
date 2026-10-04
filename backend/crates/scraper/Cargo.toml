@@ -7,6 +7,7 @@ edition = "2024"
 anyhow = { workspace = true }
 env_logger = { workspace = true }
 governor = { workspace = true }
+metrics = { workspace = true, default-features = false }
 log = { workspace = true }
 nonzero_ext = { workspace = true }
 reqwest = { workspace = true }

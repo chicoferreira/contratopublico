@@ -12,14 +12,22 @@ use metrics_exporter_prometheus::{Matcher, PrometheusBuilder, PrometheusHandle};
 use tokio::time::Instant;
 
 fn setup_metrics_recorder() -> anyhow::Result<PrometheusHandle> {
-    const EXPONENTIAL_SECONDS: &[f64] = &[
-        0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0,
+    const LATENCY_BUCKETS_SECONDS: &[f64] = &[
+        0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.15, 0.2, 0.3, 0.5, 0.75, 1.0, 2.5, 5.0, 10.0,
+    ];
+    const BASE_GOV_BUCKETS_SECONDS: &[f64] = &[
+        0.1, 0.25, 0.5, 1.0, 2.0, 3.0, 5.0, 7.5, 10.0, 20.0, 30.0, 60.0,
     ];
 
     PrometheusBuilder::new()
         .set_buckets_for_metric(
             Matcher::Full("http_requests_duration_seconds".to_string()),
-            EXPONENTIAL_SECONDS,
+            LATENCY_BUCKETS_SECONDS,
+        )
+        .context("Couldn't create buckets")?
+        .set_buckets_for_metric(
+            Matcher::Full(scraper::metrics::BASE_GOV_REQUEST_DURATION_SECONDS.to_string()),
+            BASE_GOV_BUCKETS_SECONDS,
         )
         .context("Couldn't create buckets")?
         .install_recorder()
