@@ -4,6 +4,6 @@
   const { children, class: className = "" } = $props();
 </script>
 
-<div class={cn("bg-card rounded-lg border px-5 py-4.5 shadow-sm", className)}>
+<div class={cn("bg-card rounded-lg border px-5 py-4.5 break-words shadow-sm", className)}>
   {@render children()}
 </div>

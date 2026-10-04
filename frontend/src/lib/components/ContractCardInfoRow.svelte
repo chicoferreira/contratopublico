@@ -19,7 +19,7 @@
 
 <div class="flex items-center gap-3">
   <Icon class="text-muted-foreground/80 h-6 w-6 shrink-0" />
-  <div class="space-y-0">
+  <div class="min-w-0">
     <Popover.Root>
       <Popover.Trigger>
         <div class="group flex items-center gap-1 transition-colors">

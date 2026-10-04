@@ -52,13 +52,13 @@
 </script>
 
 <Popover>
-  <PopoverTrigger>
+  <PopoverTrigger class="max-w-full">
     <Badge
       class={cn(
         colorVariants[badgeConfig.color as keyof typeof colorVariants],
-        "cursor-pointer font-semibold text-white",
+        "max-w-full font-semibold text-white",
       )}>
-      <Highlighted content={badgeConfig.displayText} ranges={highlightRanges} />
+      <Highlighted class="truncate" content={badgeConfig.displayText} ranges={highlightRanges} />
     </Badge>
   </PopoverTrigger>
   <PopoverContent>
@@ -75,7 +75,7 @@
               Contribua com uma descrição no
               <Link
                 showIcon={false}
-                url="https://github.com/chicoferreira/contratopublico/edit/main/frontend/src/components/procedure-types.json">
+                url="https://github.com/chicoferreira/contratopublico/edit/main/frontend/src/lib/components/procedure-types.json">
                 GitHub
               </Link>.
             </p>

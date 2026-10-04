@@ -111,7 +111,7 @@
       </Link>
     </div>
 
-    <div class="grid items-start gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div class="grid grid-cols-1 items-start gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <GridCardTitle title="Valor contratual inicial" icon={BadgeEuro} compact={true}>
         <p class="text-lg font-semibold">{formatMoney(contract.initialContractualPrice)}</p>
         <p class="text-muted-foreground text-sm">Valor inicial estabelecido no contrato</p>
@@ -176,7 +176,7 @@
       </GridCardTitle>
     </div>
 
-    <div class="grid gap-4 lg:grid-cols-2">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <GridCardTitleList
         title={contract.contracting.length === 1
           ? "Entidade contratante"
@@ -206,7 +206,7 @@
       </GridCardTitleList>
     </div>
 
-    <div class="grid gap-4 lg:grid-cols-2">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <GridCardTitle icon={FileText} title="Procedimento">
         <div class="space-y-2 text-sm">
           <p class="text-muted-foreground">
@@ -250,7 +250,7 @@
           <p class="text-muted-foreground">
             Peças do Procedimento:
             {#if contract.contractingProcedureUrl}
-              <Link url={contract.contractingProcedureUrl} class="break-all">
+              <Link url={contract.contractingProcedureUrl} class="wrap-anywhere">
                 {procedingUrlTitle}
               </Link>
             {:else}
@@ -305,8 +305,8 @@
       </GridCardTitle>
     </div>
 
-    <div class="grid gap-4 sm:grid-cols-1 xl:grid-cols-2">
-      <div class="grid gap-4">
+    <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
+      <div class="grid grid-cols-1 gap-4">
         <GridCardTitleList
           title="Documentos"
           icon={FileStack}
@@ -314,7 +314,7 @@
           fallback="Sem documentos associados">
           {#snippet renderElement(doc)}
             <GridSubCard class="text-sm">
-              <Link url={getBaseGovDocumentUrl(doc.id)} class="font-medium break-all">
+              <Link url={getBaseGovDocumentUrl(doc.id)} class="font-medium wrap-anywhere">
                 {doc.description}
               </Link>
               <span class="text-muted-foreground ml-2">#{doc.id}</span>
@@ -336,7 +336,7 @@
         </GridCardTitleList>
       </div>
 
-      <div class="grid gap-4">
+      <div class="grid grid-cols-1 gap-4">
         <GridCardTitle title="Outras entidades" icon={Users}>
           {#if contract.contestants.length > 0 || contract.invitees.length > 0}
             <div class="space-y-6">

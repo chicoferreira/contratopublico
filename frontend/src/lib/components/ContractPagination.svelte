@@ -29,18 +29,23 @@
       <Pagination.Item>
         <Pagination.PrevButton />
       </Pagination.Item>
-      {#each pages as page (page.key)}
+      {#each pages as page, i (page.key)}
         {#if page.type === "ellipsis"}
           <Pagination.Item>
             <Pagination.Ellipsis />
           </Pagination.Item>
         {:else}
-          <Pagination.Item>
+          <!-- Hide pages next to the ellipsis on small screens -->
+          {@const nextToEllipsis =
+            i > 0 &&
+            i < pages.length - 1 &&
+            (pages[i - 1].type === "ellipsis" || pages[i + 1].type === "ellipsis")}
+          <Pagination.Item class={nextToEllipsis ? "max-sm:hidden" : undefined}>
             <Pagination.Link
               {page}
               isActive={currentPage === page.value}
-              size="icon"
-              class="hover:bg-muted-foreground/20 dark:hover:bg-muted-foreground/30 size-11">
+              size="default"
+              class="hover:bg-muted-foreground/20 dark:hover:bg-muted-foreground/30 h-11 min-w-11 px-1.5">
               {page.value}
             </Pagination.Link>
           </Pagination.Item>
