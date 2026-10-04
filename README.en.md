@@ -45,9 +45,8 @@ backend/                # Rust backend
     common/             # Shared types
     scraper/            # Scraper and CLI
 frontend/               # SvelteKit application
-docker/                 # Compose files
-monitoring/             # Prometheus + Grafana + k6
-rpxy/                   # Reverse proxy configuration
+deploy/                 # Compose files and deployment configs (Prometheus, Grafana, rpxy)
+bench/                  # k6 benchmark
 ```
 
 ### Scraping
@@ -56,21 +55,23 @@ The backend service continuously collects data from the Portal BASE using the `s
 
 ### Monitoring
 
-Prometheus and Grafana with a simple dashboard are included in `docker/docker-compose.yml`, with their configurations in `monitoring/grafana`.
+Prometheus and Grafana with a simple dashboard are included in `deploy/compose.yml`, with their configurations in `deploy/prometheus` and `deploy/grafana`.
 
-A simple `k6` benchmark script is also included in `monitoring/bench`.
+A simple `k6` benchmark script is also included in `bench/`.
 
 ## Quick Start (Docker)
 
 **Prerequisites:** Docker & Docker Compose
 
-1. Copy the `.env.example` file to `.env` inside the `docker/` folder and change the values as needed.
+1. Copy the `.env.example` file to `.env` inside the `deploy/` folder and change the values as needed.
 
 2. Run the compose:
 
 ```
-docker compose -f docker/compose.yml up -d
+docker compose -f deploy/compose.yml up -d
 ```
+
+The `backend` and `frontend` images are available on the GitHub Container Registry ([`contratopublico-backend`](https://github.com/users/chicoferreira/packages/container/package/contratopublico-backend) and [`contratopublico-frontend`](https://github.com/users/chicoferreira/packages/container/package/contratopublico-frontend)).
 
 This will start:
 
@@ -81,11 +82,11 @@ This will start:
 - `prometheus` and `grafana`
 - `rpxy` (reverse proxy)
 
-By default, the ports are not exposed. In production, you should provide your own proxy (for example, `compose-cftunnels.yml` starts a Cloudflare Tunnel). For local use, you can:
+By default, the ports are not exposed. In production, you should provide your own proxy (for example, `compose.cftunnels.yml` starts a Cloudflare Tunnel). For local use, you can:
 
 - Run the services locally without Docker (see next section), or:
-  1. Add `ports:` to `rpxy` in `docker/compose.yml` to expose port 80.
-  2. Change `server_name` from `contratopublico.pt` to `localhost` in `rpxy/config/config.toml`.
+  1. Add `ports:` to `rpxy` in `deploy/compose.yml` to expose port 80.
+  2. Change `server_name` from `contratopublico.pt` to `localhost` in `deploy/rpxy/config.toml`.
 
 ## Local Development
 
@@ -96,7 +97,7 @@ You can run Meilisearch and Postgres in Docker, the backend with Cargo, and the 
 Start Meilisearch and Postgres in Docker:
 
 ```
-docker compose -f docker/compose-meilisearch.yml up -d
+docker compose -f deploy/compose.dev.yml up -d
 ```
 
 ### 2. Backend (Rust)

@@ -43,9 +43,8 @@ backend/                # Backend em Rust
     common/             # Tipos partilhados
     scraper/            # Scraper e CLI
 frontend/               # Aplicação SvelteKit
-docker/                 # Ficheiros Compose
-monitoring/             # Prometheus + Grafana + k6
-rpxy/                   # Configuração do proxy reverso
+deploy/                 # Ficheiros Compose e configurações de deployment (Prometheus, Grafana, rpxy)
+bench/                  # Benchmark k6
 ```
 
 ### _Scraping_
@@ -54,21 +53,23 @@ O serviço backend recolhe continuamente dados do Portal BASE usando a _crate_ `
 
 ### Monitorização
 
-O Prometheus e o Grafana com uma _dashboard_ simples estão incluídos em `docker/docker-compose.yml`, com as suas configurações em `monitoring/grafana`.
+O Prometheus e o Grafana com uma _dashboard_ simples estão incluídos em `deploy/compose.yml`, com as suas configurações em `deploy/prometheus` e `deploy/grafana`.
 
-Um simples script de _benchmark_ com `k6` também está incluído em `monitoring/bench`.
+Um simples script de _benchmark_ com `k6` também está incluído em `bench/`.
 
 ## Início rápido (Docker)
 
 **Pré-requisitos:** Docker & Docker Compose
 
-1. Copia o ficheiro `.env.example` para `.env` dentro da pasta `docker/` e altere os valores conforme necessário.
+1. Copia o ficheiro `.env.example` para `.env` dentro da pasta `deploy/` e altere os valores conforme necessário.
 
 2. Executa o _compose_:
 
 ```
-docker compose -f docker/compose.yml up -d
+docker compose -f deploy/compose.yml up -d
 ```
+
+As imagens do `backend` e do `frontend` estão publicadas no GitHub Container Registry ([`contratopublico-backend`](https://github.com/users/chicoferreira/packages/container/package/contratopublico-backend) e [`contratopublico-frontend`](https://github.com/users/chicoferreira/packages/container/package/contratopublico-frontend)).
 
 Isto irá iniciar:
 
@@ -79,11 +80,11 @@ Isto irá iniciar:
 - `prometheus` e `grafana`
 - `rpxy` (proxy reverso)
 
-Por predefinição, as portas não são expostas. Em produção, deves disponibilizar o teu próprio _proxy_ (por exemplo, o `compose-cftunnels.yml` inicia um Cloudflare Tunnel). Para utilização local podes:
+Por predefinição, as portas não são expostas. Em produção, deves disponibilizar o teu próprio _proxy_ (por exemplo, o `compose.cftunnels.yml` inicia um Cloudflare Tunnel). Para utilização local podes:
 
 - Executar os serviços localmente sem Docker (ver secção seguinte), ou:
-  1. Adicionar `ports:` no `docker/compose.yml` no serviço `rpxy`, expondo a porta 80.
-  2. Alterar `server_name` de `contratopublico.pt` para `localhost` em `rpxy/config/config.toml`.
+  1. Adicionar `ports:` no `deploy/compose.yml` no serviço `rpxy`, expondo a porta 80.
+  2. Alterar `server_name` de `contratopublico.pt` para `localhost` em `deploy/rpxy/config.toml`.
 
 ## Desenvolvimento local
 
@@ -94,7 +95,7 @@ Podes executar o Meilisearch e o Postgres no Docker, o backend com Cargo e o fro
 Inicia o Meilisearch e o Postgres no Docker:
 
 ```
-docker compose -f docker/compose-meilisearch.yml up -d
+docker compose -f deploy/compose.dev.yml up -d
 ```
 
 ### 2. Backend (Rust)

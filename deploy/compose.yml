@@ -35,8 +35,7 @@ services:
     depends_on:
       - meilisearch
       - postgres
-    build:
-      context: ../backend
+    image: ghcr.io/chicoferreira/contratopublico-backend:${IMAGE_TAG:-latest}
     volumes:
       - ${DATA_FOLDER}/scraper:/data/scraper
     environment:
@@ -58,8 +57,7 @@ services:
     depends_on:
       - meilisearch
       - postgres
-    build:
-      context: ../backend
+    image: ghcr.io/chicoferreira/contratopublico-backend:${IMAGE_TAG:-latest}
     volumes:
       - ${DATA_FOLDER}/scraper:/data/scraper
     environment:
@@ -77,8 +75,7 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
-    build:
-      context: ../frontend
+    image: ghcr.io/chicoferreira/contratopublico-frontend:${IMAGE_TAG:-latest}
     environment:
       ORIGIN: https://contratopublico.pt
       BACKEND_URL: http://backend:3000
@@ -86,7 +83,7 @@ services:
   prometheus:
     image: prom/prometheus:latest
     volumes:
-      - ../monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ${DATA_FOLDER}/prometheus:/prometheus:rw
     depends_on:
       - backend
@@ -101,7 +98,7 @@ services:
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
     volumes:
-      - ../monitoring/grafana:/etc/grafana/provisioning:ro
+      - ./grafana:/etc/grafana/provisioning:ro
     depends_on:
       - prometheus
     restart: unless-stopped
@@ -118,7 +115,7 @@ services:
     environment:
       - LOG_LEVEL=warn
     volumes:
-      # - ../rpxy/log:/rpxy/log:rw
-      # - ../rpxy/cache:/rpxy/cache:rw
-      # - ../rpxy/acme_registry:/rpxy/acme_registry:rw
-      - ../rpxy/config/config.toml:/etc/rpxy.toml:ro
+      # - ./rpxy/log:/rpxy/log:rw
+      # - ./rpxy/cache:/rpxy/cache:rw
+      # - ./rpxy/acme_registry:/rpxy/acme_registry:rw
+      - ./rpxy/config.toml:/etc/rpxy.toml:ro
