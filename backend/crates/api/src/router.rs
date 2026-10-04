@@ -1,4 +1,4 @@
-use std::{num::NonZero, time::Duration};
+use std::{num::NonZero, sync::Arc, time::Duration};
 
 use axum::{
     Router,
@@ -13,6 +13,7 @@ use tower_http::trace::{DefaultMakeSpan, TraceLayer};
 use tracing::{Level, debug};
 
 use crate::{
+    blocklist::{Blocklist, blocklist_layer},
     error::AppError,
     extractors::Json,
     filter::Filters,
@@ -22,7 +23,7 @@ use crate::{
     state::{AppState, SearchResponse},
 };
 
-pub fn router(app_state: AppState) -> Router {
+pub fn router(app_state: AppState, blocklist: Arc<Blocklist>) -> Router {
     let contract_rate_limit = Quota::with_period(Duration::from_millis(200))
         .unwrap()
         .allow_burst(NonZero::try_from(2).unwrap());
@@ -35,6 +36,7 @@ pub fn router(app_state: AppState) -> Router {
                 .route_layer(RateLimitLayer::new(contract_rate_limit)),
         )
         .route("/api/statistics", get(statistics))
+        .route_layer(middleware::from_fn_with_state(blocklist, blocklist_layer))
         .route_layer(middleware::from_fn(metrics::track_metrics_layer))
         .layer(TraceLayer::new_for_http().make_span_with(DefaultMakeSpan::new().level(Level::INFO)))
         .with_state(app_state)

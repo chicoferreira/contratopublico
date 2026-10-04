@@ -38,9 +38,11 @@ services:
     image: ghcr.io/chicoferreira/contratopublico-backend:${IMAGE_TAG:-latest}
     volumes:
       - ${DATA_FOLDER}/scraper:/data/scraper
+      - ${DATA_FOLDER}/backend:/data/backend
     environment:
       - RUST_LOG=info
       - SAVED_PAGES_PATH=/data/scraper/saved_pages.json
+      - BLOCKLIST_PATH=/data/backend/blocklist.json
       - SCRAPER_INTERVAL_SECS=3600 # 60 minutes
       - MEILISEARCH_URL=http://meilisearch:7700
       - MEILI_MASTER_KEY

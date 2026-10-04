@@ -1,4 +1,4 @@
-use crate::state::AppState;
+use crate::{blocklist::Blocklist, state::AppState};
 use anyhow::Context;
 use clap::Parser;
 use common::{
@@ -11,6 +11,7 @@ use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 use tokio::signal;
 use tracing::{Level, event, info};
 
+mod blocklist;
 mod error;
 mod extractors;
 mod filter;
@@ -39,6 +40,8 @@ struct Args {
     no_scraper: bool,
     #[clap(long, env)]
     base_gov_client_proxy: Option<Url>,
+    #[clap(long, env, default_value = "../data/backend/blocklist.json")]
+    blocklist_path: PathBuf,
 }
 
 #[tokio::main]
@@ -48,6 +51,8 @@ async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
     let metrics_router = metrics::metrics_router()?;
+
+    let blocklist = Arc::new(Blocklist::load(&args.blocklist_path)?);
 
     let search_database = SearchDatabase::new_from_config(args.meilisearch_config)?;
     let contract_database = ContractDatabase::new_from_config(args.postgres_config).await?;
@@ -82,7 +87,7 @@ async fn main() -> anyhow::Result<()> {
     tokio::spawn(statistics::run_reload_statistics_task(app_state.clone()));
 
     let backend_router =
-        router::router(app_state).into_make_service_with_connect_info::<SocketAddr>();
+        router::router(app_state, blocklist).into_make_service_with_connect_info::<SocketAddr>();
 
     let backend_listener = tokio::net::TcpListener::bind(args.bind_url)
         .await

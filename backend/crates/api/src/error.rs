@@ -15,6 +15,8 @@ pub enum AppError {
     MissingClientIp,
     #[error("Too many requests")]
     RateLimited,
+    #[error("Blocked: {0}")]
+    Blocked(String),
 }
 
 pub type AppResult<T> = Result<T, AppError>;
@@ -50,6 +52,7 @@ impl IntoResponse for AppError {
                 format!("Could not determine client IP address"),
             ),
             AppError::RateLimited => (StatusCode::TOO_MANY_REQUESTS, format!("Too many requests")),
+            AppError::Blocked(reason) => (StatusCode::FORBIDDEN, reason),
         };
         let error_body = ErrorBody { message };
         (error_code, axum::Json(error_body)).into_response()
