@@ -37,12 +37,14 @@ O Portal BASE aplica as medidas de proteção necessárias, incluindo a omissão
 
 ### Dados de utilização
 
-Não usamos cookies próprios nem guardamos o conteúdo das pesquisas, exceto quando estas envolvem erros.
+Não utilizamos cookies próprios nem guardamos o conteúdo das pesquisas, salvo quando necessário para analisar erros.
 
-O tráfego passa pela Cloudflare, que pode aplicar cookies para segurança e desempenho.
+O tráfego passa pela Cloudflare, que poderá utilizar cookies para fins de segurança e desempenho.
 
-Cada pedido à API fica registado com o endereço IP, o país de origem, o _User-Agent_ e detalhes técnicos do pedido (URL, data e hora, resultado e eventuais erros).
+Cada pedido à API fica registado com o endereço IP, o país de origem, o *User-Agent* e detalhes técnicos do pedido (URL, data e hora, resultado e eventuais erros).
 
-Estes registos são usados para prevenir abusos e diagnosticar erros, com base no interesse legítimo em manter o serviço disponível (artigo 6.º, n.º 1, alínea f), do RGPD). São guardados em servidores próprios e apagados automaticamente ao fim de sete dias. Estes dados não são partilhados com terceiros.
+Estes dados são usados para prevenir abusos e diagnosticar problemas, com base no interesse legítimo em garantir a segurança e disponibilidade do serviço (artigo 6.º, n.º 1, alínea f), do RGPD).
 
-Pode pedir o acesso ou a eliminação dos dados que lhe digam respeito através de [contacto@contratopublico.pt](mailto:contacto@contratopublico.pt).
+Os registos são guardados em servidores próprios, não são partilhados com terceiros e são eliminados automaticamente ao fim de sete dias.
+
+Pode pedir o acesso ou a eliminação dos seus dados através do email [contacto@contratopublico.pt](mailto:contacto@contratopublico.pt).
