@@ -8,7 +8,7 @@ use crate::{
     store::Store,
 };
 use governor::Quota;
-use log::{error, info, warn};
+use log::{error, info};
 use std::{sync::Arc, time::Duration};
 use tokio::{task::JoinHandle, time::Instant};
 
@@ -163,7 +163,7 @@ async fn run_fetch_details_task(
         };
 
         if store.already_exists(id, page).await {
-            warn!("Contract {id} already exists, skipping...");
+            info!("Contract {id} already exists, skipping...");
             continue;
         }
 
