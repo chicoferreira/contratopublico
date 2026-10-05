@@ -1,7 +1,8 @@
 use axum::{http::Response, response::IntoResponse};
 use reqwest::StatusCode;
 use serde::Serialize;
-use tracing::error;
+
+use crate::access_log::ErrorField;
 
 #[derive(thiserror::Error, Debug)]
 pub enum AppError {
@@ -28,25 +29,20 @@ struct ErrorBody {
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response<axum::body::Body> {
+        let error = ErrorField(format!("{self:?}"));
         let (error_code, message) = match self {
-            AppError::MeilisearchError(e) => {
-                error!("Meilisearch error: {:?}", e);
-                (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    format!("A failure from Meilisearch has occurred"),
-                )
-            }
+            AppError::MeilisearchError(_) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("A failure from Meilisearch has occurred"),
+            ),
             AppError::JsonParseError(message) => (
                 StatusCode::BAD_REQUEST,
                 format!("Invalid JSON: {}", message),
             ),
-            AppError::DatabaseError(e) => {
-                error!("Database error: {:?}", e);
-                (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    format!("A failure from Database has occurred"),
-                )
-            }
+            AppError::DatabaseError(_) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("A failure from Database has occurred"),
+            ),
             AppError::MissingClientIp => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 format!("Could not determine client IP address"),
@@ -55,6 +51,8 @@ impl IntoResponse for AppError {
             AppError::Blocked(reason) => (StatusCode::FORBIDDEN, reason),
         };
         let error_body = ErrorBody { message };
-        (error_code, axum::Json(error_body)).into_response()
+        let mut response = (error_code, axum::Json(error_body)).into_response();
+        response.extensions_mut().insert(error);
+        response
     }
 }

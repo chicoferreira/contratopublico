@@ -3,12 +3,12 @@ use std::{io::ErrorKind, net::IpAddr, path::Path, sync::Arc};
 use anyhow::Context;
 use axum::{
     extract::{Request, State},
-    http::header::USER_AGENT,
     middleware::Next,
     response::{IntoResponse, Response},
 };
+use axum_extra::{TypedHeader, headers::UserAgent, typed_header::TypedHeaderRejection};
 use serde::Deserialize;
-use tracing::{debug, info};
+use tracing::info;
 
 use crate::{error::AppError, extractors::ClientIp};
 
@@ -66,16 +66,16 @@ impl Blocklist {
 pub async fn blocklist_layer(
     State(blocklist): State<Arc<Blocklist>>,
     ClientIp(ip): ClientIp,
+    user_agent: Result<TypedHeader<UserAgent>, TypedHeaderRejection>,
     request: Request,
     next: Next,
 ) -> Response {
-    let user_agent = request
-        .headers()
-        .get(USER_AGENT)
-        .and_then(|v| v.to_str().ok());
+    let user_agent = user_agent
+        .as_ref()
+        .ok()
+        .map(|TypedHeader(user_agent)| user_agent.as_str());
 
     if let Some(entry) = blocklist.find(ip, user_agent) {
-        debug!(ip = %ip, user_agent, trigger = ?entry.trigger, "Blocked request");
         return AppError::Blocked(entry.reason.clone()).into_response();
     }
 

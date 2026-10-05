@@ -7,13 +7,13 @@ members = ["crates/api", "crates/common", "crates/scraper"]
 serde = { version = "1.0.219", features = ["derive"] }
 tokio = { version = "1.46.1", features = ["full", "tracing"] }
 axum = "0.8.4"
-tracing-subscriber = { version = "0.3.19", features = ["serde"] }
+axum-extra = { version = "0.12", features = ["typed-header"] }
+tracing-subscriber = { version = "0.3.19", features = ["serde", "json", "env-filter"] }
 chrono = { version = "0.4.41", features = ["serde"] }
 anyhow = "1.0.98"
 env_logger = "0.11.8"
 governor = "0.10.0"
 tower = "0.5"
-tower-http = { version = "0.6", features = ["trace"] }
 log = "0.4.27"
 nonzero_ext = "0.3.0"
 reqwest = { version = "0.12.20", features = ["json", "socks"] }

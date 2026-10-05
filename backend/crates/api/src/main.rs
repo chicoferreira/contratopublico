@@ -7,10 +7,12 @@ use common::{
 };
 use reqwest::Url;
 use scraper::{base_gov::client::BaseGovClient, store::Store};
-use std::{net::SocketAddr, path::PathBuf, sync::Arc};
+use std::{io::IsTerminal, net::SocketAddr, path::PathBuf, sync::Arc};
 use tokio::signal;
 use tracing::{Level, event, info};
+use tracing_subscriber::EnvFilter;
 
+mod access_log;
 mod blocklist;
 mod error;
 mod extractors;
@@ -46,7 +48,7 @@ struct Args {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    tracing_subscriber::fmt::fmt().init();
+    init_logging();
 
     let args = Args::parse();
 
@@ -112,6 +114,17 @@ async fn main() -> anyhow::Result<()> {
 
     metrics_task.context("Failed to serve metrics")?;
     backend_task.context("Failed to serve backend")
+}
+
+fn init_logging() {
+    let subscriber = tracing_subscriber::fmt()
+        .with_env_filter(EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()));
+
+    if std::io::stdout().is_terminal() {
+        subscriber.init();
+    } else {
+        subscriber.json().flatten_event(true).init();
+    }
 }
 
 async fn shutdown_signal(target: &str) {

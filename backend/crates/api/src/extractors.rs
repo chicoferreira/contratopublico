@@ -1,7 +1,13 @@
-use std::net::{IpAddr, SocketAddr};
+use std::{
+    convert::Infallible,
+    net::{IpAddr, SocketAddr},
+};
 
 use axum::{
-    extract::{ConnectInfo, FromRequest, FromRequestParts, rejection::JsonRejection},
+    extract::{
+        ConnectInfo, FromRequest, FromRequestParts, OptionalFromRequestParts,
+        rejection::JsonRejection,
+    },
     http::request::Parts,
     response::IntoResponse,
 };
@@ -51,5 +57,27 @@ where
                 .map(|ConnectInfo(addr)| ClientIp(addr.ip()))
                 .map_err(|_| AppError::MissingClientIp),
         }
+    }
+}
+
+const CF_IP_COUNTRY_HEADER: &str = "CF-IPCountry";
+
+pub struct ClientCountry(pub String);
+
+impl<S> OptionalFromRequestParts<S> for ClientCountry
+where
+    S: Send + Sync,
+{
+    type Rejection = Infallible;
+
+    async fn from_request_parts(
+        parts: &mut Parts,
+        _state: &S,
+    ) -> Result<Option<Self>, Self::Rejection> {
+        Ok(parts
+            .headers
+            .get(CF_IP_COUNTRY_HEADER)
+            .and_then(|v| v.to_str().ok())
+            .map(|country| ClientCountry(country.to_owned())))
     }
 }

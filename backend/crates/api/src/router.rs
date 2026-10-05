@@ -9,10 +9,9 @@ use axum::{
 use common::{Contract, statistics::Statistics};
 use governor::Quota;
 use serde::Deserialize;
-use tower_http::trace::{DefaultMakeSpan, TraceLayer};
-use tracing::{Level, debug};
 
 use crate::{
+    access_log,
     blocklist::{Blocklist, blocklist_layer},
     error::AppError,
     extractors::Json,
@@ -38,11 +37,10 @@ pub fn router(app_state: AppState, blocklist: Arc<Blocklist>) -> Router {
         .route("/api/statistics", get(statistics))
         .route_layer(middleware::from_fn_with_state(blocklist, blocklist_layer))
         .route_layer(middleware::from_fn(metrics::track_metrics_layer))
-        .layer(TraceLayer::new_for_http().make_span_with(DefaultMakeSpan::new().level(Level::INFO)))
+        .layer(middleware::from_fn(access_log::access_log_layer))
         .with_state(app_state)
 }
 
-#[tracing::instrument(skip(state))]
 #[axum::debug_handler]
 pub async fn statistics(State(state): State<AppState>) -> Result<Json<Statistics>, AppError> {
     Ok(Json(state.get_statistics()))
@@ -56,7 +54,6 @@ pub struct SearchQuery {
     pub page: Option<usize>,
 }
 
-#[tracing::instrument(skip(state))]
 #[axum::debug_handler]
 pub async fn search(
     State(state): State<AppState>,
@@ -76,20 +73,15 @@ pub async fn search(
         .search(&query.query, filters, &sort, page, HITS_PER_PAGE)
         .await?;
 
-    debug!("Returning {} results", response.contracts.len());
-
     Ok(Json(response))
 }
 
-#[tracing::instrument(skip(state))]
 #[axum::debug_handler]
 pub async fn contract(
     State(state): State<AppState>,
     Path(id): Path<u64>,
 ) -> Result<Json<Option<Contract>>, AppError> {
     let contract = state.get_contract(id).await?;
-
-    debug!("Contract with ID {} retrieved", id);
 
     Ok(Json(contract))
 }

@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 axum = { workspace = true, features = ["macros"] }
+axum-extra = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 tokio = { workspace = true }
@@ -24,5 +25,4 @@ reqwest = { workspace = true }
 sqlx = { workspace = true }
 governor = { workspace = true }
 tower = { workspace = true }
-tower-http = { workspace = true }
 dashmap = { workspace = true }
