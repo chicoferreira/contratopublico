@@ -102,7 +102,7 @@ docker compose -f deploy/compose.dev.yml up -d
 
 **Requirements:** Rust
 
-Check `backend/src/api/src/main.rs` for environment variables.
+Check [`backend/crates/api/src/main.rs`](https://github.com/chicoferreira/contratopublico/blob/main/backend/crates/api/src/main.rs) for environment variables.
 
 Run:
 
