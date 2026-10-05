@@ -5,7 +5,7 @@ description: Política de privacidade e proteção de dados do Contrato Público
 
 # Política de Privacidade e Proteção de Dados
 
-_Última atualização: Março de 2026_
+_Última atualização: Outubro de 2026_
 
 ## Sobre os Dados dos Contratos
 
@@ -35,6 +35,14 @@ O cumprimento do RGPD é assegurado pelo próprio [Portal BASE](https://www.base
 
 O Portal BASE aplica as medidas de proteção necessárias, incluindo a omissão de dados pessoais não publicitáveis. Por exemplo, o NIF de pessoas singulares é omitido nos termos do Artigo 27.º da Lei n.º 58/2019, e o **Contrato Público** apresenta exatamente a mesma informação já filtrada.
 
-### Dados de Utilização
+### Dados de utilização
 
-Não recolhemos dados pessoais nem guardamos o histórico das pesquisas. Não usamos cookies nossos para recolha de dados nem partilhamos informação com terceiros. O tráfego passa pelo Cloudflare, que pode aplicar cookies próprios para segurança e desempenho; não os controlamos nem os usamos para identificar utilizadores. Para monitorizar fiabilidade e desempenho, recolhemos apenas métricas técnicas e contagens agregadas (ex.: erros, tempos de resposta, disponibilidade), sem possibilidade de identificar utilizadores. Para garantir a estabilidade e equidade no acesso ao serviço, poderemos recolher e processar temporariamente o endereço IP dos utilizadores para fins de limitação de taxa de pedidos (_rate limiting_); esta informação não é utilizada para identificar utilizadores, não é partilhada com terceiros e não é retida além do estritamente necessário para esse fim.
+Não usamos cookies próprios nem guardamos o conteúdo das pesquisas, exceto quando estas envolvem erros.
+
+O tráfego passa pela Cloudflare, que pode aplicar cookies para segurança e desempenho.
+
+Cada pedido à API fica registado com o endereço IP, o país de origem, o _User-Agent_ e detalhes técnicos do pedido (URL, data e hora, resultado e eventuais erros).
+
+Estes registos são usados para prevenir abusos e diagnosticar erros, com base no interesse legítimo em manter o serviço disponível (artigo 6.º, n.º 1, alínea f), do RGPD). São guardados em servidores próprios e apagados automaticamente ao fim de sete dias. Estes dados não são partilhados com terceiros.
+
+Pode pedir o acesso ou a eliminação dos dados que lhe digam respeito através de [contacto@contratopublico.pt](mailto:contacto@contratopublico.pt).
