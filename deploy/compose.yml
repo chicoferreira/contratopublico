@@ -82,29 +82,6 @@ services:
       ORIGIN: https://contratopublico.pt
       BACKEND_URL: http://backend:3000
 
-  prometheus:
-    image: prom/prometheus:latest
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ${DATA_FOLDER}/prometheus:/prometheus:rw
-    depends_on:
-      - backend
-    restart: unless-stopped
-    command:
-      - "--config.file=/etc/prometheus/prometheus.yml"
-      - "--storage.tsdb.path=/prometheus"
-      - "--storage.tsdb.retention.time=15d"
-
-  grafana:
-    image: grafana/grafana:latest
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
-    volumes:
-      - ./grafana:/etc/grafana/provisioning:ro
-    depends_on:
-      - prometheus
-    restart: unless-stopped
-
   rpxy:
     image: jqtype/rpxy:latest
     restart: unless-stopped

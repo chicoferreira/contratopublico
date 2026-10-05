@@ -36,7 +36,6 @@ For the full list of planned features, check the [issues](https://github.com/chi
 - **Search Engine**: Meilisearch
 - **Database**: Postgres
 - **Frontend**: SvelteKit + Tailwind + shadcn + TypeScript
-- **Monitoring**: Prometheus + Grafana
 
 ```
 backend/                # Rust backend
@@ -45,7 +44,7 @@ backend/                # Rust backend
     common/             # Shared types
     scraper/            # Scraper and CLI
 frontend/               # SvelteKit application
-deploy/                 # Compose files and deployment configs (Prometheus, Grafana, rpxy)
+deploy/                 # Compose files and deployment configs (rpxy)
 bench/                  # k6 benchmark
 ```
 
@@ -55,7 +54,7 @@ The backend service continuously collects data from the Portal BASE using the `s
 
 ### Monitoring
 
-Prometheus and Grafana with a simple dashboard are included in `deploy/compose.yml`, with their configurations in `deploy/prometheus` and `deploy/grafana`.
+The backend exposes metrics for Prometheus at the `/metrics` endpoint on port 3001.
 
 A simple `k6` benchmark script is also included in `bench/`.
 
@@ -79,7 +78,6 @@ This will start:
 - `postgres`
 - `backend`
 - `frontend`
-- `prometheus` and `grafana`
 - `rpxy` (reverse proxy)
 
 By default, the ports are not exposed. In production, you should provide your own proxy (for example, `compose.cftunnels.yml` starts a Cloudflare Tunnel). For local use, you can:

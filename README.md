@@ -34,7 +34,6 @@ Para a lista completa de funcionalidades planeadas, consulta as [issues](https:/
 - **Motor de Pesquisa**: Meilisearch
 - **Base de Dados**: Postgres
 - **Frontend**: SvelteKit + Tailwind + shadcn + TypeScript
-- **Monitorização**: Prometheus + Grafana
 
 ```
 backend/                # Backend em Rust
@@ -43,7 +42,7 @@ backend/                # Backend em Rust
     common/             # Tipos partilhados
     scraper/            # Scraper e CLI
 frontend/               # Aplicação SvelteKit
-deploy/                 # Ficheiros Compose e configurações de deployment (Prometheus, Grafana, rpxy)
+deploy/                 # Ficheiros Compose e configurações de deployment (rpxy)
 bench/                  # Benchmark k6
 ```
 
@@ -53,7 +52,7 @@ O serviço backend recolhe continuamente dados do Portal BASE usando a _crate_ `
 
 ### Monitorização
 
-O Prometheus e o Grafana com uma _dashboard_ simples estão incluídos em `deploy/compose.yml`, com as suas configurações em `deploy/prometheus` e `deploy/grafana`.
+O backend expõe métricas para o Prometheus no endpoint `/metrics` na porta 3001.
 
 Um simples script de _benchmark_ com `k6` também está incluído em `bench/`.
 
@@ -77,7 +76,6 @@ Isto irá iniciar:
 - `postgres`
 - `backend`
 - `frontend`
-- `prometheus` e `grafana`
 - `rpxy` (proxy reverso)
 
 Por predefinição, as portas não são expostas. Em produção, deves disponibilizar o teu próprio _proxy_ (por exemplo, o `compose.cftunnels.yml` inicia um Cloudflare Tunnel). Para utilização local podes:
