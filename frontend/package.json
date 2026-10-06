@@ -16,7 +16,7 @@
     "@lucide/svelte": "^0.515.0",
     "@sveltejs/adapter-auto": "^6.1.1",
     "@sveltejs/adapter-node": "^5.5.3",
-    "@sveltejs/kit": "^2.53.0",
+    "@sveltejs/kit": "^2.70.3",
     "@sveltejs/vite-plugin-svelte": "^5.1.1",
     "@tailwindcss/typography": "^0.5.19",
     "@types/node": "^24.10.13",
