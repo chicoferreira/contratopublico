@@ -20,7 +20,7 @@ use tracing::warn;
 
 use crate::{error::AppError, extractors::ClientIp};
 
-const ENTRIES_FOR_GC: usize = 100;
+const GC_INTERVAL: Duration = Duration::from_secs(60);
 const BASE_PENALTY_DURATION: Duration = Duration::from_secs(5);
 const MAX_PENALTY_DURATION: Duration = Duration::from_secs(60);
 const ENTRY_MAP_TTL: Duration = Duration::from_secs(120);
@@ -57,11 +57,12 @@ impl PenaltyMap {
         self.inner.get(ip).is_some_and(|entry| entry.is_penalized())
     }
 
-    fn penalize(&self, ip: IpAddr) {
-        if self.inner.len() >= ENTRIES_FOR_GC {
-            self.inner.retain(|_, entry| !entry.is_expired());
-        }
+    fn remove_expired(&self) {
+        self.inner.retain(|_, entry| !entry.is_expired());
+        self.inner.shrink_to_fit();
+    }
 
+    fn penalize(&self, ip: IpAddr) {
         let violations = self
             .inner
             .get(&ip)
@@ -101,9 +102,21 @@ pub struct RateLimitLayer {
 
 impl RateLimitLayer {
     pub fn new(quota: Quota) -> Self {
-        Self {
+        let layer = Self {
             limiter: Arc::new(RateLimiter::keyed(quota)),
             penalties: Arc::new(PenaltyMap::new()),
+        };
+        tokio::spawn(layer.clone().run_gc());
+        layer
+    }
+
+    async fn run_gc(self) {
+        let mut interval = tokio::time::interval(GC_INTERVAL);
+        loop {
+            interval.tick().await;
+            self.limiter.retain_recent();
+            self.limiter.shrink_to_fit();
+            self.penalties.remove_expired();
         }
     }
 }
