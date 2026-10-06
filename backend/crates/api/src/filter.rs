@@ -1,8 +1,10 @@
 use chrono::NaiveDate;
+use garde::Validate;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize, Default)]
+#[derive(Debug, Deserialize, Serialize, Default, Validate)]
 #[serde(rename_all = "camelCase")]
+#[garde(allow_unvalidated)]
 pub struct Filters {
     #[serde(default)]
     pub min_id: Option<u64>,
@@ -17,8 +19,10 @@ pub struct Filters {
     #[serde(default)]
     pub end_signing_date: Option<NaiveDate>,
     #[serde(default)]
+    #[garde(length(chars, max = 256))]
     pub contracted: Option<String>,
     #[serde(default)]
+    #[garde(length(chars, max = 256))]
     pub contracting: Option<String>,
     #[serde(default)]
     pub min_price: Option<i64>,

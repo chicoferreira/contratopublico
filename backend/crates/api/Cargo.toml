@@ -26,3 +26,4 @@ sqlx = { workspace = true }
 governor = { workspace = true }
 tower = { workspace = true }
 dashmap = { workspace = true }
+garde = { workspace = true }

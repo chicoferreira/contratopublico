@@ -13,6 +13,7 @@
     CalendarDays,
   } from "@lucide/svelte";
   import type { Filters } from "$lib/types/api";
+  import { MAX_ENTITY_FILTER_LENGTH } from "$lib";
   import FilterLabel from "./FilterLabel.svelte";
   import FilterSection from "./FilterSection.svelte";
   import { fade } from "svelte/transition";
@@ -278,6 +279,7 @@
           IconComponent={Building}
           descriptionContent="NIF (recomendado) ou nome completo exato da entidade pública responsável pela contratação (adjudicante)"
           type="text"
+          maxlength={MAX_ENTITY_FILTER_LENGTH}
           placeholder="Ex: Câmara Municipal de Lisboa ou 500051070" />
         <FilterLabel
           bind:value={filters.contracted}
@@ -286,6 +288,7 @@
           IconComponent={Building}
           descriptionContent="NIF (recomendado) ou nome completo exato da entidade selecionada para a prestação de serviços (adjudicatária)"
           type="text"
+          maxlength={MAX_ENTITY_FILTER_LENGTH}
           placeholder="Ex: Empresa XPTO, Lda. ou 123456789" />
       </div>
     </FilterSection>

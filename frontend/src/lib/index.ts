@@ -8,9 +8,7 @@ import {
 } from "$lib/types/api";
 import { validateEnumOrDefault } from "./utils";
 
-export type ApiResult<T> =
-  | { ok: true; data: T }
-  | { ok: false; status: number; message: string };
+export type ApiResult<T> = { ok: true; data: T } | { ok: false; status: number; message: string };
 
 async function apiFetch<T>(
   fetchFn: typeof fetch,
@@ -37,6 +35,9 @@ async function apiFetch<T>(
     return { ok: false, status: 0, message: e instanceof Error ? e.message : "Erro desconhecido" };
   }
 }
+
+export const MAX_QUERY_LENGTH = 512;
+export const MAX_ENTITY_FILTER_LENGTH = 256;
 
 export const DEFAULT_SEARCH_REQUEST = {
   query: "",

@@ -10,6 +10,8 @@ pub enum AppError {
     MeilisearchError(#[from] meilisearch_sdk::errors::Error),
     #[error("Invalid JSON: {0}")]
     JsonParseError(String),
+    #[error("Invalid request: {0}")]
+    InvalidRequest(String),
     #[error(transparent)]
     DatabaseError(#[from] sqlx::Error),
     #[error("Could not determine client IP address")]
@@ -39,6 +41,7 @@ impl IntoResponse for AppError {
                 StatusCode::BAD_REQUEST,
                 format!("Invalid JSON: {}", message),
             ),
+            AppError::InvalidRequest(message) => (StatusCode::BAD_REQUEST, message),
             AppError::DatabaseError(_) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 format!("A failure from Database has occurred"),

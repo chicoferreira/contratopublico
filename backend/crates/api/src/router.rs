@@ -2,11 +2,12 @@ use std::{num::NonZero, sync::Arc, time::Duration};
 
 use axum::{
     Router,
-    extract::{Path, State},
+    extract::{DefaultBodyLimit, Path, State},
     middleware,
     routing::{get, post},
 };
 use common::{Contract, statistics::Statistics};
+use garde::Validate;
 use governor::Quota;
 use serde::Deserialize;
 
@@ -14,13 +15,15 @@ use crate::{
     access_log,
     blocklist::{Blocklist, blocklist_layer},
     error::AppError,
-    extractors::Json,
+    extractors::{Json, ValidJson},
     filter::Filters,
     metrics,
     rate_limit::RateLimitLayer,
     sort::SortBy,
     state::{AppState, SearchResponse},
 };
+
+const MAX_BODY_SIZE: usize = 16 * 1024;
 
 pub fn router(app_state: AppState, blocklist: Arc<Blocklist>) -> Router {
     let contract_rate_limit = Quota::with_period(Duration::from_millis(200))
@@ -35,6 +38,7 @@ pub fn router(app_state: AppState, blocklist: Arc<Blocklist>) -> Router {
                 .route_layer(RateLimitLayer::new(contract_rate_limit)),
         )
         .route("/api/statistics", get(statistics))
+        .layer(DefaultBodyLimit::max(MAX_BODY_SIZE))
         .route_layer(middleware::from_fn_with_state(blocklist, blocklist_layer))
         .route_layer(middleware::from_fn(metrics::track_metrics_layer))
         .layer(middleware::from_fn(access_log::access_log_layer))
@@ -46,9 +50,12 @@ pub async fn statistics(State(state): State<AppState>) -> Result<Json<Statistics
     Ok(Json(state.get_statistics()))
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Validate)]
+#[garde(allow_unvalidated)]
 pub struct SearchQuery {
+    #[garde(length(chars, max = 512))]
     pub query: String,
+    #[garde(dive)]
     pub filters: Option<Filters>,
     pub sort: Option<SortBy>,
     pub page: Option<usize>,
@@ -57,20 +64,24 @@ pub struct SearchQuery {
 #[axum::debug_handler]
 pub async fn search(
     State(state): State<AppState>,
-    Json(query): Json<SearchQuery>,
+    ValidJson(query): ValidJson<SearchQuery>,
 ) -> Result<Json<SearchResponse>, AppError> {
-    // TODO: add maximum query length
-    let sort = query.sort.unwrap_or_default();
-    let sort = sort.to_meilisearch();
+    let SearchQuery {
+        query,
+        filters,
+        sort,
+        page,
+    } = query.into_inner();
 
-    let page = query.page.unwrap_or(1);
-    let filters = query.filters.as_ref();
+    let sort = sort.unwrap_or_default().to_meilisearch();
+
+    let page = page.unwrap_or(1);
 
     // TODO: make this configurable
     const HITS_PER_PAGE: usize = 20;
 
     let response = state
-        .search(&query.query, filters, &sort, page, HITS_PER_PAGE)
+        .search(&query, filters.as_ref(), &sort, page, HITS_PER_PAGE)
         .await?;
 
     Ok(Json(response))

@@ -2,6 +2,7 @@
   import Input from "$lib/components/ui/input/input.svelte";
   import { Search as SearchIcon } from "@lucide/svelte";
   import { onMount } from "svelte";
+  import { MAX_QUERY_LENGTH } from "$lib";
 
   let { searchTerm = $bindable() } = $props();
 
@@ -36,6 +37,7 @@
     class="h-12 pl-9 text-lg md:hidden md:text-lg"
     type="text"
     placeholder="Procura contratos pela sua descrição..."
+    maxlength={MAX_QUERY_LENGTH}
     bind:value={searchTerm}
     bind:ref={inputElement} />
   <!-- only shown on large screens -->
@@ -43,6 +45,7 @@
     class="hidden h-12 pl-9 text-lg md:block md:text-lg"
     type="text"
     placeholder="Procura contratos pela sua descrição, identificador ou entidades..."
+    maxlength={MAX_QUERY_LENGTH}
     bind:value={searchTerm}
     bind:ref={inputElement} />
 </div>

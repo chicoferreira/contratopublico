@@ -5,12 +5,13 @@ use std::{
 
 use axum::{
     extract::{
-        ConnectInfo, FromRequest, FromRequestParts, OptionalFromRequestParts,
+        ConnectInfo, FromRequest, FromRequestParts, OptionalFromRequestParts, Request,
         rejection::JsonRejection,
     },
     http::request::Parts,
     response::IntoResponse,
 };
+use garde::{Unvalidated, Valid, Validate};
 use serde::Serialize;
 
 use crate::error::AppError;
@@ -22,6 +23,26 @@ pub struct Json<T>(pub T);
 impl From<JsonRejection> for AppError {
     fn from(rejection: JsonRejection) -> Self {
         Self::JsonParseError(rejection.body_text())
+    }
+}
+
+pub struct ValidJson<T>(pub Valid<T>);
+
+impl<S, T> FromRequest<S> for ValidJson<T>
+where
+    Json<T>: FromRequest<S, Rejection = AppError>,
+    T: Validate,
+    T::Context: Default,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+
+    async fn from_request(request: Request, state: &S) -> Result<Self, Self::Rejection> {
+        let Json(value) = Json::<T>::from_request(request, state).await?;
+        Unvalidated::new(value)
+            .validate()
+            .map(ValidJson)
+            .map_err(|report| AppError::InvalidRequest(report.to_string().trim_end().to_owned()))
     }
 }
 
