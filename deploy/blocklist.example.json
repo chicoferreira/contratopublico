@@ -1,10 +1,9 @@
 [
   {
-    "trigger": { "ip": "203.0.113.7" },
-    "reason": "Example reason shown to this client."
-  },
-  {
-    "trigger": { "user_agent": "example-agent/1.0" },
-    "reason": "Example reason shown to this client."
+    "triggers": [
+      { "ip": "203.0.113.7" },
+      { "user_agent": "example-agent/1.0" }
+    ],
+    "reason": "Example reason shown to these clients."
   }
 ]

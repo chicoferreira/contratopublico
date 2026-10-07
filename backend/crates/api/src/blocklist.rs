@@ -22,7 +22,7 @@ enum Trigger {
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Entry {
-    trigger: Trigger,
+    triggers: Vec<Trigger>,
     reason: String,
 }
 
@@ -56,9 +56,11 @@ impl Blocklist {
     }
 
     fn find(&self, ip: IpAddr, user_agent: Option<&str>) -> Option<&Entry> {
-        self.entries.iter().find(|entry| match &entry.trigger {
-            Trigger::Ip(blocked) => *blocked == ip,
-            Trigger::UserAgent(blocked) => user_agent == Some(blocked.as_str()),
+        self.entries.iter().find(|entry| {
+            entry.triggers.iter().any(|trigger| match trigger {
+                Trigger::Ip(blocked) => *blocked == ip,
+                Trigger::UserAgent(blocked) => user_agent == Some(blocked.as_str()),
+            })
         })
     }
 }
