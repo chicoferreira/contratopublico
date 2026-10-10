@@ -1,5 +1,6 @@
 pub mod client;
 mod de;
+pub mod throttled_client;
 
 use chrono::NaiveDate;
 use common::{Contract, Cpv, Currency, Document, Entity};

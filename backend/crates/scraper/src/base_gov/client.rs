@@ -1,10 +1,13 @@
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use anyhow::Context;
 use reqwest::Url;
 use serde::{Serialize, de::DeserializeOwned};
 
-use crate::base_gov::{BaseGovContract, ContractSearchResponse};
+use crate::{
+    base_gov::{BaseGovContract, ContractSearchResponse},
+    metrics::{self, RequestKind},
+};
 
 const URL: &str = "https://www.base.gov.pt/Base4/pt/resultados/";
 const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36";
@@ -78,7 +81,7 @@ impl BaseGovClient {
             page,
             size,
         };
-        self.send_payload(payload).await
+        self.send_payload(payload, RequestKind::Page).await
     }
 
     pub async fn get_contract_details(&self, id: u64) -> anyhow::Result<BaseGovContract> {
@@ -86,10 +89,21 @@ impl BaseGovClient {
             version: "140.0",
             id,
         };
-        self.send_payload(payload).await
+        self.send_payload(payload, RequestKind::Details).await
     }
 
     async fn send_payload<T: DeserializeOwned>(
+        &self,
+        payload: BaseGovPayload,
+        kind: RequestKind,
+    ) -> anyhow::Result<T> {
+        let start = Instant::now();
+        let response = self.try_send_payload(payload).await;
+        metrics::request(kind, response.is_ok(), start.elapsed());
+        response
+    }
+
+    async fn try_send_payload<T: DeserializeOwned>(
         &self,
         payload: BaseGovPayload,
     ) -> anyhow::Result<T> {
