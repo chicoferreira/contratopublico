@@ -14,7 +14,7 @@ while true; do
   sleep 60
   elapsed=$((elapsed + 60))
   code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 --socks5-hostname localhost:1080 https://www.base.gov.pt/Base4/pt/resultados/)
-  if [ "$code" = "999" ] || [ "$elapsed" -ge 3600 ]; then
+  if [ "$code" = "999" ] || [ "$code" = "000" ] || [ "$elapsed" -ge 3600 ]; then
     rotate
     elapsed=0
   fi
