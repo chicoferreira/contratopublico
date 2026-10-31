@@ -5,7 +5,7 @@ use reqwest::Url;
 use serde::{Serialize, de::DeserializeOwned};
 
 use crate::{
-    base_gov::{BaseGovContract, ContractSearchResponse},
+    base_portal::{BasePortalContract, ContractSearchResponse},
     metrics::{self, RequestKind},
 };
 
@@ -35,7 +35,7 @@ pub enum ContractSortMethod {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase", tag = "type")]
-pub enum BaseGovPayload {
+pub enum BasePortalPayload {
     #[serde(rename = "search_contratos")]
     SearchContracts {
         version: &'static str,
@@ -48,11 +48,11 @@ pub enum BaseGovPayload {
     ContractDetails { version: &'static str, id: u64 },
 }
 
-pub struct BaseGovClient {
+pub struct BasePortalClient {
     client: reqwest::Client,
 }
 
-impl BaseGovClient {
+impl BasePortalClient {
     pub fn new(proxy: Option<Url>) -> Self {
         let client = reqwest::Client::builder()
             .user_agent(USER_AGENT)
@@ -74,7 +74,7 @@ impl BaseGovClient {
         page: usize,
         size: usize,
     ) -> anyhow::Result<ContractSearchResponse> {
-        let payload = BaseGovPayload::SearchContracts {
+        let payload = BasePortalPayload::SearchContracts {
             version: "140.0",
             query: "tipo=0&tipocontrato=0&pais=0&distrito=0&concelho=0",
             sort,
@@ -84,8 +84,8 @@ impl BaseGovClient {
         self.send_payload(payload, RequestKind::Page).await
     }
 
-    pub async fn get_contract_details(&self, id: u64) -> anyhow::Result<BaseGovContract> {
-        let payload = BaseGovPayload::ContractDetails {
+    pub async fn get_contract_details(&self, id: u64) -> anyhow::Result<BasePortalContract> {
+        let payload = BasePortalPayload::ContractDetails {
             version: "140.0",
             id,
         };
@@ -94,7 +94,7 @@ impl BaseGovClient {
 
     async fn send_payload<T: DeserializeOwned>(
         &self,
-        payload: BaseGovPayload,
+        payload: BasePortalPayload,
         kind: RequestKind,
     ) -> anyhow::Result<T> {
         let start = Instant::now();
@@ -105,7 +105,7 @@ impl BaseGovClient {
 
     async fn try_send_payload<T: DeserializeOwned>(
         &self,
-        payload: BaseGovPayload,
+        payload: BasePortalPayload,
     ) -> anyhow::Result<T> {
         let response = self
             .client

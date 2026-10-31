@@ -6,17 +6,17 @@ use std::{
 use governor::{DefaultDirectRateLimiter, Quota, RateLimiter};
 use tokio::sync::Semaphore;
 
-use crate::base_gov::{
-    BaseGovContract, ContractSearchResponse,
-    client::{BaseGovClient, ContractSort},
+use crate::base_portal::{
+    BasePortalContract, ContractSearchResponse,
+    client::{BasePortalClient, ContractSort},
 };
 
 pub const MAX_CONSECUTIVE_FAILURES: usize = 5;
 const RETRY_DELAY: Duration = Duration::from_secs(15);
 
-/// A [`BaseGovClient`] that rate limits requests and backs off exponentially after failures.
+/// A [`BasePortalClient`] that rate limits requests and backs off exponentially after failures.
 pub struct ThrottledClient {
-    client: BaseGovClient,
+    client: BasePortalClient,
     rate_limiter: DefaultDirectRateLimiter,
     semaphore: Semaphore,
     consecutive_failures: AtomicUsize,
@@ -24,7 +24,7 @@ pub struct ThrottledClient {
 
 impl ThrottledClient {
     /// Allows at most `max_concurrent` requests at once, spaced by `rate_limit_quota`.
-    pub fn new(client: BaseGovClient, max_concurrent: usize, rate_limit_quota: Quota) -> Self {
+    pub fn new(client: BasePortalClient, max_concurrent: usize, rate_limit_quota: Quota) -> Self {
         Self {
             client,
             rate_limiter: RateLimiter::direct(rate_limit_quota),
@@ -44,7 +44,10 @@ impl ThrottledClient {
     }
 
     /// Fetches a contract's details. Returns `None` once the client has given up.
-    pub async fn get_contract_details(&self, id: u64) -> Option<anyhow::Result<BaseGovContract>> {
+    pub async fn get_contract_details(
+        &self,
+        id: u64,
+    ) -> Option<anyhow::Result<BasePortalContract>> {
         self.request(self.client.get_contract_details(id)).await
     }
 

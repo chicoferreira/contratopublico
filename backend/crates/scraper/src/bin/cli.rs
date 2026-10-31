@@ -10,7 +10,7 @@ use common::{
 use log::info;
 use reqwest::Url;
 use scraper::{
-    base_gov::client::{BaseGovClient, ContractSort, ContractSortMethod, SortOrder},
+    base_portal::client::{BasePortalClient, ContractSort, ContractSortMethod, SortOrder},
     export, search,
 };
 
@@ -79,8 +79,8 @@ async fn main() -> anyhow::Result<()> {
                 scraper::store::Store::new(search_database, contract_database, saved_pages_path)
                     .context("Failed to create store")?;
 
-            let base_gov_client = BaseGovClient::new(base_gov_client_proxy);
-            scraper::scraper::scrape(Arc::new(store), base_gov_client).await;
+            let base_portal_client = BasePortalClient::new(base_gov_client_proxy);
+            scraper::scraper::scrape(Arc::new(store), base_portal_client).await;
         }
         Command::FetchPage {
             contract_sort_method,
@@ -89,12 +89,12 @@ async fn main() -> anyhow::Result<()> {
             size,
             base_gov_client_proxy,
         } => {
-            let base_gov_client = BaseGovClient::new(base_gov_client_proxy);
+            let base_portal_client = BasePortalClient::new(base_gov_client_proxy);
             let sort = ContractSort {
                 method: contract_sort_method,
                 order: contract_sort_order,
             };
-            let response = base_gov_client.fetch_page(sort, page, size).await?;
+            let response = base_portal_client.fetch_page(sort, page, size).await?;
 
             info!("Fetched page: {response:#?}")
         }
@@ -102,8 +102,8 @@ async fn main() -> anyhow::Result<()> {
             contract_id,
             base_gov_client_proxy,
         } => {
-            let base_gov_client = BaseGovClient::new(base_gov_client_proxy);
-            let contract = base_gov_client.get_contract_details(contract_id).await?;
+            let base_portal_client = BasePortalClient::new(base_gov_client_proxy);
+            let contract = base_portal_client.get_contract_details(contract_id).await?;
             let contract: Contract = contract.into();
 
             info!("Fetched contract: {contract:#?}")

@@ -6,7 +6,7 @@ use common::{
     searchdb::{MeilisearchConfig, SearchDatabase},
 };
 use reqwest::Url;
-use scraper::{base_gov::client::BaseGovClient, store::Store};
+use scraper::{base_portal::client::BasePortalClient, store::Store};
 use std::{io::IsTerminal, net::SocketAddr, path::PathBuf, sync::Arc};
 use tokio::signal;
 use tracing::{Level, event, info};
@@ -77,8 +77,8 @@ async fn main() -> anyhow::Result<()> {
     if !args.no_scraper {
         tokio::spawn(async move {
             loop {
-                let base_gov_client = BaseGovClient::new(args.base_gov_client_proxy.clone());
-                scraper::scraper::scrape(scraper_store.clone(), base_gov_client).await;
+                let base_portal_client = BasePortalClient::new(args.base_gov_client_proxy.clone());
+                scraper::scraper::scrape(scraper_store.clone(), base_portal_client).await;
                 let interval = tokio::time::Duration::from_secs(args.scraper_interval_secs);
                 scraper::metrics::next_run_in(interval);
                 tokio::time::sleep(interval).await;

@@ -1,7 +1,7 @@
 use crate::{
-    base_gov::{
+    base_portal::{
         self,
-        client::{BaseGovClient, ContractSort},
+        client::{BasePortalClient, ContractSort},
         throttled_client::{MAX_CONSECUTIVE_FAILURES, ThrottledClient},
     },
     metrics::{self, ContractFailure},
@@ -13,9 +13,9 @@ use std::{collections::VecDeque, sync::Arc, time::Duration};
 use tokio::time::Instant;
 
 pub const MAX_PAGE_SIZE: usize = 50;
-const CONTRACT_SORT_ORDER: ContractSort = base_gov::client::ContractSort {
-    method: base_gov::client::ContractSortMethod::Id,
-    order: base_gov::client::SortOrder::Ascending,
+const CONTRACT_SORT_ORDER: ContractSort = base_portal::client::ContractSort {
+    method: base_portal::client::ContractSortMethod::Id,
+    order: base_portal::client::SortOrder::Ascending,
 };
 
 const MAX_CONCURRENT_REQUESTS: usize = 1;
@@ -25,12 +25,12 @@ fn max_request_quota() -> Quota {
     Quota::with_period(Duration::from_secs(2)).unwrap()
 }
 
-pub async fn scrape(store: Arc<Store>, base_gov_client: BaseGovClient) {
+pub async fn scrape(store: Arc<Store>, base_portal_client: BasePortalClient) {
     let start = Instant::now();
     metrics::run_started();
 
     let client = ThrottledClient::new(
-        base_gov_client,
+        base_portal_client,
         MAX_CONCURRENT_REQUESTS,
         max_request_quota(),
     );

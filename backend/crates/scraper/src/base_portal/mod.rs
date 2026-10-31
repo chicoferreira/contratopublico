@@ -1,3 +1,5 @@
+//! Scraper for the public Portal BASE website at <https://www.base.gov.pt/base4>.
+
 pub mod client;
 pub mod throttled_client;
 
@@ -8,7 +10,7 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct BaseGovContract {
+pub struct BasePortalContract {
     /// Unique identifier of the contract.
     pub id: u64,
 
@@ -23,14 +25,14 @@ pub struct BaseGovContract {
 
     /// The entities responsible for contracting the contracted.
     #[serde(default, deserialize_with = "de::empty_vec_if_null")]
-    pub contracting: Vec<BaseGovEntity>,
+    pub contracting: Vec<BasePortalEntity>,
 
     /// The entities contracted for the contract.
     #[serde(default, deserialize_with = "de::empty_vec_if_null")]
-    pub contracted: Vec<BaseGovEntity>,
+    pub contracted: Vec<BasePortalEntity>,
 
     #[serde(flatten, deserialize_with = "de::deserialize_cpvs")]
-    pub cpvs: Vec<BaseGovCpv>,
+    pub cpvs: Vec<BasePortalCpv>,
 
     #[serde(deserialize_with = "de::deserialize_optional_date")]
     /// The date when the contract was signed.
@@ -74,13 +76,13 @@ pub struct BaseGovContract {
     pub contract_fundamentation_type: String,
 
     /// The contestants involved in the contract.
-    pub contestants: Vec<BaseGovEntity>,
+    pub contestants: Vec<BasePortalEntity>,
 
     /// Entities that have been invited to participate in the contract.
-    pub invitees: Vec<BaseGovEntity>,
+    pub invitees: Vec<BasePortalEntity>,
 
     /// The documents related to the contract.
-    pub documents: Vec<BaseGovDocument>,
+    pub documents: Vec<BasePortalDocument>,
 
     /// The URL with information about the contracting procedure.
     pub contracting_procedure_url: Option<String>,
@@ -119,13 +121,13 @@ pub struct BaseGovContract {
 /// CPV (Common Procurement Vocabulary) identifies the type of goods or services being contracted.
 /// For example: "48000000-8" = "Pacotes de software e sistemas de informação"
 #[derive(Debug, Deserialize)]
-pub struct BaseGovCpv {
+pub struct BasePortalCpv {
     pub code: String,
     pub designation: String,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct BaseGovEntity {
+pub struct BasePortalEntity {
     /// The internal Portal BASE identifier
     pub id: u64,
     /// The NIF of the entity
@@ -135,15 +137,15 @@ pub struct BaseGovEntity {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct BaseGovDocument {
+pub struct BasePortalDocument {
     /// The internal Portal BASE identifier
     pub id: u64,
     /// The file name of the document
     pub description: String,
 }
 
-impl From<BaseGovContract> for Contract {
-    fn from(contract: BaseGovContract) -> Contract {
+impl From<BasePortalContract> for Contract {
+    fn from(contract: BasePortalContract) -> Contract {
         Contract {
             id: contract.id,
             contracting_procedure_type: contract.contracting_procedure_type,
@@ -180,8 +182,8 @@ impl From<BaseGovContract> for Contract {
     }
 }
 
-impl From<BaseGovEntity> for Entity {
-    fn from(entity: BaseGovEntity) -> Entity {
+impl From<BasePortalEntity> for Entity {
+    fn from(entity: BasePortalEntity) -> Entity {
         Entity {
             id: entity.id,
             description: entity.description,
@@ -190,8 +192,8 @@ impl From<BaseGovEntity> for Entity {
     }
 }
 
-impl From<BaseGovCpv> for Cpv {
-    fn from(cpv: BaseGovCpv) -> Cpv {
+impl From<BasePortalCpv> for Cpv {
+    fn from(cpv: BasePortalCpv) -> Cpv {
         Cpv {
             code: cpv.code,
             designation: cpv.designation,
@@ -199,8 +201,8 @@ impl From<BaseGovCpv> for Cpv {
     }
 }
 
-impl From<BaseGovDocument> for Document {
-    fn from(document: BaseGovDocument) -> Document {
+impl From<BasePortalDocument> for Document {
+    fn from(document: BasePortalDocument) -> Document {
         Document {
             id: document.id,
             description: document.description,
@@ -209,15 +211,15 @@ impl From<BaseGovDocument> for Document {
 }
 
 /// A minimal representation of the contract.
-/// This is used in [BaseGovClient::search_contracts] to only return the contract's ID.
-/// This id is then used to fetch the full contract details with [BaseGovClient::get_contract_details].
+/// This is used in [BasePortalClient::search_contracts] to only return the contract's ID.
+/// This id is then used to fetch the full contract details with [BasePortalClient::get_contract_details].
 #[derive(Debug, Deserialize)]
-pub struct BaseGovContractMinimal {
+pub struct BasePortalContractMinimal {
     pub id: u64,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct ContractSearchResponse {
     pub total: usize,
-    pub items: Vec<BaseGovContractMinimal>,
+    pub items: Vec<BasePortalContractMinimal>,
 }

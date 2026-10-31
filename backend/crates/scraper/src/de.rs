@@ -3,7 +3,7 @@ use common::Currency;
 use itertools::Itertools;
 use serde::{Deserialize, Deserializer};
 
-use crate::base_gov::BaseGovCpv;
+use crate::base_portal::BasePortalCpv;
 
 pub fn deserialize_u64<'de, D>(deserializer: D) -> Result<u64, D::Error>
 where
@@ -117,7 +117,7 @@ where
     Ok(opt.unwrap_or_default())
 }
 
-pub fn deserialize_cpvs<'de, D>(deserializer: D) -> Result<Vec<BaseGovCpv>, D::Error>
+pub fn deserialize_cpvs<'de, D>(deserializer: D) -> Result<Vec<BasePortalCpv>, D::Error>
 where
     D: Deserializer<'de>,
 {
@@ -147,7 +147,7 @@ where
     Ok(code_split
         .into_iter()
         .zip(designation_split)
-        .map(|(code, designation)| BaseGovCpv {
+        .map(|(code, designation)| BasePortalCpv {
             code: code.trim().to_string(),
             designation: designation.trim().to_string(),
         })

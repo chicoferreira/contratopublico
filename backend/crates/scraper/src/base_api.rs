@@ -1,5 +1,5 @@
 //! Client for the official BASE API at <https://www.base.gov.pt/APIBase2>, which needs a token.
-//! Not to be confused with [`crate::base_gov`], which scrapes the public Portal BASE website.
+//! Not to be confused with [`crate::base_portal`], which scrapes the public Portal BASE website.
 
 use std::{
     io::{self, BufReader},
