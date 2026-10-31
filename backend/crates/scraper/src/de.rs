@@ -5,6 +5,14 @@ use serde::{Deserialize, Deserializer};
 
 use crate::base_gov::BaseGovCpv;
 
+pub fn deserialize_u64<'de, D>(deserializer: D) -> Result<u64, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let id_str: String = Deserialize::deserialize(deserializer)?;
+    id_str.parse().map_err(serde::de::Error::custom)
+}
+
 pub fn deserialize_date<'de, D>(deserializer: D) -> Result<NaiveDate, D::Error>
 where
     D: serde::Deserializer<'de>,

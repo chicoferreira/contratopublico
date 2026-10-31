@@ -1,7 +1,7 @@
 pub mod client;
-mod de;
 pub mod throttled_client;
 
+use crate::de;
 use chrono::NaiveDate;
 use common::{Contract, Cpv, Currency, Document, Entity};
 use serde::Deserialize;

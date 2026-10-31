@@ -1,0 +1,327 @@
+//! Client for the official BASE API at <https://www.base.gov.pt/APIBase2>, which needs a token.
+//! Not to be confused with [`crate::base_gov`], which scrapes the public Portal BASE website.
+
+use std::{
+    io::{self, BufReader},
+    time::Duration,
+};
+
+use anyhow::Context;
+use futures::TryStreamExt;
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use tokio_util::io::{StreamReader, SyncIoBridge};
+
+use crate::de;
+
+const CONTRACTS_URL: &str = "https://www.base.gov.pt/APIBase2/GetInfoContrato";
+const MODIFICATIONS_URL: &str = "https://www.base.gov.pt/APIBase2/GetInfoModContrat";
+const USER_AGENT: &str = "contratopublico.pt";
+const TIMEOUT: Duration = Duration::from_secs(600);
+
+/// A contract row from the BASE API.
+#[derive(Debug, Deserialize)]
+pub struct BaseApiContract {
+    /// The contract id, which is the same one the portal uses.
+    /// Example: 10804349
+    #[serde(rename = "idcontrato", deserialize_with = "de::deserialize_u64")]
+    pub id: u64,
+
+    /// The id of the procedure that originated the contract.
+    /// Example: "6938074"
+    #[serde(rename = "idprocedimento")]
+    pub procedure_id: String,
+
+    /// The announcement number. Empty if there was no announcement.
+    /// Example: "3539/2024", "21438/2023"
+    #[serde(rename = "nAnuncio")]
+    pub announcement_number: String,
+
+    /// The type of announcement. Empty if there was no announcement.
+    /// Example: "Anúncio de procedimento", "Anúncio de concurso urgente"
+    #[serde(rename = "TipoAnuncio")]
+    pub announcement_type: String,
+
+    /// The announcement id in Diário da República. `"-1"` or empty if there is none.
+    /// Example: "417311274"
+    #[serde(rename = "idINCM")]
+    pub incm_id: String,
+
+    /// The types of the contract.
+    /// Example: "Aquisição de serviços", "Empreitadas de obras públicas"
+    #[serde(rename = "tipoContrato")]
+    pub contract_types: Option<Vec<String>>,
+
+    /// The type of the procedure.
+    /// Example: "Ajuste Direto Regime Geral", "Concurso público"
+    #[serde(rename = "tipoprocedimento")]
+    pub procedure_type: String,
+
+    /// A brief description of the contract, used as its title.
+    /// Example: "Programa Cheques Psicólogo/Nutricionista"
+    #[serde(rename = "objectoContrato")]
+    pub object_brief_description: String,
+
+    /// The description of the contract.
+    /// Example: "Aquisição de serviço de viagens e alojamento – Plataforma SIAV"
+    #[serde(rename = "descContrato")]
+    pub description: String,
+
+    /// The entities responsible for contracting.
+    /// Example: "508142156 - Unidade Local de Saúde de Gaia/Espinho, E. P. E."
+    #[serde(rename = "adjudicante")]
+    pub contracting: Option<Vec<String>>,
+
+    /// The entities contracted. Entities with no NIF start with `"- - "`.
+    /// Example: "500162166 - LAB. PFIZER, LDA.", "- - Quint Wellington Redwood Iberia SL"
+    #[serde(rename = "adjudicatarios")]
+    pub contracted: Option<Vec<String>>,
+
+    /// The contestants, with no spaces around the first dash.
+    /// Example: "502248793-MYLAN, LDA."
+    #[serde(rename = "concorrentes")]
+    pub contestants: Option<Vec<String>>,
+
+    /// The NIFs of the contracted entities that are SMEs.
+    /// Example: "506019608", "-"
+    #[serde(rename = "adjudicatarioPMEs")]
+    pub contracted_smes: Option<Vec<String>>,
+
+    /// The date when the contract was published, as `dd/mm/yyyy`.
+    /// Example: "27/12/2024"
+    #[serde(rename = "dataPublicacao")]
+    pub publication_date: String,
+
+    /// The date when the contract was signed, as `dd/mm/yyyy`. Empty when unset.
+    /// Example: "03/12/2024"
+    #[serde(rename = "dataCelebracaoContrato")]
+    pub signing_date: String,
+
+    /// The date of the award decision, as `dd/mm/yyyy`. Empty when unset.
+    /// Example: "29/02/2024"
+    #[serde(rename = "dataDecisaoAdjudicacao")]
+    pub award_decision_date: String,
+
+    /// The date when the contract was closed, as `dd/mm/yyyy`. Empty if unset.
+    /// Example: "31/12/2024"
+    #[serde(rename = "dataFechoContrato")]
+    pub close_date: String,
+
+    /// The initial contractual price, in euros.
+    /// Example: 15000.0
+    #[serde(rename = "precoContratual")]
+    pub initial_contractual_price: f64,
+
+    /// The estimated procedure value, in euros. `0.0` when unset.
+    /// Example: 20000.0
+    #[serde(rename = "precoBaseProcedimento")]
+    pub estimated_base_price: f64,
+
+    /// The price of the contract when it was closed, in euros. `0.0` if unset.
+    /// Example: 7500.0
+    #[serde(rename = "PrecoTotalEfetivo")]
+    pub total_effective_price: f64,
+
+    /// The CPV codes, which identify what is being contracted.
+    /// Example: "33600000-6 - Produtos farmacêuticos"
+    #[serde(rename = "cpv")]
+    pub cpvs: Option<Vec<String>>,
+
+    /// The execution deadline, in days.
+    /// Example: 365
+    #[serde(rename = "prazoExecucao")]
+    pub execution_deadline_days: i32,
+
+    /// The places where the contract will be executed.
+    /// Example: "Portugal, Lisboa, Oeiras", "Portugal"
+    #[serde(rename = "localExecucao")]
+    pub execution_places: Option<Vec<String>>,
+
+    /// The NUTS regions of the contract.
+    /// Example: "PT150 - Algarve"
+    #[serde(rename = "NUTs")]
+    pub nuts: Option<Vec<String>>,
+
+    /// The lots of the procedure, which are free text.
+    /// Example: "Lote 1", "MEDICAMENTOS"
+    #[serde(rename = "Lotes")]
+    pub lots: Option<Vec<String>>,
+
+    /// The legal basis of the contract.
+    /// Example: "Artigo 20.º, n.º 1, alínea d) do Código dos Contratos Públicos"
+    #[serde(rename = "fundamentacao")]
+    pub contract_fundamentation_type: String,
+
+    /// The reason for a direct award. Empty when it doesn't apply.
+    /// Example: "ausência de recursos próprios", "outros"
+    #[serde(rename = "fundamentAjusteDireto")]
+    pub direct_award_fundamentation_type: String,
+
+    /// The legal reasons for not having a written contract.
+    /// Example: "Artigo 5.º - Contratação excluída “geral”"
+    #[serde(rename = "justifNReducEscrContrato")]
+    pub non_written_contract_justification_types: Option<Vec<String>>,
+
+    /// Whether the procedure was run for several entities.
+    /// Example: "Sim", "Não"
+    #[serde(rename = "ProcedimentoCentralizado")]
+    pub centralized_procedure: String,
+
+    /// The framework agreement number. Empty when there is none.
+    /// Example: "5715196"
+    #[serde(rename = "numAcordoQuadro")]
+    pub framework_agreement_id: String,
+
+    /// The framework agreement description. Empty when there is none.
+    /// Example: "Acordo Quadro de Viagens e Alojamento"
+    #[serde(rename = "DescrAcordoQuadro")]
+    pub framework_agreement_description: String,
+
+    /// The legal regime of the contract.
+    /// Example: "Código dos Contratos Públicos ( DL 111-B/2017 )", "DLR n.º 27/2015/A, de 29.12"
+    #[serde(rename = "regime")]
+    pub regime: String,
+
+    /// How the contract ended. Empty if unset, and it can be set without a `close_date`.
+    /// Example: "Resolução do Contrato", "Revogação do Contrato"
+    #[serde(rename = "tipoFimContrato")]
+    pub end_of_contract_type: String,
+
+    /// Whether the contract has material criteria.
+    /// Example: "Sim", "Não"
+    #[serde(rename = "CritMateriais")]
+    pub material_criteria: String,
+
+    /// Whether the contract has environmental criteria.
+    /// Example: "Sim", "Não"
+    #[serde(rename = "ContratEcologico")]
+    pub ambient_criteria: String,
+
+    /// The criterion used to award the contract. Empty when unset.
+    /// Example: "Monofator", "Melhor relação qualidade – preço"
+    #[serde(rename = "TipoCriterioAdjudicacao")]
+    pub award_criterion: String,
+
+    /// The link to the procedure documents. Empty when unset.
+    /// Example: "https://community.vortal.biz"
+    #[serde(rename = "linkPecasProc")]
+    pub contracting_procedure_url: String,
+
+    /// Free text notes about the contract.
+    /// Example: "N/A"
+    #[serde(rename = "Observacoes")]
+    pub observations: String,
+
+    /// The year the API files the contract under, which `fetch_by_year` filters on.
+    /// Example: 2024
+    #[serde(rename = "Ano")]
+    pub year: i32,
+}
+
+/// A modification to a contract from the BASE API.
+///
+/// A contract can have several, and the API can republish one with different dates.
+#[derive(Debug, Deserialize)]
+pub struct BaseApiModification {
+    /// The id of the modified contract.
+    /// Example: 10424433
+    #[serde(rename = "idcontrato", deserialize_with = "de::deserialize_u64")]
+    pub contract_id: u64,
+
+    /// The legal reason for the modification.
+    /// Example: "Trabalhos Complementares (art. 370.º do CCP)"
+    #[serde(rename = "modifContratoFundamento")]
+    pub fundamentation: String,
+
+    /// The type of act that made the modification.
+    /// Example: "Acordo entre as partes", "Acto Administrativo"
+    #[serde(rename = "modifContratoTipoAto")]
+    pub act_type: String,
+
+    /// The date of the modification, as `dd/mm/yyyy 00:00:00`.
+    /// Example: "30/12/2024 00:00:00"
+    #[serde(rename = "modifContratoData")]
+    pub date: String,
+
+    /// The date when the modification was published, as `dd/mm/yyyy 00:00:00`.
+    /// Example: "19/12/2024 00:00:00"
+    #[serde(rename = "modifDataPublicacao")]
+    pub publication_date: String,
+
+    /// The contract price after the modification, in euros.
+    /// Example: 24950.66
+    #[serde(rename = "modifContratoPrecoAlterado")]
+    pub changed_price: f64,
+
+    /// The execution deadline in days, as a string.
+    /// Example: "365"
+    #[serde(rename = "modifPrazoExecucao")]
+    pub execution_deadline_days: String,
+
+    /// The year the API files the modification under, which is the contract's year.
+    /// Example: 2024
+    #[serde(rename = "Ano")]
+    pub year: i32,
+}
+
+pub struct BaseApiClient {
+    client: reqwest::Client,
+    token: String,
+}
+
+impl BaseApiClient {
+    pub fn new(token: String) -> Self {
+        let client = reqwest::Client::builder()
+            .user_agent(USER_AGENT)
+            .timeout(TIMEOUT)
+            .build()
+            .unwrap();
+
+        Self { client, token }
+    }
+
+    /// Fetches every contract of a year.
+    pub async fn fetch_by_year(&self, year: u16) -> anyhow::Result<Vec<BaseApiContract>> {
+        self.fetch(CONTRACTS_URL, &[("Ano", year)]).await
+    }
+
+    /// Fetches the contracts added or changed in the last `days` days, up to 90.
+    pub async fn fetch_by_previous_days(&self, days: u16) -> anyhow::Result<Vec<BaseApiContract>> {
+        self.fetch(CONTRACTS_URL, &[("numDias", days)]).await
+    }
+
+    /// Fetches the modifications to the contracts of a year.
+    /// This endpoint can't filter by previous days.
+    pub async fn fetch_modifications_by_year(
+        &self,
+        year: u16,
+    ) -> anyhow::Result<Vec<BaseApiModification>> {
+        self.fetch(MODIFICATIONS_URL, &[("Ano", year)]).await
+    }
+
+    async fn fetch<T, Q>(&self, url: &str, query: &Q) -> anyhow::Result<Vec<T>>
+    where
+        T: DeserializeOwned + Send + 'static,
+        Q: Serialize + ?Sized,
+    {
+        let response = self
+            .client
+            .get(url)
+            .query(query)
+            .header("_AcessToken", &self.token) // yes, it's misspelled in the API
+            .send()
+            .await
+            .context("Failed to send API request")?
+            .error_for_status()
+            .context("API returned an error status")?;
+
+        let body = response.bytes_stream().map_err(io::Error::other);
+        let reader = BufReader::new(SyncIoBridge::new(Box::pin(StreamReader::new(body))));
+
+        // serde_json reads synchronously, so it can't run on the async runtime
+        tokio::task::spawn_blocking(move || serde_json::from_reader(reader))
+            .await
+            .context("API response parser panicked")?
+            // the API answers an invalid token with status 200 and plain text
+            .context("Failed to parse API response, check that the token is valid")
+    }
+}

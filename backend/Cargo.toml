@@ -16,7 +16,7 @@ governor = "0.10.0"
 tower = "0.5"
 log = "0.4.27"
 nonzero_ext = "0.3.0"
-reqwest = { version = "0.12.20", features = ["json", "socks"] }
+reqwest = { version = "0.12.20", features = ["json", "socks", "stream"] }
 serde_json = "1.0.140"
 meilisearch-sdk = "0.28.0"
 thiserror = "2.0.17"
@@ -31,3 +31,4 @@ sqlx = { version = "0.8.6", features = ["runtime-tokio-rustls", "postgres", "chr
 dashmap = "6.1.0"
 garde = { version = "0.23.0", features = ["derive"] }
 futures = { version = "0.3.32" }
+tokio-util = { version = "0.7.15", features = ["io-util"] }
