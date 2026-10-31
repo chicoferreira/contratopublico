@@ -2,10 +2,10 @@ use std::time::{Duration, Instant};
 
 use anyhow::Context;
 use reqwest::Url;
-use serde::{Serialize, de::DeserializeOwned};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
 use crate::{
-    base_portal::{BasePortalContract, ContractSearchResponse},
+    base_portal::BasePortalContract,
     metrics::{self, RequestKind},
 };
 
@@ -46,6 +46,20 @@ pub enum BasePortalPayload {
     },
     #[serde(rename = "detail_contratos")]
     ContractDetails { version: &'static str, id: u64 },
+}
+
+/// A minimal representation of the contract.
+/// This is used in [BasePortalClient::fetch_page] to only return the contract's ID.
+/// This id is then used to fetch the full contract details with [BasePortalClient::get_contract_details].
+#[derive(Debug, Deserialize)]
+pub struct BasePortalContractMinimal {
+    pub id: u64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ContractSearchResponse {
+    pub total: usize,
+    pub items: Vec<BasePortalContractMinimal>,
 }
 
 pub struct BasePortalClient {

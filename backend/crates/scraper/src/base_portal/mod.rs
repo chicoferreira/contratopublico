@@ -1,225 +1,238 @@
 //! Scraper for the public Portal BASE website at <https://www.base.gov.pt/base4>.
 
 pub mod client;
+mod convert;
 pub mod throttled_client;
 
-use crate::de;
-use chrono::NaiveDate;
-use common::{Contract, Cpv, Currency, Document, Entity};
 use serde::Deserialize;
 
+/// A contract from the Portal BASE website.
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BasePortalContract {
-    /// Unique identifier of the contract.
+    /// The contract id, which is the same in the API and the portal.
+    /// Example: 9497676
     pub id: u64,
 
-    /// Description of the contract.
+    /// The description of the contract.
+    /// Example: "Formação em Contratação Pública NRO.2017/00732"
     pub description: Option<String>,
 
-    /// A brief description of the contract. Used as a title of the contract.
+    /// A brief description of the contract, used as its title.
+    /// Example: "Aquisição de medicamentos corretivos de volémia e outras soluções estéreis"
     pub object_brief_description: String,
 
-    /// Procedure type of the contract. (Concurso público, Ajuste direto, etc)
+    /// The type of the procedure, which is the legal process used to choose the supplier.
+    /// Example: "Concurso público", "Ajuste Direto Regime Geral"
     pub contracting_procedure_type: String,
 
-    /// The entities responsible for contracting the contracted.
-    #[serde(default, deserialize_with = "de::empty_vec_if_null")]
-    pub contracting: Vec<BasePortalEntity>,
+    /// The entities responsible for contracting.
+    pub contracting: Option<Vec<BasePortalEntity>>,
 
-    /// The entities contracted for the contract.
-    #[serde(default, deserialize_with = "de::empty_vec_if_null")]
-    pub contracted: Vec<BasePortalEntity>,
+    /// The entities contracted.
+    pub contracted: Option<Vec<BasePortalEntity>>,
 
-    #[serde(flatten, deserialize_with = "de::deserialize_cpvs")]
-    pub cpvs: Vec<BasePortalCpv>,
+    /// The CPV codes, which identify what is being contracted, separated by `" | "`.
+    /// Example: "33600000-6", "44512000-2 | 42715000-1"
+    pub cpvs: String,
 
-    #[serde(deserialize_with = "de::deserialize_optional_date")]
-    /// The date when the contract was signed.
-    pub signing_date: Option<NaiveDate>,
+    /// The designations of the CPV codes, separated by `" | "` in the same order.
+    /// Example: "Produtos farmacêuticos"
+    pub cpvs_designation: String,
 
-    #[serde(deserialize_with = "de::deserialize_date")]
-    /// The date when the contract was published.
-    pub publication_date: NaiveDate,
+    /// The type of each CPV code, separated by `" | "` in the same order.
+    /// Example: "Principal", "Suplementar | Principal"
+    pub cpvs_type: String,
 
-    #[serde(deserialize_with = "de::deserialize_euros")]
-    /// The initial contractual price of the contract.
-    pub initial_contractual_price: Currency,
+    /// The value of each CPV code, separated by `" | "` in the same order.
+    /// Example: "61428.54 € ", "4585.0 €  | 59790.0 € "
+    pub cpvs_value: String,
 
-    // TODO: Add documentation here
+    /// The date when the contract was signed, as `dd-mm-yyyy`.
+    /// Example: "01-09-2022"
+    pub signing_date: Option<String>,
+
+    /// The date when the contract was published, as `dd-mm-yyyy`.
+    /// Example: "13-10-2022"
+    pub publication_date: String,
+
+    /// The date when the contract was reported as finished, as `dd-mm-yyyy`.
+    /// Example: "23-10-2017"
+    pub close_date: Option<String>,
+
+    /// The initial contractual price.
+    /// Example: "61.428,54 €"
+    pub initial_contractual_price: String,
+
+    /// The amount set for the procedure before a supplier is chosen.
+    /// It is normally the most the entity will pay.
+    /// Example: "7.000,00 €"
+    pub estimated_base_price: Option<String>,
+
+    /// The price of the contract when it was closed.
+    /// Example: "4.500,00 €"
+    pub total_effective_price: Option<String>,
+
+    /// Whether the price is received by the public entity, instead of paid.
+    /// Example: false
+    pub income: bool,
+
+    /// The legal regime of the contract.
+    /// Example: "Código dos Contratos Públicos (DL 18/2008)"
     pub regime: Option<String>,
 
-    /// The status of the contract. (idk what status mean)
+    /// Set while a published contract is under review, which the portal shows as a warning.
+    /// "Em Rectificação" means it is being corrected, "Em Anulação" that it is being cancelled.
+    /// Example: "Em Rectificação", "Em Anulação"
     pub contract_status: Option<String>,
 
-    // TODO: Check what this value represents
+    /// The legal reasons for not signing a formal contract document, which is required by default.
+    /// For example a low price, urgency, or a purchase under a public supply contract.
+    /// Example: "Artigo 95.º, n.º 1, b), locação ou de aquisição de bens móveis ou aquisição de serviços ao abrigo de um contrato público de aprovisionamento"
     pub non_written_contract_justification_types: String,
 
-    // TODO: Add documentation here
+    /// The types of the contract.
+    /// Example: "Aquisição de serviços", "Empreitadas de obras públicas"
     pub contract_types: String,
 
-    #[serde(
-        rename = "executionDeadline",
-        deserialize_with = "de::deserialize_execution_deadline"
-    )]
-    // TODO: Add documentation here
-    pub execution_deadline_days: usize,
+    /// Whether it is a concession contract, between a grantor and a concessionaire.
+    /// Example: false
+    #[serde(rename = "contractTypeCS")]
+    pub contract_type_cs: bool,
 
-    #[serde(
-        rename = "executionPlace",
-        deserialize_with = "de::deserialize_execution_place"
-    )]
-    /// The places where the contract will be executed.
-    pub execution_places: Vec<String>,
+    /// The execution deadline.
+    /// Example: "182 dias"
+    pub execution_deadline: String,
 
-    // TODO: Add documentation here
+    /// The places where the contract will be executed, separated by `"<BR/>"`.
+    /// Example: "Portugal, Lisboa, Lisboa", "Portugal, Braga, Barcelos<BR/>Portugal, Braga, Barcelos"
+    pub execution_place: String,
+
+    /// The legal basis of the contract.
+    /// Example: "Artigo 20.º, n.º 1, alínea a) do Código dos Contratos Públicos"
     pub contract_fundamentation_type: String,
 
-    /// The contestants involved in the contract.
+    /// The entities that competed for the contract.
     pub contestants: Vec<BasePortalEntity>,
 
-    /// Entities that have been invited to participate in the contract.
+    /// The entities invited to compete for the contract.
     pub invitees: Vec<BasePortalEntity>,
 
     /// The documents related to the contract.
     pub documents: Vec<BasePortalDocument>,
 
-    /// The URL with information about the contracting procedure.
+    /// The link to the procedure documents.
+    /// Example: "https://www.cm-valedecambra.pt/pages/727"
     pub contracting_procedure_url: Option<String>,
 
-    #[serde(deserialize_with = "de::deserialize_announcement_id")]
-    /// The internal Portal BASE identifier of the announcement related to this contract.
-    pub announcement_id: Option<usize>,
+    /// The Portal BASE id of the announcement. `-1` if there is none.
+    /// Example: 324698, -1
+    pub announcement_id: i64,
 
-    // TODO: Check what this value represents
+    /// The reason for a direct award. `"Não aplicável"` when it doesn't apply.
+    /// Example: "ausência de recursos próprios", "Não aplicável"
     pub direct_award_fundamentation_type: String,
 
-    // TODO: Check what this value represents
+    /// Free text notes about the contract.
+    /// Example: "n/a"
     pub observations: Option<String>,
 
-    // TODO: Check what this value represents
+    /// Exact meaning unknown.
+    /// Example: true
     pub ccp: bool,
 
-    /// The type of end of contract (ex: Cumprimento integral do contrato)
+    /// How the contract ended.
+    /// Example: "Cumprimento integral do contrato"
     pub end_of_contract_type: Option<String>,
 
-    #[serde(deserialize_with = "de::deserialize_optional_date")]
-    /// The date when the contract was complete or closed.
-    pub close_date: Option<NaiveDate>,
-
-    #[serde(deserialize_with = "de::deserialize_optional_euros")]
-    /// The price of the contract when it was completed or closed.
-    pub total_effective_price: Option<Currency>,
-
-    /// What caused the deadline to change (if changed)
+    /// What caused the deadline to change.
+    /// Example: "Não Houve"
     pub causes_deadline_change: Option<String>,
 
-    /// What caused the price to change (if changed)
+    /// What caused the price to change.
+    /// Example: "Não Houve"
     pub causes_price_change: Option<String>,
-}
 
-/// CPV (Common Procurement Vocabulary) identifies the type of goods or services being contracted.
-/// For example: "48000000-8" = "Pacotes de software e sistemas de informação"
-#[derive(Debug, Deserialize)]
-pub struct BasePortalCpv {
-    pub code: String,
-    pub designation: String,
+    /// The special measures that apply to the contract.
+    /// Example: "Plano de Recuperação e Resiliência (PRR) – artigo 6º da Lei n.º30/2021"
+    pub special_measures: Option<String>,
+
+    /// The id of the procedure that created the framework agreement this contract was made under.
+    /// A framework agreement sets the terms in advance for the contracts made under it later.
+    /// `"Não aplicável."` when there is none.
+    /// Example: "181482", "Não aplicável."
+    pub framework_agreement_procedure_id: String,
+
+    /// The description of the framework agreement this contract was made under.
+    /// `"Não aplicável."` when there is none.
+    /// Example: "CP 2015/6 - Acordo quadro para o fornecimento de Medicamentos do Foro Oncológico"
+    pub framework_agreement_procedure_description: String,
+
+    /// Whether one procedure covered the needs of several entities, instead of each running its own.
+    /// Example: false
+    pub centralized_procedure: Option<bool>,
+
+    /// Whether the contract has environmental requirements, shown as "Contrato sustentável".
+    /// Example: false
+    pub ambient_criteria: bool,
+
+    /// Whether the procedure was chosen for a legal reason other than the contract's value.
+    /// For example urgency, or only one supplier being able to do the work.
+    /// Example: true
+    pub material_criteria: bool,
+
+    /// Exact meaning unknown.
+    /// Example: false
+    #[serde(rename = "aquisitionStateMemberUE")]
+    pub aquisition_state_member_ue: bool,
+
+    /// Exact meaning unknown.
+    #[serde(rename = "infoAquisitionStateMemberUE")]
+    pub info_aquisition_state_member_ue: Option<serde_json::Value>,
+
+    /// Exact meaning unknown.
+    /// Example: false
+    pub cocontratantes: bool,
+
+    /// Exact meaning unknown.
+    pub group_members: Option<serde_json::Value>,
+
+    /// Whether the contract has modifications.
+    /// Example: true
+    pub increments: bool,
+
+    /// Whether the entity reported an occurrence, which is a notable event in the contract.
+    /// For example a breach of contract, a penalty, or a winner failing to submit its documents.
+    /// Example: false
+    pub occurrences: bool,
+
+    /// `false` for simplified direct awards, whose contract date is in `close_date`.
+    /// Example: true
+    pub normal: bool,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct BasePortalEntity {
-    /// The internal Portal BASE identifier
+    /// The Portal BASE id of the entity.
+    /// Example: 165162
     pub id: u64,
-    /// The NIF of the entity
+
+    /// The NIF of the entity. `"-"` if it has none.
+    /// Example: "503156035", "-"
     pub nif: String,
-    /// The name/description of the entity
+
+    /// The name of the entity.
+    /// Example: "MRG - Construction, SA."
     pub description: String,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct BasePortalDocument {
-    /// The internal Portal BASE identifier
+    /// The Portal BASE id of the document.
+    /// Example: 313236
     pub id: u64,
-    /// The file name of the document
+
+    /// The file name of the document.
+    /// Example: "contrato numerado e assinado.pdf"
     pub description: String,
-}
-
-impl From<BasePortalContract> for Contract {
-    fn from(contract: BasePortalContract) -> Contract {
-        Contract {
-            id: contract.id,
-            contracting_procedure_type: contract.contracting_procedure_type,
-            publication_date: contract.publication_date,
-            signing_date: contract.signing_date,
-            ccp: contract.ccp,
-            contracted: contract.contracted.into_iter().map(Into::into).collect(),
-            contracting: contract.contracting.into_iter().map(Into::into).collect(),
-            object_brief_description: contract.object_brief_description,
-            initial_contractual_price: contract.initial_contractual_price,
-            description: contract.description,
-            cpvs: contract.cpvs.into_iter().map(Into::into).collect(),
-            regime: contract.regime,
-            contract_status: contract.contract_status,
-            non_written_contract_justification_types: contract
-                .non_written_contract_justification_types,
-            contract_types: contract.contract_types,
-            execution_deadline_days: contract.execution_deadline_days,
-            execution_places: contract.execution_places,
-            contract_fundamentation_type: contract.contract_fundamentation_type,
-            contestants: contract.contestants.into_iter().map(Into::into).collect(),
-            invitees: contract.invitees.into_iter().map(Into::into).collect(),
-            documents: contract.documents.into_iter().map(Into::into).collect(),
-            contracting_procedure_url: contract.contracting_procedure_url,
-            announcement_id: contract.announcement_id,
-            direct_award_fundamentation_type: contract.direct_award_fundamentation_type,
-            observations: contract.observations,
-            end_of_contract_type: contract.end_of_contract_type,
-            close_date: contract.close_date,
-            total_effective_price: contract.total_effective_price,
-            causes_deadline_change: contract.causes_deadline_change,
-            causes_price_change: contract.causes_price_change,
-        }
-    }
-}
-
-impl From<BasePortalEntity> for Entity {
-    fn from(entity: BasePortalEntity) -> Entity {
-        Entity {
-            id: entity.id,
-            description: entity.description,
-            nif: entity.nif,
-        }
-    }
-}
-
-impl From<BasePortalCpv> for Cpv {
-    fn from(cpv: BasePortalCpv) -> Cpv {
-        Cpv {
-            code: cpv.code,
-            designation: cpv.designation,
-        }
-    }
-}
-
-impl From<BasePortalDocument> for Document {
-    fn from(document: BasePortalDocument) -> Document {
-        Document {
-            id: document.id,
-            description: document.description,
-        }
-    }
-}
-
-/// A minimal representation of the contract.
-/// This is used in [BasePortalClient::search_contracts] to only return the contract's ID.
-/// This id is then used to fetch the full contract details with [BasePortalClient::get_contract_details].
-#[derive(Debug, Deserialize)]
-pub struct BasePortalContractMinimal {
-    pub id: u64,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct ContractSearchResponse {
-    pub total: usize,
-    pub items: Vec<BasePortalContractMinimal>,
 }

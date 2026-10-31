@@ -11,8 +11,6 @@ use futures::TryStreamExt;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use tokio_util::io::{StreamReader, SyncIoBridge};
 
-use crate::de;
-
 const CONTRACTS_URL: &str = "https://www.base.gov.pt/APIBase2/GetInfoContrato";
 const MODIFICATIONS_URL: &str = "https://www.base.gov.pt/APIBase2/GetInfoModContrat";
 const USER_AGENT: &str = "contratopublico.pt";
@@ -21,12 +19,13 @@ const TIMEOUT: Duration = Duration::from_secs(600);
 /// A contract row from the BASE API.
 #[derive(Debug, Deserialize)]
 pub struct BaseApiContract {
-    /// The contract id, which is the same one the portal uses.
+    /// The contract id, which is the same in the API and the portal.
     /// Example: 10804349
-    #[serde(rename = "idcontrato", deserialize_with = "de::deserialize_u64")]
+    #[serde(rename = "idcontrato", deserialize_with = "deserialize_u64")]
     pub id: u64,
 
     /// The id of the procedure that originated the contract.
+    /// One procedure can originate several contracts.
     /// Example: "6938074"
     #[serde(rename = "idprocedimento")]
     pub procedure_id: String,
@@ -51,7 +50,7 @@ pub struct BaseApiContract {
     #[serde(rename = "tipoContrato")]
     pub contract_types: Option<Vec<String>>,
 
-    /// The type of the procedure.
+    /// The type of the procedure, which is the legal process used to choose the supplier.
     /// Example: "Ajuste Direto Regime Geral", "Concurso público"
     #[serde(rename = "tipoprocedimento")]
     pub procedure_type: String,
@@ -76,7 +75,7 @@ pub struct BaseApiContract {
     #[serde(rename = "adjudicatarios")]
     pub contracted: Option<Vec<String>>,
 
-    /// The contestants, with no spaces around the first dash.
+    /// The entities that competed for the contract, with no spaces around the first dash.
     /// Example: "502248793-MYLAN, LDA."
     #[serde(rename = "concorrentes")]
     pub contestants: Option<Vec<String>>,
@@ -101,7 +100,7 @@ pub struct BaseApiContract {
     #[serde(rename = "dataDecisaoAdjudicacao")]
     pub award_decision_date: String,
 
-    /// The date when the contract was closed, as `dd/mm/yyyy`. Empty if unset.
+    /// The date when the contract was reported as finished, as `dd/mm/yyyy`. Empty when unset.
     /// Example: "31/12/2024"
     #[serde(rename = "dataFechoContrato")]
     pub close_date: String,
@@ -111,12 +110,13 @@ pub struct BaseApiContract {
     #[serde(rename = "precoContratual")]
     pub initial_contractual_price: f64,
 
-    /// The estimated procedure value, in euros. `0.0` when unset.
+    /// The amount set for the procedure before a supplier is chosen, in euros. `0.0` when unset.
+    /// It is normally the most the entity will pay.
     /// Example: 20000.0
     #[serde(rename = "precoBaseProcedimento")]
     pub estimated_base_price: f64,
 
-    /// The price of the contract when it was closed, in euros. `0.0` if unset.
+    /// The price of the contract when it was closed, in euros. `0.0` when unset.
     /// Example: 7500.0
     #[serde(rename = "PrecoTotalEfetivo")]
     pub total_effective_price: f64,
@@ -156,22 +156,26 @@ pub struct BaseApiContract {
     #[serde(rename = "fundamentAjusteDireto")]
     pub direct_award_fundamentation_type: String,
 
-    /// The legal reasons for not having a written contract.
+    /// The legal reasons for not signing a formal contract document, which is required by default.
+    /// For example a low price, urgency, or a purchase under a public supply contract.
     /// Example: "Artigo 5.º - Contratação excluída “geral”"
     #[serde(rename = "justifNReducEscrContrato")]
     pub non_written_contract_justification_types: Option<Vec<String>>,
 
-    /// Whether the procedure was run for several entities.
+    /// Whether one procedure covered the needs of several entities, instead of each running its own.
     /// Example: "Sim", "Não"
     #[serde(rename = "ProcedimentoCentralizado")]
     pub centralized_procedure: String,
 
-    /// The framework agreement number. Empty when there is none.
+    /// The id of the procedure that created the framework agreement this contract was made under.
+    /// A framework agreement sets the terms in advance for the contracts made under it later.
+    /// Empty when there is none.
     /// Example: "5715196"
     #[serde(rename = "numAcordoQuadro")]
     pub framework_agreement_id: String,
 
-    /// The framework agreement description. Empty when there is none.
+    /// The description of the framework agreement this contract was made under.
+    /// Empty when there is none.
     /// Example: "Acordo Quadro de Viagens e Alojamento"
     #[serde(rename = "DescrAcordoQuadro")]
     pub framework_agreement_description: String,
@@ -181,17 +185,18 @@ pub struct BaseApiContract {
     #[serde(rename = "regime")]
     pub regime: String,
 
-    /// How the contract ended. Empty if unset, and it can be set without a `close_date`.
+    /// How the contract ended. Empty when unset.
     /// Example: "Resolução do Contrato", "Revogação do Contrato"
     #[serde(rename = "tipoFimContrato")]
     pub end_of_contract_type: String,
 
-    /// Whether the contract has material criteria.
+    /// Whether the procedure was chosen for a legal reason other than the contract's value.
+    /// For example urgency, or only one supplier being able to do the work.
     /// Example: "Sim", "Não"
     #[serde(rename = "CritMateriais")]
     pub material_criteria: String,
 
-    /// Whether the contract has environmental criteria.
+    /// Whether the contract has environmental requirements, shown as "Contrato sustentável".
     /// Example: "Sim", "Não"
     #[serde(rename = "ContratEcologico")]
     pub ambient_criteria: String,
@@ -219,12 +224,12 @@ pub struct BaseApiContract {
 
 /// A modification to a contract from the BASE API.
 ///
-/// A contract can have several, and the API can republish one with different dates.
+/// A contract can have several.
 #[derive(Debug, Deserialize)]
 pub struct BaseApiModification {
     /// The id of the modified contract.
     /// Example: 10424433
-    #[serde(rename = "idcontrato", deserialize_with = "de::deserialize_u64")]
+    #[serde(rename = "idcontrato", deserialize_with = "deserialize_u64")]
     pub contract_id: u64,
 
     /// The legal reason for the modification.
@@ -324,4 +329,12 @@ impl BaseApiClient {
             // the API answers an invalid token with status 200 and plain text
             .context("Failed to parse API response, check that the token is valid")
     }
+}
+
+fn deserialize_u64<'de, D>(deserializer: D) -> Result<u64, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let id_str: String = Deserialize::deserialize(deserializer)?;
+    id_str.parse().map_err(serde::de::Error::custom)
 }

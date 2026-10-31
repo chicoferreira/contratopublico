@@ -7,8 +7,8 @@ use governor::{DefaultDirectRateLimiter, Quota, RateLimiter};
 use tokio::sync::Semaphore;
 
 use crate::base_portal::{
-    BasePortalContract, ContractSearchResponse,
-    client::{BasePortalClient, ContractSort},
+    BasePortalContract,
+    client::{BasePortalClient, ContractSearchResponse, ContractSort},
 };
 
 pub const MAX_CONSECUTIVE_FAILURES: usize = 5;

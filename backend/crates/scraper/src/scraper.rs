@@ -7,6 +7,7 @@ use crate::{
     metrics::{self, ContractFailure},
     store::Store,
 };
+use common::Contract;
 use governor::Quota;
 use log::{error, info};
 use std::{collections::VecDeque, sync::Arc, time::Duration};
@@ -154,8 +155,8 @@ async fn run_fetch_details_task(
             break;
         };
 
-        let contract = match response {
-            Ok(response) => response,
+        let contract = match response.and_then(Contract::try_from) {
+            Ok(contract) => contract,
             Err(e) => {
                 error!("Failed to fetch details for ID {id}:\n{e:?}");
                 retry_queue.push_back(ContractLocation {
@@ -167,7 +168,6 @@ async fn run_fetch_details_task(
             }
         };
 
-        let contract = contract.into();
         info!("Fetched details for contract {id}");
 
         match store
