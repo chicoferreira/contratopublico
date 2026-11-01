@@ -6,16 +6,16 @@ use std::{
 };
 
 use anyhow::Context;
-use common::{Contract, db::ContractDatabase, searchdb::SearchDatabase};
 use serde::{Deserialize, Serialize};
+use sqlx::PgPool;
 
-use crate::store::rangeset::RangeSet;
-
-pub mod rangeset;
+use crate::{
+    sources::{self, ContractSource, base_portal::BasePortalContract},
+    util::range_set::RangeSet,
+};
 
 pub struct Store {
-    search_database: SearchDatabase,
-    contract_database: ContractDatabase,
+    pool: PgPool,
     scrape_progress: Mutex<ScrapeProgress>,
     path: PathBuf,
 }
@@ -59,7 +59,7 @@ impl Store {
         serde_json::from_reader(file).context("Failed to deserialize progress")
     }
 
-    fn create_file_for_writing(path: &Path) -> anyhow::Result<File> {
+    fn get_or_create_file_for_writing(path: &Path) -> anyhow::Result<File> {
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent).context("Failed to create folder")?;
         }
@@ -72,17 +72,12 @@ impl Store {
             .context("Failed to open saved pages file")
     }
 
-    pub fn new(
-        search_database: SearchDatabase,
-        contract_database: ContractDatabase,
-        scrape_progress_path: PathBuf,
-    ) -> anyhow::Result<Self> {
+    pub fn new(pool: PgPool, scrape_progress_path: PathBuf) -> anyhow::Result<Self> {
         let scrape_progress =
             Self::load_progress(&scrape_progress_path).context("Failed to load progress")?;
 
         Ok(Self {
-            search_database,
-            contract_database,
+            pool,
             scrape_progress: Mutex::new(scrape_progress),
             path: scrape_progress_path,
         })
@@ -98,30 +93,21 @@ impl Store {
                 .map_or(false, |entry| entry.contains(&id))
     }
 
-    pub async fn save_contract(&self, contract: Contract) -> anyhow::Result<()> {
-        self.contract_database
-            .insert_contract(&contract)
-            .await
-            .context("Failed to save contract in database")?;
-
-        self.search_database.save_contract(contract).await?;
-
-        Ok(())
-    }
-
     pub async fn save_scraped_contract(
         &self,
-        contract: Contract,
+        contract: BasePortalContract,
         page: usize,
         contracts_per_page: usize,
     ) -> anyhow::Result<()> {
         let id = contract.id;
-        self.save_contract(contract).await?;
+        sources::save_raw_contracts(&self.pool, ContractSource::BasePortal, &[(id, contract)])
+            .await
+            .context("Failed to save raw contract in database")?;
 
         let mut scrape_progress = self.scrape_progress.lock().unwrap();
         scrape_progress.update(page, contracts_per_page, id);
 
-        let file = Self::create_file_for_writing(&self.path)?;
+        let file = Self::get_or_create_file_for_writing(&self.path)?;
         serde_json::to_writer(file, &*scrape_progress).context("Failed to write saved pages")?;
 
         Ok(())

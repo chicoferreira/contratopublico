@@ -102,6 +102,8 @@ docker compose -f deploy/compose.dev.yml up -d
 
 Consulte [`backend/crates/api/src/main.rs`](https://github.com/chicoferreira/contratopublico/blob/main/backend/crates/api/src/main.rs) para variáveis de ambiente.
 
+Adicione `BASE_API_TOKEN` se quiser também fazer _scraping_ da [BASE API](https://www.base.gov.pt/APIBase2).
+
 Execute:
 
 ```

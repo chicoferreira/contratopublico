@@ -104,6 +104,8 @@ docker compose -f deploy/compose.dev.yml up -d
 
 Check [`backend/crates/api/src/main.rs`](https://github.com/chicoferreira/contratopublico/blob/main/backend/crates/api/src/main.rs) for environment variables.
 
+Add `BASE_API_TOKEN` if you also want to scrape [BASE API](https://www.base.gov.pt/APIBase2).
+
 Run:
 
 ```

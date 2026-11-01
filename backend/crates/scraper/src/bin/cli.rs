@@ -1,6 +1,5 @@
-use std::{path::PathBuf, sync::Arc};
+use std::path::PathBuf;
 
-use anyhow::Context;
 use clap::Parser;
 use common::{
     Contract,
@@ -10,8 +9,11 @@ use common::{
 use log::info;
 use reqwest::Url;
 use scraper::{
-    base_portal::client::{BasePortalClient, ContractSort, ContractSortMethod, SortOrder},
     export, search,
+    sources::base_portal::{
+        self,
+        client::{BasePortalClient, ContractSort, ContractSortMethod, SortOrder},
+    },
 };
 
 #[derive(clap::Parser)]
@@ -23,21 +25,13 @@ struct Args {
 
 #[derive(clap::Subcommand)]
 enum Command {
-    Scrape {
-        #[command(flatten)]
-        postgres_config: PostgresConfig,
-        #[command(flatten)]
-        meilisearch_config: MeilisearchConfig,
-        saved_pages_path: PathBuf,
-        base_gov_client_proxy: Option<Url>,
-    },
     FetchPage {
         #[arg(long, default_value = "id")]
         contract_sort_method: ContractSortMethod,
         #[arg(long, default_value = "ascending")]
         contract_sort_order: SortOrder,
         page: usize,
-        #[arg(default_value_t = scraper::scraper::MAX_PAGE_SIZE)]
+        #[arg(default_value_t = base_portal::scraper::MAX_PAGE_SIZE)]
         size: usize,
         base_gov_client_proxy: Option<Url>,
     },
@@ -66,22 +60,6 @@ async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
     match args.command {
-        Command::Scrape {
-            saved_pages_path,
-            base_gov_client_proxy,
-            postgres_config,
-            meilisearch_config,
-        } => {
-            let search_database = SearchDatabase::new_from_config(meilisearch_config)?;
-            let contract_database = ContractDatabase::new_from_config(postgres_config).await?;
-
-            let store =
-                scraper::store::Store::new(search_database, contract_database, saved_pages_path)
-                    .context("Failed to create store")?;
-
-            let base_portal_client = BasePortalClient::new(base_gov_client_proxy);
-            scraper::scraper::scrape(Arc::new(store), base_portal_client).await;
-        }
         Command::FetchPage {
             contract_sort_method,
             contract_sort_order,

@@ -6,10 +6,13 @@ use common::{
     searchdb::{MeilisearchConfig, SearchDatabase},
 };
 use reqwest::Url;
-use scraper::{base_portal::client::BasePortalClient, store::Store};
-use std::{io::IsTerminal, net::SocketAddr, path::PathBuf, sync::Arc};
+use scraper::sources::{
+    base_api::{self, client::BaseApiClient},
+    base_portal::{self, client::BasePortalClient, store::Store},
+};
+use std::{io::IsTerminal, net::SocketAddr, path::PathBuf, sync::Arc, time::Duration};
 use tokio::signal;
-use tracing::{Level, event, info};
+use tracing::{Level, event, info, warn};
 use tracing_subscriber::EnvFilter;
 
 mod access_log;
@@ -42,6 +45,8 @@ struct Args {
     no_scraper: bool,
     #[clap(long, env)]
     base_gov_client_proxy: Option<Url>,
+    #[clap(long, env)]
+    base_api_token: Option<String>,
     #[clap(long, env, default_value = "../data/backend/blocklist.json")]
     blocklist_path: PathBuf,
 }
@@ -59,13 +64,10 @@ async fn main() -> anyhow::Result<()> {
     let search_database = SearchDatabase::new_from_config(args.meilisearch_config)?;
     let contract_database = ContractDatabase::new_from_config(args.postgres_config).await?;
 
+    let pool = contract_database.pool().clone();
     let scraper_store = Arc::new(
-        Store::new(
-            search_database.clone(),
-            contract_database.clone(),
-            args.saved_pages_path,
-        )
-        .context("Failed to create scraper store")?,
+        Store::new(pool.clone(), args.saved_pages_path)
+            .context("Failed to create scraper store")?,
     );
 
     let app_state = AppState::new(search_database, contract_database);
@@ -75,15 +77,19 @@ async fn main() -> anyhow::Result<()> {
         .context("Failed to prepare indexes")?;
 
     if !args.no_scraper {
-        tokio::spawn(async move {
-            loop {
-                let base_portal_client = BasePortalClient::new(args.base_gov_client_proxy.clone());
-                scraper::scraper::scrape(scraper_store.clone(), base_portal_client).await;
-                let interval = tokio::time::Duration::from_secs(args.scraper_interval_secs);
-                scraper::metrics::next_run_in(interval);
-                tokio::time::sleep(interval).await;
-            }
-        });
+        if let Some(token) = args.base_api_token {
+            let client = BaseApiClient::new(token);
+            tokio::spawn(base_api::scraper::run_sync_task(client, pool));
+        } else {
+            warn!("BASE_API_TOKEN is not set, skipping the BASE API");
+        }
+
+        let client = BasePortalClient::new(args.base_gov_client_proxy);
+        tokio::spawn(base_portal::scraper::run_scrape_task(
+            client,
+            scraper_store,
+            Duration::from_secs(args.scraper_interval_secs),
+        ));
     }
 
     tokio::spawn(statistics::run_reload_statistics_task(app_state.clone()));

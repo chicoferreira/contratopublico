@@ -3,7 +3,7 @@ use chrono::NaiveDate;
 use common::{Contract, Cpv, Currency, Document, Entity};
 use itertools::Itertools;
 
-use crate::base_portal::{BasePortalContract, BasePortalDocument, BasePortalEntity};
+use crate::sources::base_portal::{BasePortalContract, BasePortalDocument, BasePortalEntity};
 
 impl TryFrom<BasePortalContract> for Contract {
     type Error = anyhow::Error;

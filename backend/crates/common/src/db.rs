@@ -105,6 +105,10 @@ impl ContractDatabase {
         Self { pool }
     }
 
+    pub fn pool(&self) -> &PgPool {
+        &self.pool
+    }
+
     pub async fn list_contract_ids_after(
         &self,
         last_id: u64,

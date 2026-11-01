@@ -5,8 +5,8 @@ use reqwest::Url;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
 use crate::{
-    base_portal::BasePortalContract,
     metrics::{self, RequestKind},
+    sources::base_portal::BasePortalContract,
 };
 
 const URL: &str = "https://www.base.gov.pt/Base4/pt/resultados/";
@@ -62,6 +62,7 @@ pub struct ContractSearchResponse {
     pub items: Vec<BasePortalContractMinimal>,
 }
 
+#[derive(Clone)]
 pub struct BasePortalClient {
     client: reqwest::Client,
 }

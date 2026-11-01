@@ -6,7 +6,7 @@ use std::{
 use governor::{DefaultDirectRateLimiter, Quota, RateLimiter};
 use tokio::sync::Semaphore;
 
-use crate::base_portal::{
+use crate::sources::base_portal::{
     BasePortalContract,
     client::{BasePortalClient, ContractSearchResponse, ContractSort},
 };

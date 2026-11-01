@@ -1,13 +1,12 @@
 use crate::{
-    base_portal::{
+    metrics::{self, ContractFailure},
+    sources::base_portal::{
         self,
         client::{BasePortalClient, ContractSort},
+        store::Store,
         throttled_client::{MAX_CONSECUTIVE_FAILURES, ThrottledClient},
     },
-    metrics::{self, ContractFailure},
-    store::Store,
 };
-use common::Contract;
 use governor::Quota;
 use log::{error, info};
 use std::{collections::VecDeque, sync::Arc, time::Duration};
@@ -26,7 +25,15 @@ fn max_request_quota() -> Quota {
     Quota::with_period(Duration::from_secs(2)).unwrap()
 }
 
-pub async fn scrape(store: Arc<Store>, base_portal_client: BasePortalClient) {
+pub async fn run_scrape_task(client: BasePortalClient, store: Arc<Store>, interval: Duration) {
+    loop {
+        scrape(store.clone(), client.clone()).await;
+        metrics::next_run_in(interval);
+        tokio::time::sleep(interval).await;
+    }
+}
+
+async fn scrape(store: Arc<Store>, base_portal_client: BasePortalClient) {
     let start = Instant::now();
     metrics::run_started();
 
@@ -155,7 +162,7 @@ async fn run_fetch_details_task(
             break;
         };
 
-        let contract = match response.and_then(Contract::try_from) {
+        let contract = match response {
             Ok(contract) => contract,
             Err(e) => {
                 error!("Failed to fetch details for ID {id}:\n{e:?}");

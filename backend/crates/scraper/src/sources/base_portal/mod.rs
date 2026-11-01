@@ -2,12 +2,14 @@
 
 pub mod client;
 mod convert;
+pub mod scraper;
+pub mod store;
 pub mod throttled_client;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 /// A contract from the Portal BASE website.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BasePortalContract {
     /// The contract id, which is the same in the API and the portal.
@@ -211,7 +213,7 @@ pub struct BasePortalContract {
     pub normal: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct BasePortalEntity {
     /// The Portal BASE id of the entity.
     /// Example: 165162
@@ -226,7 +228,7 @@ pub struct BasePortalEntity {
     pub description: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct BasePortalDocument {
     /// The Portal BASE id of the document.
     /// Example: 313236

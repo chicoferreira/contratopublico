@@ -44,6 +44,7 @@ services:
       - SAVED_PAGES_PATH=/data/scraper/saved_pages.json
       - BLOCKLIST_PATH=/data/backend/blocklist.json
       - SCRAPER_INTERVAL_SECS=3600 # 60 minutes
+      - BASE_API_TOKEN
       - MEILISEARCH_URL=http://meilisearch:7700
       - MEILI_MASTER_KEY
       - POSTGRES_HOST=postgres
