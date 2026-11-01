@@ -10,6 +10,8 @@ The BASE API requires an access token. TODO EXPLAIN HOW TO OBTAIN THE TOKEN. A f
 
 The Portal BASE website is public, and we scrape the API that feeds the frontend. Unlike the BASE API, which only goes back to 2012, it has every contract, and it's also more up to date. However, its rate limit is very restrictive, allowing only one request every 2 seconds, so a full scrape of about 2.5M contracts takes about 59 days.
 
+[dados.gov](https://dados.gov.pt/) also has this data, but it's the same data as the BASE API and is only published weekly, so we don't use it.
+
 ## Pipeline
 
 ```mermaid
