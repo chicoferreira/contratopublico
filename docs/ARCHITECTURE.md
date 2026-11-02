@@ -4,11 +4,11 @@ How contract data gets from its sources to the site: where it comes from and how
 
 ## Data sources
 
-The data comes from two sources, the [BASE API](https://www.base.gov.pt/APIBase2) and the [Portal BASE website](https://www.base.gov.pt/). Both have contracts, entities and modifications, but each has fields the other doesn't, so we need both.
+The data comes from two sources, the [BASE API](https://www.base.gov.pt/APIBase2) and the [Portal BASE website](https://www.base.gov.pt/). Both have contracts, entities and modifications, but each has fields the other doesn't and they differ a lot in how fast they can be read, so we need both.
 
-The BASE API requires an access token. TODO EXPLAIN HOW TO OBTAIN THE TOKEN. A full download takes about 8 minutes, and it can also return only the contracts published or changed in the last days.
+The BASE API requires an access token. TODO EXPLAIN HOW TO OBTAIN THE TOKEN. A full download takes about 8 minutes, so we can use it to refresh the whole database quickly. It can also return only the contracts published or changed in the last days.
 
-The Portal BASE website is public, and we scrape the API that feeds the frontend. Unlike the BASE API, which only goes back to 2012, it has every contract, and it's also more up to date. However, its rate limit is very restrictive, allowing only one request every 2 seconds, so a full scrape of about 2.5M contracts takes about 59 days.
+The Portal BASE website is public, and we scrape the API that feeds the frontend. Unlike the BASE API, which only goes back to 2012, it has every contract. It's also more up to date, and it's the only source of documents, invitees and entity ids. However, its rate limit is very restrictive, allowing only one request every 2 seconds, so a full scrape of about 2.5M contracts takes about 59 days.
 
 [dados.gov](https://dados.gov.pt/) also has this data, but it's the same data as the BASE API and is only published weekly, so we don't use it.
 
