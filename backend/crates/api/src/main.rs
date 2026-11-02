@@ -62,9 +62,9 @@ async fn main() -> anyhow::Result<()> {
     let blocklist = Arc::new(Blocklist::load(&args.blocklist_path)?);
 
     let search_database = SearchDatabase::new_from_config(args.meilisearch_config)?;
-    let contract_database = ContractDatabase::new_from_config(args.postgres_config).await?;
+    let pool = args.postgres_config.connect().await?;
+    let contract_database = ContractDatabase::new(pool.clone());
 
-    let pool = contract_database.pool().clone();
     let scraper_store = Arc::new(
         Store::new(pool.clone(), args.saved_pages_path)
             .context("Failed to create scraper store")?,

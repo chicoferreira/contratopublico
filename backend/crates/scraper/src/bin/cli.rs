@@ -97,7 +97,7 @@ async fn main() -> anyhow::Result<()> {
             postgres_config,
             meilisearch_config,
         } => {
-            let contract_database = ContractDatabase::new_from_config(postgres_config).await?;
+            let contract_database = ContractDatabase::new(postgres_config.connect().await?);
             let search_database = SearchDatabase::new(meilisearch_config.create_client()?);
             tokio::select! {
                 result = search::rebuild::rebuild_search_index(&contract_database, &search_database) => result?,

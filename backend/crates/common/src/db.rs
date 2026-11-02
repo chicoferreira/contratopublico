@@ -80,14 +80,14 @@ pub struct PostgresConfig {
     pub postgres_db: String,
 }
 
-impl ContractDatabase {
-    pub async fn new_from_config(config: PostgresConfig) -> anyhow::Result<Self> {
+impl PostgresConfig {
+    pub async fn connect(&self) -> anyhow::Result<PgPool> {
         let options = sqlx::postgres::PgConnectOptions::new()
-            .host(&config.postgres_host)
-            .port(config.postgres_port)
-            .username(&config.postgres_user)
-            .password(&config.postgres_password)
-            .database(&config.postgres_db);
+            .host(&self.postgres_host)
+            .port(self.postgres_port)
+            .username(&self.postgres_user)
+            .password(&self.postgres_password)
+            .database(&self.postgres_db);
 
         let pg_pool = PgPool::connect_with(options)
             .await
@@ -98,15 +98,13 @@ impl ContractDatabase {
             .await
             .context("Failed to run migrations")?;
 
-        Ok(Self::new(pg_pool))
+        Ok(pg_pool)
     }
+}
 
+impl ContractDatabase {
     pub fn new(pool: PgPool) -> Self {
         Self { pool }
-    }
-
-    pub fn pool(&self) -> &PgPool {
-        &self.pool
     }
 
     pub async fn list_contract_ids_after(
