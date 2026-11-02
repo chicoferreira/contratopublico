@@ -7,15 +7,14 @@ use std::{
 
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
-use sqlx::PgPool;
 
 use crate::{
-    sources::{self, ContractSource, base_portal::BasePortalContract},
+    sources::{ContractSource, base_portal::BasePortalContract, db::RawContractDatabase},
     util::range_set::RangeSet,
 };
 
 pub struct Store {
-    pool: PgPool,
+    raw_contract_database: RawContractDatabase,
     scrape_progress: Mutex<ScrapeProgress>,
     path: PathBuf,
 }
@@ -72,12 +71,15 @@ impl Store {
             .context("Failed to open saved pages file")
     }
 
-    pub fn new(pool: PgPool, scrape_progress_path: PathBuf) -> anyhow::Result<Self> {
+    pub fn new(
+        raw_contract_database: RawContractDatabase,
+        scrape_progress_path: PathBuf,
+    ) -> anyhow::Result<Self> {
         let scrape_progress =
             Self::load_progress(&scrape_progress_path).context("Failed to load progress")?;
 
         Ok(Self {
-            pool,
+            raw_contract_database,
             scrape_progress: Mutex::new(scrape_progress),
             path: scrape_progress_path,
         })
@@ -100,7 +102,8 @@ impl Store {
         contracts_per_page: usize,
     ) -> anyhow::Result<()> {
         let id = contract.id;
-        sources::save_raw_contracts(&self.pool, ContractSource::BasePortal, &[(id, contract)])
+        self.raw_contract_database
+            .save_contracts(ContractSource::BasePortal, &[(id, contract)])
             .await
             .context("Failed to save raw contract in database")?;
 

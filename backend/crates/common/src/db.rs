@@ -282,6 +282,12 @@ impl ContractDatabase {
     pub async fn insert_contract(&self, contract: &Contract) -> Result<(), sqlx::Error> {
         let mut tx = self.pool.begin().await?;
 
+        // ON DELETE CASCADE also deletes every row of this contract in the relationship tables
+        sqlx::query("DELETE FROM contracts WHERE id = $1")
+            .bind(contract.id as i64)
+            .execute(&mut *tx)
+            .await?;
+
         for cpv in &contract.cpvs {
             sqlx::query!(
                 "INSERT INTO cpv (code, designation) VALUES ($1, $2) ON CONFLICT (code) DO NOTHING",

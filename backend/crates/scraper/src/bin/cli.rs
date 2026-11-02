@@ -2,7 +2,6 @@ use std::path::PathBuf;
 
 use clap::Parser;
 use common::{
-    Contract,
     db::{ContractDatabase, PostgresConfig},
     searchdb::{MeilisearchConfig, SearchDatabase},
 };
@@ -82,7 +81,6 @@ async fn main() -> anyhow::Result<()> {
         } => {
             let base_portal_client = BasePortalClient::new(base_gov_client_proxy);
             let contract = base_portal_client.get_contract_details(contract_id).await?;
-            let contract = Contract::try_from(contract)?;
 
             info!("Fetched contract: {contract:#?}")
         }

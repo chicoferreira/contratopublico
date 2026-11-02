@@ -1,7 +1,6 @@
 //! Scraper for the public Portal BASE website at <https://www.base.gov.pt/base4>.
 
 pub mod client;
-mod convert;
 pub mod scraper;
 pub mod store;
 pub mod throttled_client;

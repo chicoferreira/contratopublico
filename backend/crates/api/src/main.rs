@@ -9,6 +9,7 @@ use reqwest::Url;
 use scraper::sources::{
     base_api::{self, client::BaseApiClient},
     base_portal::{self, client::BasePortalClient, store::Store},
+    db::RawContractDatabase,
 };
 use std::{io::IsTerminal, net::SocketAddr, path::PathBuf, sync::Arc, time::Duration};
 use tokio::signal;
@@ -61,35 +62,27 @@ async fn main() -> anyhow::Result<()> {
 
     let blocklist = Arc::new(Blocklist::load(&args.blocklist_path)?);
 
-    let search_database = SearchDatabase::new_from_config(args.meilisearch_config)?;
+    let search_db = SearchDatabase::new_from_config(args.meilisearch_config)?;
     let pool = args.postgres_config.connect().await?;
-    let contract_database = ContractDatabase::new(pool.clone());
+    let contract_db = ContractDatabase::new(pool.clone());
 
-    let scraper_store = Arc::new(
-        Store::new(pool.clone(), args.saved_pages_path)
-            .context("Failed to create scraper store")?,
-    );
-
-    let app_state = AppState::new(search_database, contract_database);
+    let app_state = AppState::new(search_db.clone(), contract_db.clone());
     app_state
         .prepare_settings()
         .await
         .context("Failed to prepare indexes")?;
 
     if !args.no_scraper {
-        if let Some(token) = args.base_api_token {
-            let client = BaseApiClient::new(token);
-            tokio::spawn(base_api::scraper::run_sync_task(client, pool));
-        } else {
-            warn!("BASE_API_TOKEN is not set, skipping the BASE API");
-        }
-
-        let client = BasePortalClient::new(args.base_gov_client_proxy);
-        tokio::spawn(base_portal::scraper::run_scrape_task(
-            client,
-            scraper_store,
+        let raw_contract_db = RawContractDatabase::new(pool.clone());
+        run_scraper(
+            raw_contract_db,
+            contract_db,
+            search_db,
+            args.saved_pages_path,
             Duration::from_secs(args.scraper_interval_secs),
-        ));
+            args.base_gov_client_proxy,
+            args.base_api_token,
+        )?;
     }
 
     tokio::spawn(statistics::run_reload_statistics_task(app_state.clone()));
@@ -120,6 +113,45 @@ async fn main() -> anyhow::Result<()> {
 
     metrics_task.context("Failed to serve metrics")?;
     backend_task.context("Failed to serve backend")
+}
+
+fn run_scraper(
+    raw_contract_db: RawContractDatabase,
+    contract_db: ContractDatabase,
+    search_db: SearchDatabase,
+    saved_pages_path: PathBuf,
+    scraper_interval: Duration,
+    base_gov_client_proxy: Option<Url>,
+    base_api_token: Option<String>,
+) -> anyhow::Result<()> {
+    let scraper_store = Store::new(raw_contract_db.clone(), saved_pages_path)
+        .context("Failed to create scraper store")?;
+    let scraper_store = Arc::new(scraper_store);
+
+    if let Some(token) = base_api_token {
+        let client = BaseApiClient::new(token);
+        tokio::spawn(base_api::scraper::run_sync_task(
+            client,
+            raw_contract_db.clone(),
+        ));
+    } else {
+        warn!("BASE_API_TOKEN is not set, skipping the BASE API");
+    }
+
+    let client = BasePortalClient::new(base_gov_client_proxy);
+    tokio::spawn(base_portal::scraper::run_scrape_task(
+        client,
+        scraper_store,
+        scraper_interval,
+    ));
+
+    tokio::spawn(scraper::join::run_join_task(
+        raw_contract_db,
+        contract_db,
+        search_db,
+    ));
+
+    Ok(())
 }
 
 fn init_logging() {

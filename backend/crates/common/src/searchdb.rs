@@ -43,13 +43,13 @@ impl SearchDatabase {
         self.client.index("contracts")
     }
 
-    pub async fn save_contract(&self, contract: Contract) -> Result<TaskInfo, MeilisearchError> {
-        let index = self.index();
-        let searchable_contract: SearchableContract = contract.into();
+    pub async fn save_contracts(
+        &self,
+        contracts: Vec<Contract>,
+    ) -> Result<TaskInfo, MeilisearchError> {
+        let contracts: Vec<SearchableContract> = contracts.into_iter().map(Into::into).collect();
 
-        index
-            .add_documents(&[searchable_contract], Some("id"))
-            .await
+        self.index().add_documents(&contracts, Some("id")).await
     }
 
     pub fn client(&self) -> &Client {
