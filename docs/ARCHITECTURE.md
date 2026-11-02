@@ -30,15 +30,15 @@ flowchart LR
 
 The Portal BASE is scraped as new contracts appear, respecting the rate limit. The scraper goes through each page of contracts, checks whether any haven't been scraped yet, and downloads each of those.
 
-The BASE API is checked every hour. We download the contracts published or changed in the last 2 days, adding the new ones and updating the ones we already have. To catch any changes that were missed, every week, every contract is downloaded again and updated. This is also run manually when needed (e.g., when first setting up the database).
+The BASE API is checked every hour. We download the contracts published or changed in the last 2 days, adding the new ones and updating the ones we already have. To catch any changes that were missed, every contract is downloaded again every week. This is also run manually when needed (e.g., when first setting up the database).
 
 The BASE API can return several rows for the same contract id. How we handle this is TBD.
 
 When a contract in the BASE API changes (the fetched data is different from the saved data), the contract is fetched again from the Portal BASE, so both sources stay up to date.
 
-If a contract that is saved in the database no longer appears in a full BASE API download, we need to handle the deletion. This is still TDB, but one option is to fetch it from the Portal BASE, and mark it as deleted if the portal returns an empty record as well.
+If a contract that is saved in the database no longer appears in a full BASE API download, we need to handle the deletion. This is still TBD, but one option is to fetch it from the Portal BASE, and mark it as deleted if the portal returns an empty record as well.
 
-The data from each source is saved as received in a table, `raw_contracts`, with one row per contract and source. The join step processes it later.
+The data from each source is saved as received in the `raw_contracts` table, with one row per contract and source. The join step processes it later.
 
 ```sql
 CREATE TYPE contract_source AS ENUM ('base_portal', 'base_api');
@@ -58,6 +58,23 @@ This lets us run the join step again whenever we want to handle existing fields 
 
 The join merges the data from both sources into one coherent contract, with every field parsed and in a consistent format. The result is saved to the `contracts` table in Postgres and to Meilisearch, which is what the site uses.
 
+The contracts to join are kept in a `join_queue` table. A trigger on `raw_contracts` adds a contract to it every time one of its rows is added or changes. Periodically, the joiner goes through the queue: for each contract, it reads its rows from `raw_contracts`, joins them, saves the result to `contracts` and Meilisearch, and removes the contract from the queue.
+
+```sql
+CREATE TABLE join_queue (
+    contract_id BIGINT PRIMARY KEY,
+    version BIGINT NOT NULL DEFAULT 0
+);
+
+CREATE TRIGGER raw_contracts_inserted AFTER INSERT ON raw_contracts
+REFERENCING NEW TABLE AS changed FOR EACH STATEMENT EXECUTE FUNCTION enqueue_join();
+
+CREATE TRIGGER raw_contracts_updated AFTER UPDATE ON raw_contracts
+REFERENCING NEW TABLE AS changed FOR EACH STATEMENT EXECUTE FUNCTION enqueue_join();
+```
+
+A contract can change again while it's being joined, so each queue entry also has a version, which goes up every time the contract is queued again. The joiner only removes a contract from the queue if its version didn't change during the join. Otherwise, it's joined again on the next run.
+
 ### Serving
 
-The API reads contracts from Postgres, searches them through Meilisearch, and returns them to the frontend.
+The API reads contracts from the `contracts` table, searches them through Meilisearch, and returns them to the frontend.
