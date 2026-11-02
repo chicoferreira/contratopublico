@@ -11,8 +11,8 @@ export interface Contract {
   initialContractualPrice: number;
   regime: string | null;
   contractStatus: string | null;
-  nonWrittenContractJustificationTypes: string;
-  contractTypes: string;
+  nonWrittenContractJustificationTypes: string[];
+  contractTypes: string[];
   executionDeadlineDays: number;
   executionPlaces: string[];
   contractFundamentationType: string;
@@ -22,7 +22,7 @@ export interface Contract {
   ccp: boolean;
   contractingProcedureUrl: string;
   announcementId: number | null;
-  directAwardFundamentationType: string;
+  directAwardFundamentationType: string | null;
   observations: string | null;
   endOfContractType: string | null;
   closeDate: string | null;

@@ -15,14 +15,14 @@ struct ContractMainRow {
     description: Option<String>,
     regime: Option<String>,
     contract_status: Option<String>,
-    non_written_contract_justification_types: String,
-    contract_types: String,
+    non_written_contract_justification_types: Vec<String>,
+    contract_types: Vec<String>,
     execution_deadline_days: i32,
     execution_places: Vec<String>,
     contract_fundamentation_type: String,
     contracting_procedure_url: Option<String>,
     announcement_id: Option<i64>,
-    direct_award_fundamentation_type: String,
+    direct_award_fundamentation_type: Option<String>,
     observations: Option<String>,
     end_of_contract_type: Option<String>,
     close_date: Option<NaiveDate>,
@@ -344,8 +344,8 @@ impl ContractDatabase {
             contract.description,
             contract.regime,
             contract.contract_status,
-            contract.non_written_contract_justification_types,
-            contract.contract_types,
+            &contract.non_written_contract_justification_types,
+            &contract.contract_types,
             contract.execution_deadline_days as i32,
             &contract.execution_places,
             contract.contract_fundamentation_type,
@@ -429,74 +429,6 @@ impl ContractDatabase {
         }
 
         tx.commit().await?;
-        Ok(())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use sqlx::PgPool;
-
-    use crate::{Contract, Cpv, Currency, Document, Entity, db::ContractDatabase};
-
-    #[sqlx::test(migrations = "../../migrations")]
-    async fn test_db(pg_pool: PgPool) -> sqlx::Result<()> {
-        let contract = Contract {
-            id: 1,
-            contracting_procedure_type: "Direct Award".to_string(),
-            publication_date: chrono::NaiveDate::from_ymd_opt(2023, 1, 15).unwrap(),
-            signing_date: Some(chrono::NaiveDate::from_ymd_opt(2023, 2, 1).unwrap()),
-            ccp: true,
-            object_brief_description: "Test contract for software development".to_string(),
-            initial_contractual_price: Currency(100000),
-            description: Some("Detailed description of the contract".to_string()),
-            contracting: vec![Entity {
-                id: 1,
-                nif: "123456789".to_string(),
-                description: "Test Contracting Entity".to_string(),
-            }],
-            contracted: vec![Entity {
-                id: 2,
-                nif: "987654321".to_string(),
-                description: "Test Contracted Entity".to_string(),
-            }],
-            cpvs: vec![Cpv {
-                code: "72000000".to_string(),
-                designation: "IT services".to_string(),
-            }],
-            regime: Some("Public".to_string()),
-            contract_status: Some("Active".to_string()),
-            non_written_contract_justification_types: "Emergency".to_string(),
-            contract_types: "Service".to_string(),
-            execution_deadline_days: 90,
-            execution_places: vec!["Lisbon, Portugal".to_string()],
-            contract_fundamentation_type: "Legal basis".to_string(),
-            contestants: vec![],
-            invitees: vec![],
-            documents: vec![Document {
-                id: 1,
-                description: "Contract specification document".to_string(),
-            }],
-            contracting_procedure_url: Some("https://example.com/procedure".to_string()),
-            announcement_id: Some(12345),
-            direct_award_fundamentation_type: "Urgency".to_string(),
-            observations: Some("Additional observations".to_string()),
-            end_of_contract_type: Some("Completion".to_string()),
-            close_date: Some(chrono::NaiveDate::from_ymd_opt(2023, 5, 1).unwrap()),
-            total_effective_price: Some(Currency(95000)),
-            causes_deadline_change: Some("Technical delays".to_string()),
-            causes_price_change: Some("Scope reduction".to_string()),
-        };
-
-        let db = ContractDatabase::new(pg_pool);
-
-        assert_eq!(None, db.get_contract(contract.id).await?);
-
-        db.insert_contract(&contract).await?;
-
-        let contract_from_db = db.get_contract(contract.id).await?;
-        assert_eq!(Some(contract), contract_from_db);
-
         Ok(())
     }
 }

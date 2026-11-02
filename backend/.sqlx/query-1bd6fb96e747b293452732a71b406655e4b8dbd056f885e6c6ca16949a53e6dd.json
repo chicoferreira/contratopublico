@@ -56,12 +56,12 @@
       {
         "ordinal": 10,
         "name": "non_written_contract_justification_types",
-        "type_info": "Text"
+        "type_info": "TextArray"
       },
       {
         "ordinal": 11,
         "name": "contract_types",
-        "type_info": "Text"
+        "type_info": "TextArray"
       },
       {
         "ordinal": 12,
@@ -147,7 +147,7 @@
       false,
       true,
       true,
-      false,
+      true,
       true,
       true,
       true,

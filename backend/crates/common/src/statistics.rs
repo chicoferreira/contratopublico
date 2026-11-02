@@ -79,35 +79,10 @@ mod tests {
     ) {
         let contract = Contract {
             id,
-            contracting_procedure_type: String::new(),
             publication_date: date,
             signing_date: Some(date),
-            ccp: false,
-            object_brief_description: String::new(),
             initial_contractual_price: Currency(price),
-            description: None,
-            contracting: Vec::new(),
-            contracted: Vec::new(),
-            cpvs: Vec::new(),
-            regime: None,
-            contract_status: None,
-            non_written_contract_justification_types: String::new(),
-            contract_types: String::new(),
-            execution_deadline_days: 0,
-            execution_places: Vec::new(),
-            contract_fundamentation_type: String::new(),
-            contestants: Vec::new(),
-            invitees: Vec::new(),
-            documents: Vec::new(),
-            contracting_procedure_url: None,
-            announcement_id: None,
-            direct_award_fundamentation_type: String::new(),
-            observations: None,
-            end_of_contract_type: None,
-            close_date: None,
-            total_effective_price: None,
-            causes_deadline_change: None,
-            causes_price_change: None,
+            ..Contract::default()
         };
 
         contract_database.insert_contract(&contract).await.unwrap();

@@ -215,7 +215,8 @@
           </p>
           <p class="text-muted-foreground">
             Tipo de contrato:
-            <span class="text-foreground font-medium">{contract.contractTypes}</span>
+            <span class="text-foreground font-medium"
+              >{contract.contractTypes.join(", ") || "—"}</span>
           </p>
           <p class="text-muted-foreground">
             Regime:
@@ -225,18 +226,20 @@
             Fundamentação:
             <span class="text-foreground font-medium">{contract.contractFundamentationType}</span>
           </p>
-          <p class="text-muted-foreground">
-            Fundamentação (ajuste direto):
-            <span class="text-foreground font-medium">
-              {contract.directAwardFundamentationType}
-            </span>
-          </p>
-          {#if contract.nonWrittenContractJustificationTypes}
+          {#if contract.directAwardFundamentationType}
+            <p class="text-muted-foreground">
+              Fundamentação (ajuste direto):
+              <span class="text-foreground font-medium">
+                {contract.directAwardFundamentationType}
+              </span>
+            </p>
+          {/if}
+          {#if contract.nonWrittenContractJustificationTypes.length}
             <p class="text-muted-foreground">
               Justificação não escrita:
-              <span class="text-foreground font-medium">
-                {contract.nonWrittenContractJustificationTypes}
-              </span>
+              {#each contract.nonWrittenContractJustificationTypes as justification, index (`${justification}-${index}`)}
+                <span class="text-foreground block font-medium">{justification}</span>
+              {/each}
             </p>
           {/if}
           {#if contract.observations}

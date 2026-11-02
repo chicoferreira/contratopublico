@@ -5,7 +5,7 @@ pub mod db;
 pub mod searchdb;
 pub mod statistics;
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Default, Serialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Contract {
     pub id: u64,
@@ -21,8 +21,8 @@ pub struct Contract {
     pub cpvs: Vec<Cpv>,
     pub regime: Option<String>,
     pub contract_status: Option<String>,
-    pub non_written_contract_justification_types: String,
-    pub contract_types: String,
+    pub non_written_contract_justification_types: Vec<String>,
+    pub contract_types: Vec<String>,
     pub execution_deadline_days: usize,
     pub execution_places: Vec<String>,
     pub contract_fundamentation_type: String,
@@ -31,7 +31,7 @@ pub struct Contract {
     pub documents: Vec<Document>,
     pub contracting_procedure_url: Option<String>,
     pub announcement_id: Option<usize>,
-    pub direct_award_fundamentation_type: String,
+    pub direct_award_fundamentation_type: Option<String>,
     pub observations: Option<String>,
     pub end_of_contract_type: Option<String>,
     pub close_date: Option<NaiveDate>,
@@ -61,7 +61,7 @@ pub struct Document {
 
 /// A currency value that is represented as a `isize`.
 /// The last two digits always represent cents.
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, Default)]
 pub struct Currency(pub isize);
 
 /// The contract struct that will be saved in meilisearch
@@ -79,7 +79,7 @@ pub struct SearchableContract {
     pub contracted: Vec<Entity>,
     pub cpvs: Vec<Cpv>,
     pub regime: Option<String>,
-    pub contract_types: String,
+    pub contract_types: Vec<String>,
     pub execution_places: Vec<String>,
     pub contract_fundamentation_type: String,
     pub contestants: Vec<Entity>,

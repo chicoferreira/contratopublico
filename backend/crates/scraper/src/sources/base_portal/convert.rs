@@ -5,6 +5,8 @@ use itertools::Itertools;
 
 use crate::sources::base_portal::{BasePortalContract, BasePortalDocument, BasePortalEntity};
 
+const DIRECT_AWARD_NOT_APPLICABLE: &str = "Não aplicável";
+
 impl TryFrom<BasePortalContract> for Contract {
     type Error = anyhow::Error;
 
@@ -27,9 +29,11 @@ impl TryFrom<BasePortalContract> for Contract {
             cpvs: parse_cpvs(&contract.cpvs, &contract.cpvs_designation)?,
             regime: contract.regime,
             contract_status: contract.contract_status,
-            non_written_contract_justification_types: contract
-                .non_written_contract_justification_types,
-            contract_types: contract.contract_types,
+            non_written_contract_justification_types: parse_list(
+                &contract.non_written_contract_justification_types,
+                "<br/>",
+            ),
+            contract_types: parse_list(&contract.contract_types, "<br/>"),
             execution_deadline_days: parse_execution_deadline(&contract.execution_deadline)?,
             execution_places: parse_execution_places(&contract.execution_place),
             contract_fundamentation_type: contract.contract_fundamentation_type,
@@ -38,7 +42,8 @@ impl TryFrom<BasePortalContract> for Contract {
             documents: contract.documents.into_iter().map(Into::into).collect(),
             contracting_procedure_url: contract.contracting_procedure_url,
             announcement_id: usize::try_from(contract.announcement_id).ok(),
-            direct_award_fundamentation_type: contract.direct_award_fundamentation_type,
+            direct_award_fundamentation_type: Some(contract.direct_award_fundamentation_type)
+                .filter(|value| value != DIRECT_AWARD_NOT_APPLICABLE),
             observations: contract.observations,
             end_of_contract_type: contract.end_of_contract_type,
             close_date: contract.close_date.as_deref().map(parse_date).transpose()?,
@@ -111,6 +116,15 @@ fn parse_execution_places(places: &str) -> Vec<String> {
         .unique()
         .map(str::to_string)
         .collect_vec()
+}
+
+fn parse_list(list: &str, separator: &str) -> Vec<String> {
+    list.split(separator)
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .unique()
+        .map(str::to_string)
+        .collect()
 }
 
 fn parse_cpvs(codes: &str, designations: &str) -> anyhow::Result<Vec<Cpv>> {
