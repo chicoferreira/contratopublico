@@ -36,7 +36,7 @@ impl BaseApiClient {
         self.fetch(CONTRACTS_URL, &[("Ano", year)]).await
     }
 
-    /// Fetches the contracts added or changed in the last `days` days, up to 90.
+    /// Fetches the contracts whose last update was in the last `days` days, up to 90.
     pub async fn fetch_by_previous_days(&self, days: u16) -> anyhow::Result<Vec<BaseApiContract>> {
         self.fetch(CONTRACTS_URL, &[("numDias", days)]).await
     }

@@ -6,7 +6,7 @@ How contract data gets from its sources to the site: where it comes from and how
 
 The data comes from two sources, the [BASE API](https://www.base.gov.pt/APIBase2) and the [Portal BASE website](https://www.base.gov.pt/). Both have contracts, entities and modifications, but each has fields the other doesn't and they differ a lot in how fast they can be read, so we need both.
 
-The BASE API requires an access token. A full download takes about 8 minutes, so we can use it to refresh the whole database quickly. It can also return only the contracts published or changed in the last days.
+The BASE API requires an access token. A full download takes about 8 minutes, so we can use it to refresh the whole database quickly. It can also return only the contracts whose last update was in the last few days.
 
 To get a token, you can open a ticket on the [IMPIC helpdesk](https://www.impic.pt/support/open.php) with the topic "Contratos Publicos / Pedido de acesso a API Portal Base". IMPIC sends the token once they approve the request.
 
@@ -32,7 +32,7 @@ flowchart LR
 
 The Portal BASE is scraped as new contracts appear, respecting the rate limit. The scraper goes through each page of contracts, checks whether any haven't been scraped yet, and downloads each of those.
 
-The BASE API is checked every hour. We download the contracts published or changed in the last 2 days, adding the new ones and updating the ones we already have. To catch any changes that were missed, every contract is downloaded again every week. This is also run manually with the CLI when needed (e.g., when first setting up the database).
+The BASE API is checked every hour. We download the contracts whose last update was in the last 2 days, adding the new ones and updating the ones we already have. To catch any changes that were missed, every contract is downloaded again every week. This is also run manually with the CLI when needed (e.g., when first setting up the database).
 
 The BASE API can return several rows for the same contract id. How we handle this is TBD.
 
