@@ -36,8 +36,6 @@ The BASE API is checked every hour. We download the contracts published or chang
 
 The BASE API can return several rows for the same contract id. How we handle this is TBD.
 
-When a contract in the BASE API changes (the fetched data is different from the saved data), the contract is fetched again from the Portal BASE, so both sources stay up to date.
-
 If a contract that is saved in the database no longer appears in a full BASE API download, we need to handle the deletion. This is still TBD, but one option is to fetch it from the Portal BASE, and mark it as deleted if the portal returns an empty record as well.
 
 The data from each source is saved as received in the `raw_contracts` table, with one row per contract and source. The join step processes it later.
@@ -56,11 +54,27 @@ CREATE TABLE raw_contracts (
 
 This lets us run the join step again whenever we want to handle existing fields differently.
 
+When a contract in the BASE API changes (the fetched data is different from the saved data), the contract is fetched again from the Portal BASE, so both sources stay up to date. Most of these changes happen when a contract is closed, which adds a close date, a final price and an end-of-contract type. The portal usually changes at the same time.
+
+The contracts to fetch again are kept in a `portal_refetch_queue` table. The scraper then fetches every contract in the queue, and removes each one once it's saved.
+
+```sql
+CREATE TABLE portal_refetch_queue (
+    contract_id BIGINT PRIMARY KEY,
+    version BIGINT NOT NULL DEFAULT 0
+);
+
+CREATE TRIGGER base_api_contracts_updated AFTER UPDATE ON raw_contracts
+REFERENCING NEW TABLE AS changed FOR EACH STATEMENT EXECUTE FUNCTION enqueue_portal_refetch();
+```
+
+A contract can change again while it's being fetched, so each queue entry also has a version, which goes up every time the contract is queued again. The scraper only removes a contract from the queue if its version didn't change during the fetch. Otherwise, it's fetched again.
+
 ### Join
 
 The join merges the data from both sources into one coherent contract, with every field parsed and in a consistent format. The result is saved to the `contracts` table in Postgres and to Meilisearch, which is what the site uses.
 
-The contracts to join are kept in a `join_queue` table. A trigger on `raw_contracts` adds a contract to it every time one of its rows is added or changes. Periodically, the joiner goes through the queue: for each contract, it reads its rows from `raw_contracts`, joins them, saves the result to `contracts` and Meilisearch, and removes the contract from the queue.
+The contracts to join are kept in a `join_queue` table, which works like the [portal refetch queue](#fetch). A trigger on `raw_contracts` adds a contract to it every time one of its rows is added or changes. Periodically, the joiner goes through the queue: for each contract, it reads its rows from `raw_contracts`, joins them, saves the result to `contracts` and Meilisearch, and removes the contract from the queue.
 
 ```sql
 CREATE TABLE join_queue (
@@ -75,7 +89,7 @@ CREATE TRIGGER raw_contracts_updated AFTER UPDATE ON raw_contracts
 REFERENCING NEW TABLE AS changed FOR EACH STATEMENT EXECUTE FUNCTION enqueue_join();
 ```
 
-A contract can change again while it's being joined, so each queue entry also has a version, which goes up every time the contract is queued again. The joiner only removes a contract from the queue if its version didn't change during the join. Otherwise, it's joined again on the next run.
+If a contract changes again while it's being joined, its version goes up, so it stays in the queue and is joined again on the next run, just like in the refetch queue.
 
 ### Serving
 

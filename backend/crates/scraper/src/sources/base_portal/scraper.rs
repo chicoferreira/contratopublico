@@ -1,10 +1,10 @@
 use crate::{
     metrics::{self, ContractFailure},
     sources::base_portal::{
-        self,
+        self, BasePortalContract,
         client::{BasePortalClient, ContractSort},
         store::Store,
-        throttled_client::{MAX_CONSECUTIVE_FAILURES, ThrottledClient},
+        throttled_client::ThrottledClient,
     },
 };
 use governor::Quota;
@@ -18,7 +18,6 @@ const CONTRACT_SORT_ORDER: ContractSort = base_portal::client::ContractSort {
     order: base_portal::client::SortOrder::Ascending,
 };
 
-const MAX_CONCURRENT_REQUESTS: usize = 1;
 const MAX_CONTRACT_ATTEMPTS: usize = 3;
 
 fn max_request_quota() -> Quota {
@@ -26,166 +25,189 @@ fn max_request_quota() -> Quota {
 }
 
 pub async fn run_scrape_task(client: BasePortalClient, store: Arc<Store>, interval: Duration) {
+    let client = ThrottledClient::new(client, max_request_quota());
+
+    let mut listener = match store.listen_refetches().await {
+        Ok(listener) => listener,
+        Err(e) => {
+            error!("{e:?}");
+            return;
+        }
+    };
+
+    let mut failed_refetches = Vec::new();
+    let mut scan: Option<PageScan> = None;
+    let mut scan_start = Instant::now();
+    let mut next_scan = Instant::now();
+
     loop {
-        scrape(store.clone(), client.clone()).await;
-        metrics::next_run_in(interval);
-        tokio::time::sleep(interval).await;
+        refetch_queued_contracts(&client, &store, &mut failed_refetches).await;
+
+        if let Some(current_scan) = &mut scan {
+            if !current_scan.step(&client, &store).await {
+                metrics::run_finished(true, scan_start.elapsed());
+                metrics::next_run_in(interval);
+                next_scan = Instant::now() + interval;
+                scan = None;
+            }
+            continue;
+        }
+
+        tokio::select! {
+            result = listener.recv() => {
+                // A notification was received, so jump to the start of the loop to refetch the queued contracts again.
+                if let Err(e) = result {
+                    error!("Failed to wait for the portal refetch queue:\n{e:?}");
+                    tokio::time::sleep_until(next_scan).await;
+                }
+            }
+            _ = tokio::time::sleep_until(next_scan) => {
+                metrics::run_started();
+                scan_start = Instant::now();
+                failed_refetches.clear();
+                scan = Some(PageScan::default());
+            }
+        }
     }
 }
 
-async fn scrape(store: Arc<Store>, base_portal_client: BasePortalClient) {
-    let start = Instant::now();
-    metrics::run_started();
-
-    let client = ThrottledClient::new(
-        base_portal_client,
-        MAX_CONCURRENT_REQUESTS,
-        max_request_quota(),
-    );
-
-    let (id_tx, id_rx) = tokio::sync::mpsc::channel(MAX_CONCURRENT_REQUESTS);
-
-    let fetch_task = run_fetch_ids_task(&client, store.clone(), id_tx);
-    let details_task = run_fetch_details_task(&client, store, id_rx);
-
-    let (completed, ()) = tokio::join!(fetch_task, details_task);
-
-    metrics::run_finished(completed, start.elapsed());
-}
-
-struct ContractLocation {
-    id: u64,
-    page: usize,
-    retries: usize,
-}
-
-async fn run_fetch_ids_task(
+/// Fetches again the contracts that changed in the BASE API, until the queue is empty.
+///
+/// A contract that fails is kept in the queue and skipped until the next scan.
+async fn refetch_queued_contracts(
     client: &ThrottledClient,
-    store: Arc<Store>,
-    id_tx: tokio::sync::mpsc::Sender<ContractLocation>,
-) -> bool {
-    let mut completed = false;
-    let mut total_pages = None;
-    let mut current_page = 0_usize;
-
+    store: &Store,
+    failed_refetches: &mut Vec<i64>,
+) {
     loop {
-        if total_pages.is_some_and(|total_pages| current_page >= total_pages) {
-            completed = true;
-            break;
+        let entry = match store.next_refetch(failed_refetches).await {
+            Ok(Some(entry)) => entry,
+            Ok(None) => return,
+            Err(e) => {
+                error!("{e:?}");
+                return;
+            }
+        };
+
+        if !fetch_and_save(client, store, entry.contract_id as u64).await {
+            failed_refetches.push(entry.contract_id);
+            continue;
         }
 
-        current_page = store.get_next_page_to_query(current_page);
-        metrics::page_progress(current_page, total_pages);
+        if let Err(e) = store.dequeue_refetch(entry).await {
+            error!("{e:?}");
+            failed_refetches.push(entry.contract_id);
+        }
+    }
+}
 
-        let total_pages_str = total_pages
+#[derive(Default)]
+struct PageScan {
+    total_pages: Option<usize>,
+    next_page: usize,
+    page: usize,
+    ids: VecDeque<u64>,
+}
+
+impl PageScan {
+    /// Fetches the next contract of the current page, or the next page.
+    ///
+    /// Returns `false` once every page was scanned.
+    async fn step(&mut self, client: &ThrottledClient, store: &Store) -> bool {
+        while let Some(id) = self.ids.pop_front() {
+            if store.already_exists(id, self.page).await {
+                info!("Contract {id} already exists, skipping...");
+                continue;
+            }
+
+            if fetch_and_save(client, store, id).await
+                && let Err(e) = store.mark_saved(id, self.page, MAX_PAGE_SIZE)
+            {
+                error!("{e:?}");
+            }
+            return true;
+        }
+
+        if self
+            .total_pages
+            .is_some_and(|total_pages| self.next_page >= total_pages)
+        {
+            return false;
+        }
+
+        self.page = store.get_next_page_to_query(self.next_page);
+        metrics::page_progress(self.page, self.total_pages);
+
+        let total_pages_str = self
+            .total_pages
             .map(|s| s.to_string())
             .unwrap_or("?".to_string());
 
-        info!("Fetching page {current_page}/{total_pages_str}...");
+        info!("Fetching page {}/{total_pages_str}...", self.page);
 
-        let Some(response) = client
-            .fetch_page(CONTRACT_SORT_ORDER, current_page, MAX_PAGE_SIZE)
-            .await
-        else {
-            error!("Requests failed {MAX_CONSECUTIVE_FAILURES} consecutive times, stopping");
-            break;
-        };
-
-        let response = match response {
-            Ok(response) => response,
-            Err(e) => {
-                error!("Failed to fetch IDs page {current_page}:\n{e:?}");
-                continue;
-            }
-        };
-
-        info!(
-            "Fetched page {current_page} with {} contracts",
-            response.items.len()
-        );
-
-        let minimal_contracts = response.items;
-
-        for minimal_contract in minimal_contracts {
-            // this will block this task until the receiver needs more ids to fetch because
-            // the tokio::sync::mpsc::Sender has a buffer which will create backpressure when full
-            let _ = id_tx
-                .send(ContractLocation {
-                    id: minimal_contract.id,
-                    page: current_page,
-                    retries: 0,
-                })
-                .await;
-        }
-
-        let new_total_pages = response.total / MAX_PAGE_SIZE;
-        if total_pages.is_none_or(|total_pages| total_pages < new_total_pages) {
-            total_pages = Some(new_total_pages);
-        }
-
-        current_page += 1;
-    }
-
-    completed
-}
-
-async fn run_fetch_details_task(
-    client: &ThrottledClient,
-    store: Arc<Store>,
-    mut id_rx: tokio::sync::mpsc::Receiver<ContractLocation>,
-) {
-    let mut retry_queue = VecDeque::new();
-
-    loop {
-        let next = match id_rx.try_recv().ok().or_else(|| retry_queue.pop_front()) {
-            Some(contract_location) => Some(contract_location),
-            None => id_rx.recv().await,
-        };
-        let Some(ContractLocation { id, page, retries }) = next else {
-            // The channel closed and there are no more retries, so we can exit the loop
-            break;
-        };
-
-        if retries >= MAX_CONTRACT_ATTEMPTS {
-            error!("Giving up on contract {id} after {retries} failed attempts");
-            metrics::contract_failed(ContractFailure::Fetch);
-            continue;
-        }
-
-        if store.already_exists(id, page).await {
-            info!("Contract {id} already exists, skipping...");
-            continue;
-        }
-
-        info!("Fetching details for contract {id}...");
-        let Some(response) = client.get_contract_details(id).await else {
-            break;
-        };
-
-        let contract = match response {
-            Ok(contract) => contract,
-            Err(e) => {
-                error!("Failed to fetch details for ID {id}:\n{e:?}");
-                retry_queue.push_back(ContractLocation {
-                    id,
-                    page,
-                    retries: retries + 1,
-                });
-                continue;
-            }
-        };
-
-        info!("Fetched details for contract {id}");
-
-        match store
-            .save_scraped_contract(contract, page, MAX_PAGE_SIZE)
+        let response = match client
+            .fetch_page(CONTRACT_SORT_ORDER, self.page, MAX_PAGE_SIZE)
             .await
         {
-            Ok(()) => metrics::contract_saved(),
+            Ok(response) => response,
             Err(e) => {
-                error!("Failed to save details for ID {id}:\n{:?}", e);
-                metrics::contract_failed(ContractFailure::Save);
+                error!("Failed to fetch IDs page {}:\n{e:?}", self.page);
+                return true;
             }
+        };
+
+        let len = response.items.len();
+        info!("Fetched page {} with {len} contracts", self.page);
+
+        self.ids
+            .extend(response.items.iter().map(|contract| contract.id));
+
+        let new_total_pages = response.total / MAX_PAGE_SIZE;
+        if self
+            .total_pages
+            .is_none_or(|total_pages| total_pages < new_total_pages)
+        {
+            self.total_pages = Some(new_total_pages);
+        }
+
+        self.next_page = self.page + 1;
+        true
+    }
+}
+
+async fn fetch_and_save(client: &ThrottledClient, store: &Store, id: u64) -> bool {
+    let Some(contract) = fetch_contract(client, id).await else {
+        return false;
+    };
+
+    match store.save_contract(contract).await {
+        Ok(()) => {
+            metrics::contract_saved();
+            true
+        }
+        Err(e) => {
+            error!("Failed to save details for ID {id}:\n{e:?}");
+            metrics::contract_failed(ContractFailure::Save);
+            false
         }
     }
+}
+
+async fn fetch_contract(client: &ThrottledClient, id: u64) -> Option<BasePortalContract> {
+    for attempt in 1..=MAX_CONTRACT_ATTEMPTS {
+        info!("Fetching details for contract {id}...");
+        match client.get_contract_details(id).await {
+            Ok(contract) => {
+                info!("Fetched details for contract {id}");
+                return Some(contract);
+            }
+            Err(e) => error!(
+                "Failed to fetch details for ID {id} (attempt {attempt}/{MAX_CONTRACT_ATTEMPTS}):\n{e:?}"
+            ),
+        }
+    }
+
+    error!("Giving up on contract {id} after {MAX_CONTRACT_ATTEMPTS} failed attempts");
+    metrics::contract_failed(ContractFailure::Fetch);
+    None
 }

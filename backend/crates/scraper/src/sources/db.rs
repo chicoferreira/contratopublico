@@ -1,5 +1,5 @@
 use serde::{Serialize, de::DeserializeOwned};
-use sqlx::{PgPool, types::Json};
+use sqlx::{PgPool, postgres::PgListener, types::Json};
 
 use crate::sources::ContractSource;
 
@@ -9,7 +9,7 @@ pub struct RawContractDatabase {
 }
 
 #[derive(Debug, Clone, Copy, sqlx::FromRow)]
-pub struct JoinQueueEntry {
+pub struct QueueEntry {
     pub contract_id: i64,
     pub version: i64,
 }
@@ -67,7 +67,7 @@ impl RawContractDatabase {
         &self,
         last_id: i64,
         limit: i64,
-    ) -> Result<Vec<JoinQueueEntry>, sqlx::Error> {
+    ) -> Result<Vec<QueueEntry>, sqlx::Error> {
         sqlx::query_as(
             r#"
             SELECT contract_id, version
@@ -83,7 +83,7 @@ impl RawContractDatabase {
         .await
     }
 
-    pub async fn dequeue(&self, queued: &[JoinQueueEntry]) -> Result<(), sqlx::Error> {
+    pub async fn dequeue(&self, queued: &[QueueEntry]) -> Result<(), sqlx::Error> {
         let (ids, versions): (Vec<i64>, Vec<i64>) = queued
             .iter()
             .map(|entry| (entry.contract_id, entry.version))
@@ -100,6 +100,45 @@ impl RawContractDatabase {
         .bind(versions)
         .execute(&self.pool)
         .await?;
+
+        Ok(())
+    }
+
+    /// Returns the queued contract with the lowest id, skipping `excluded_ids`.
+    pub async fn next_portal_refetch(
+        &self,
+        excluded_ids: &[i64],
+    ) -> Result<Option<QueueEntry>, sqlx::Error> {
+        sqlx::query_as(
+            r#"
+            SELECT contract_id, version
+            FROM portal_refetch_queue
+            WHERE contract_id <> ALL($1)
+            ORDER BY contract_id
+            LIMIT 1
+            "#,
+        )
+        .bind(excluded_ids)
+        .fetch_optional(&self.pool)
+        .await
+    }
+
+    /// Returns a listener that is notified every time contracts are added to the queue,
+    /// which happens when a BASE API fetch changes a saved contract.
+    pub async fn listen_portal_refetches(&self) -> Result<PgListener, sqlx::Error> {
+        let mut listener = PgListener::connect_with(&self.pool).await?;
+        listener.listen("portal_refetch_queue").await?;
+
+        Ok(listener)
+    }
+
+    /// Removes the contract from the queue, unless it was queued again since `entry` was read (i.e. the version is different).
+    pub async fn dequeue_portal_refetch(&self, entry: QueueEntry) -> Result<(), sqlx::Error> {
+        sqlx::query("DELETE FROM portal_refetch_queue WHERE contract_id = $1 AND version = $2")
+            .bind(entry.contract_id)
+            .bind(entry.version)
+            .execute(&self.pool)
+            .await?;
 
         Ok(())
     }

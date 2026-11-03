@@ -7,9 +7,14 @@ use std::{
 
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
+use sqlx::postgres::PgListener;
 
 use crate::{
-    sources::{ContractSource, base_portal::BasePortalContract, db::RawContractDatabase},
+    sources::{
+        ContractSource,
+        base_portal::BasePortalContract,
+        db::{QueueEntry, RawContractDatabase},
+    },
     util::range_set::RangeSet,
 };
 
@@ -95,18 +100,19 @@ impl Store {
                 .map_or(false, |entry| entry.contains(&id))
     }
 
-    pub async fn save_scraped_contract(
+    pub async fn save_contract(&self, contract: BasePortalContract) -> anyhow::Result<()> {
+        self.raw_contract_database
+            .save_contracts(ContractSource::BasePortal, &[(contract.id, contract)])
+            .await
+            .context("Failed to save raw contract in database")
+    }
+
+    pub fn mark_saved(
         &self,
-        contract: BasePortalContract,
+        id: u64,
         page: usize,
         contracts_per_page: usize,
     ) -> anyhow::Result<()> {
-        let id = contract.id;
-        self.raw_contract_database
-            .save_contracts(ContractSource::BasePortal, &[(id, contract)])
-            .await
-            .context("Failed to save raw contract in database")?;
-
         let mut scrape_progress = self.scrape_progress.lock().unwrap();
         scrape_progress.update(page, contracts_per_page, id);
 
@@ -114,6 +120,27 @@ impl Store {
         serde_json::to_writer(file, &*scrape_progress).context("Failed to write saved pages")?;
 
         Ok(())
+    }
+
+    pub async fn next_refetch(&self, excluded_ids: &[i64]) -> anyhow::Result<Option<QueueEntry>> {
+        self.raw_contract_database
+            .next_portal_refetch(excluded_ids)
+            .await
+            .context("Failed to read the portal refetch queue")
+    }
+
+    pub async fn listen_refetches(&self) -> anyhow::Result<PgListener> {
+        self.raw_contract_database
+            .listen_portal_refetches()
+            .await
+            .context("Failed to listen to the portal refetch queue")
+    }
+
+    pub async fn dequeue_refetch(&self, entry: QueueEntry) -> anyhow::Result<()> {
+        self.raw_contract_database
+            .dequeue_portal_refetch(entry)
+            .await
+            .context("Failed to remove contract from the portal refetch queue")
     }
 
     pub fn get_next_page_to_query(&self, current_page: usize) -> usize {
