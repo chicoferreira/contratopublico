@@ -1,3 +1,5 @@
+use std::hash::{DefaultHasher, Hash, Hasher};
+
 use anyhow::Context;
 use chrono::NaiveDate;
 use common::{Contract, Cpv, Currency, Document, Entity};
@@ -46,10 +48,14 @@ pub fn join_contract(
         )?,
         description: sources
             .api_first_option(|c| non_empty(&c.description), |c| c.description.clone()),
-        contracting: sources
-            .portal_or_default(|c| portal_entities(c.contracting.as_deref().unwrap_or_default())),
-        contracted: sources
-            .portal_or_default(|c| portal_entities(c.contracted.as_deref().unwrap_or_default())),
+        contracting: sources.portal_first(
+            |c| portal_entities(c.contracting.as_deref().unwrap_or_default()),
+            |c| api_entities(&c.contracting, " - "),
+        ),
+        contracted: sources.portal_first(
+            |c| portal_entities(c.contracted.as_deref().unwrap_or_default()),
+            |c| api_entities(&c.contracted, " - "),
+        ),
         cpvs: sources.try_api_first(
             |c| parse_api_cpvs(&c.cpvs),
             |c| parse_portal_cpvs(&c.cpvs, &c.cpvs_designation),
@@ -76,7 +82,10 @@ pub fn join_contract(
             |c| c.contract_fundamentation_type.clone(),
             |c| c.contract_fundamentation_type.clone(),
         ),
-        contestants: sources.portal_or_default(|c| portal_entities(&c.contestants)),
+        contestants: sources.portal_first(
+            |c| portal_entities(&c.contestants),
+            |c| api_entities(&c.contestants, "-"),
+        ),
         invitees: sources.portal_or_default(|c| portal_entities(&c.invitees)),
         documents: sources.portal_or_default(|c| portal_documents(&c.documents)),
         contracting_procedure_url: sources.api_first_option(
@@ -263,6 +272,30 @@ fn api_list(list: &Option<Vec<String>>) -> Vec<String> {
         .filter(|item| !item.is_empty())
         .unique()
         .collect()
+}
+
+fn api_entities(entities: &Option<Vec<String>>, separator: &str) -> Vec<Entity> {
+    entities
+        .iter()
+        .flatten()
+        .map(|entity| api_entity(entity, separator))
+        .collect()
+}
+
+fn api_entity(entity: &str, separator: &str) -> Entity {
+    let (nif, description) = entity.split_once(separator).unwrap_or(("", entity));
+    let nif = nif.trim().trim_matches('-').trim().to_string();
+    let description = description.trim().to_string();
+
+    let mut hasher = DefaultHasher::new();
+    (&nif, &description).hash(&mut hasher);
+
+    Entity {
+        // TODO: the API doesn't expose the Portal BASE entity id, so for now the id is a hash of the NIF and name
+        id: hasher.finish(),
+        nif,
+        description,
+    }
 }
 
 fn portal_entities(entities: &[BasePortalEntity]) -> Vec<Entity> {
