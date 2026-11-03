@@ -104,7 +104,7 @@ docker compose -f deploy/compose.dev.yml up -d
 
 Check [`backend/crates/api/src/main.rs`](https://github.com/chicoferreira/contratopublico/blob/main/backend/crates/api/src/main.rs) for environment variables.
 
-Add `BASE_API_TOKEN` if you also want to scrape [BASE API](https://www.base.gov.pt/APIBase2).
+Add `BASE_API_TOKEN` if you also want to scrape [BASE API](https://www.base.gov.pt/APIBase2). The backend only downloads every BASE API contract once a week at a specific time, so you can run `cargo run --release --bin cli sync-base-api` to download them.
 
 Run:
 

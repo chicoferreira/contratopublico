@@ -24,3 +24,4 @@ sqlx = { workspace = true }
 itertools = { workspace = true }
 futures = { workspace = true }
 tokio-util = { workspace = true }
+cron = { workspace = true }

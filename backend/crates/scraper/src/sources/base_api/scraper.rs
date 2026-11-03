@@ -1,7 +1,8 @@
-use std::time::Duration;
+use std::str::FromStr;
 
 use anyhow::Context;
 use chrono::{Datelike, Utc};
+use cron::Schedule;
 use itertools::Itertools;
 use log::{error, info};
 
@@ -11,22 +12,31 @@ use crate::sources::{
     db::RawContractDatabase,
 };
 
-const FIRST_YEAR: u16 = 2012;
-const RECENT_DAYS: u16 = 2;
-const SYNC_INTERVAL: Duration = Duration::from_hours(1);
-const BATCH_SIZE: usize = 1000;
+// Every hour, on the hour (UTC)
+const RECENT_SYNC_SCHEDULE: &str = "0 0 * * * *";
+// Every Sunday at 04:00 (UTC)
+const FULL_SYNC_SCHEDULE: &str = "0 0 4 * * Sun";
+const RECENT_SYNC_LOOKBACK_DAYS: u16 = 2;
 
 pub async fn run_sync_task(client: BaseApiClient, raw_contract_database: RawContractDatabase) {
-    // TODO: for now we are downloading every contract every time the service starts, maybe we can do better later
-    while let Err(e) = sync_all(&client, &raw_contract_database).await {
-        error!("Failed to download every BASE API contract:\n{e:?}");
-        tokio::time::sleep(SYNC_INTERVAL).await;
-    }
+    let recent_schedule = Schedule::from_str(RECENT_SYNC_SCHEDULE).unwrap();
+    let full_schedule = Schedule::from_str(FULL_SYNC_SCHEDULE).unwrap();
 
     loop {
-        tokio::time::sleep(SYNC_INTERVAL).await;
+        let next_recent = recent_schedule.upcoming(Utc).next().unwrap();
+        let next_full = full_schedule.upcoming(Utc).next().unwrap();
+        let next = next_recent.min(next_full);
 
-        if let Err(e) = sync_recent(&client, &raw_contract_database).await {
+        info!("Next recent BASE API sync at {next_recent}, next full sync at {next_full}");
+
+        let wait = (next - Utc::now()).to_std().unwrap_or_default();
+        tokio::time::sleep(wait).await;
+
+        if next_full <= next_recent {
+            if let Err(e) = sync_all(&client, &raw_contract_database).await {
+                error!("Failed to download every BASE API contract:\n{e:?}");
+            }
+        } else if let Err(e) = sync_recent(&client, &raw_contract_database).await {
             error!("Failed to download recent BASE API contracts:\n{e:?}");
         }
     }
@@ -36,6 +46,9 @@ pub async fn sync_all(
     client: &BaseApiClient,
     raw_contract_database: &RawContractDatabase,
 ) -> anyhow::Result<()> {
+    // The first year that the BASE API has contracts is 2012, so we start from there
+    const FIRST_YEAR: u16 = 2012;
+
     for year in FIRST_YEAR..=Utc::now().year() as u16 {
         let contracts = client
             .fetch_by_year(year)
@@ -54,7 +67,7 @@ async fn sync_recent(
     raw_contract_database: &RawContractDatabase,
 ) -> anyhow::Result<()> {
     let contracts = client
-        .fetch_by_previous_days(RECENT_DAYS)
+        .fetch_by_previous_days(RECENT_SYNC_LOOKBACK_DAYS)
         .await
         .context("Failed to fetch recent contracts")?;
 
@@ -72,6 +85,8 @@ async fn save(
         .unique_by(|contract| contract.id)
         .map(|contract| (contract.id, contract))
         .collect();
+
+    const BATCH_SIZE: usize = 1000;
 
     for batch in contracts.chunks(BATCH_SIZE) {
         raw_contract_database
