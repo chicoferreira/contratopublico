@@ -1,5 +1,5 @@
 use serde::{Serialize, de::DeserializeOwned};
-use sqlx::{PgPool, postgres::PgListener, types::Json};
+use sqlx::{PgPool, Postgres, Transaction, postgres::PgListener, types::Json};
 
 use crate::sources::ContractSource;
 
@@ -14,6 +14,23 @@ pub struct QueueEntry {
     pub version: i64,
 }
 
+/// A full redownload of a source, used to make the saved contracts of that source match it
+/// exactly, including deleting the contracts that the source no longer has.
+///
+/// To accomplish this, the contracts are added in batches to a temporary `snapshot` table.
+/// [`Snapshot::merge`] then compares it with `raw_contracts` in a single `MERGE`, so every
+/// contract of the source that is not in the `snapshot` table is also deleted from
+/// `raw_contracts`.
+///
+/// Partial downloads must use [`RawContractDatabase::save_contracts`] instead, which never
+/// deletes contracts.
+///
+/// Everything runs in one transaction, so nothing is saved until [`Snapshot::commit`].
+pub struct Snapshot {
+    tx: Transaction<'static, Postgres>,
+    source: ContractSource,
+}
+
 impl RawContractDatabase {
     pub fn new(pool: PgPool) -> Self {
         Self { pool }
@@ -24,10 +41,7 @@ impl RawContractDatabase {
         source: ContractSource,
         contracts: &[(u64, T)],
     ) -> Result<(), sqlx::Error> {
-        let (ids, data): (Vec<i64>, Vec<Json<&T>>) = contracts
-            .iter()
-            .map(|(id, contract)| (*id as i64, Json(contract)))
-            .unzip();
+        let (ids, data) = unzip_contracts(contracts.iter().map(|(id, contract)| (*id, contract)));
 
         sqlx::query(
             r#"
@@ -43,6 +57,37 @@ impl RawContractDatabase {
         .bind(data)
         .execute(&self.pool)
         .await?;
+
+        Ok(())
+    }
+
+    pub async fn begin_snapshot(&self, source: ContractSource) -> Result<Snapshot, sqlx::Error> {
+        let mut tx = self.pool.begin().await?;
+
+        sqlx::query(
+            r#"
+            CREATE TEMP TABLE snapshot (
+                contract_id BIGINT PRIMARY KEY,
+                data JSONB NOT NULL
+            ) ON COMMIT DROP
+            "#,
+        )
+        .execute(&mut *tx)
+        .await?;
+
+        Ok(Snapshot { tx, source })
+    }
+
+    pub async fn delete_contract(
+        &self,
+        source: ContractSource,
+        id: u64,
+    ) -> Result<(), sqlx::Error> {
+        sqlx::query("DELETE FROM raw_contracts WHERE source = $1 AND contract_id = $2")
+            .bind(source)
+            .bind(id as i64)
+            .execute(&self.pool)
+            .await?;
 
         Ok(())
     }
@@ -150,4 +195,71 @@ impl RawContractDatabase {
 
         Ok(())
     }
+}
+
+impl Snapshot {
+    /// Adds a batch of contracts to the snapshot, without touching `raw_contracts` yet.
+    pub async fn add<'a, T: Serialize + Sync + 'a>(
+        &mut self,
+        contracts: impl IntoIterator<Item = (u64, &'a T)>,
+    ) -> Result<(), sqlx::Error> {
+        let (ids, data) = unzip_contracts(contracts);
+
+        // TODO: handle several rows for the same contract id, for now only the first one is kept
+        sqlx::query(
+            r#"
+            INSERT INTO snapshot
+            SELECT * FROM UNNEST($1::BIGINT[], $2::JSONB[])
+            ON CONFLICT (contract_id) DO NOTHING
+            "#,
+        )
+        .bind(ids)
+        .bind(data)
+        .execute(&mut *self.tx)
+        .await?;
+
+        Ok(())
+    }
+
+    /// Adds, updates and deletes the saved contracts of the source so they match the snapshot,
+    /// and returns how many were deleted. Nothing is saved until [`Snapshot::commit`].
+    ///
+    /// Only rows whose data changed are updated, so the triggers don't queue unchanged contracts.
+    /// Rows of other sources are never deleted.
+    /// Must be called once, after every contract was added.
+    pub async fn merge(&mut self) -> Result<i64, sqlx::Error> {
+        sqlx::query_scalar(
+            r#"
+            WITH merged AS (
+                MERGE INTO raw_contracts r
+                USING snapshot s ON r.source = $1 AND r.contract_id = s.contract_id
+                WHEN MATCHED AND r.data IS DISTINCT FROM s.data THEN
+                    UPDATE SET data = s.data, fetched_at = now()
+                WHEN NOT MATCHED THEN
+                    INSERT (source, contract_id, data) VALUES ($1, s.contract_id, s.data)
+                WHEN NOT MATCHED BY SOURCE AND r.source = $1 THEN
+                    DELETE
+                RETURNING merge_action() AS action
+            )
+            SELECT count(*) FILTER (WHERE action = 'DELETE') FROM merged
+            "#,
+        )
+        .bind(self.source)
+        .fetch_one(&mut *self.tx)
+        .await
+    }
+
+    /// Saves the merge and drops the temporary table.
+    pub async fn commit(self) -> Result<(), sqlx::Error> {
+        self.tx.commit().await
+    }
+}
+
+fn unzip_contracts<'a, T>(
+    contracts: impl IntoIterator<Item = (u64, &'a T)>,
+) -> (Vec<i64>, Vec<Json<&'a T>>) {
+    contracts
+        .into_iter()
+        .map(|(id, contract)| (id as i64, Json(contract)))
+        .unzip()
 }

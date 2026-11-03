@@ -33,6 +33,9 @@ REFERENCING NEW TABLE AS changed FOR EACH STATEMENT EXECUTE FUNCTION enqueue_joi
 CREATE TRIGGER raw_contracts_updated AFTER UPDATE ON raw_contracts
 REFERENCING NEW TABLE AS changed FOR EACH STATEMENT EXECUTE FUNCTION enqueue_join();
 
+CREATE TRIGGER raw_contracts_deleted AFTER DELETE ON raw_contracts
+REFERENCING OLD TABLE AS changed FOR EACH STATEMENT EXECUTE FUNCTION enqueue_join();
+
 CREATE TABLE portal_refetch_queue (
     contract_id BIGINT PRIMARY KEY,
     version BIGINT NOT NULL DEFAULT 0 -- Increased when queued again, so a refetch only dequeues the version it read
@@ -52,3 +55,6 @@ $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER base_api_contracts_updated AFTER UPDATE ON raw_contracts
 REFERENCING NEW TABLE AS changed FOR EACH STATEMENT EXECUTE FUNCTION enqueue_portal_refetch();
+
+CREATE TRIGGER base_api_contracts_deleted AFTER DELETE ON raw_contracts
+REFERENCING OLD TABLE AS changed FOR EACH STATEMENT EXECUTE FUNCTION enqueue_portal_refetch();

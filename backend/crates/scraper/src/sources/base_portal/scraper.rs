@@ -7,6 +7,7 @@ use crate::{
         throttled_client::ThrottledClient,
     },
 };
+use anyhow::Context;
 use governor::Quota;
 use log::{error, info};
 use std::{collections::VecDeque, sync::Arc, time::Duration};
@@ -44,11 +45,15 @@ pub async fn run_scrape_task(client: BasePortalClient, store: Arc<Store>, interv
         refetch_queued_contracts(&client, &store, &mut failed_refetches).await;
 
         if let Some(current_scan) = &mut scan {
-            if !current_scan.step(&client, &store).await {
-                metrics::run_finished(true, scan_start.elapsed());
-                metrics::next_run_in(interval);
-                next_scan = Instant::now() + interval;
-                scan = None;
+            match current_scan.step(&client, &store).await {
+                Ok(true) => {}
+                Ok(false) => {
+                    metrics::run_finished(true, scan_start.elapsed());
+                    metrics::next_run_in(interval);
+                    next_scan = Instant::now() + interval;
+                    scan = None;
+                }
+                Err(e) => error!("{e:?}"),
             }
             continue;
         }
@@ -89,7 +94,8 @@ async fn refetch_queued_contracts(
             }
         };
 
-        if !fetch_and_save(client, store, entry.contract_id as u64).await {
+        if let Err(e) = fetch_and_save(client, store, entry.contract_id as u64).await {
+            error!("{e:?}");
             failed_refetches.push(entry.contract_id);
             continue;
         }
@@ -112,27 +118,24 @@ struct PageScan {
 impl PageScan {
     /// Fetches the next contract of the current page, or the next page.
     ///
-    /// Returns `false` once every page was scanned.
-    async fn step(&mut self, client: &ThrottledClient, store: &Store) -> bool {
+    /// Returns `true` if there is more to scan.
+    async fn step(&mut self, client: &ThrottledClient, store: &Store) -> anyhow::Result<bool> {
         while let Some(id) = self.ids.pop_front() {
             if store.already_exists(id, self.page).await {
                 info!("Contract {id} already exists, skipping...");
                 continue;
             }
 
-            if fetch_and_save(client, store, id).await
-                && let Err(e) = store.mark_saved(id, self.page, MAX_PAGE_SIZE)
-            {
-                error!("{e:?}");
-            }
-            return true;
+            fetch_and_save(client, store, id).await?;
+            store.mark_saved(id, self.page, MAX_PAGE_SIZE)?;
+            return Ok(true);
         }
 
         if self
             .total_pages
             .is_some_and(|total_pages| self.next_page >= total_pages)
         {
-            return false;
+            return Ok(false);
         }
 
         self.page = store.get_next_page_to_query(self.next_page);
@@ -145,16 +148,10 @@ impl PageScan {
 
         info!("Fetching page {}/{total_pages_str}...", self.page);
 
-        let response = match client
+        let response = client
             .fetch_page(CONTRACT_SORT_ORDER, self.page, MAX_PAGE_SIZE)
             .await
-        {
-            Ok(response) => response,
-            Err(e) => {
-                error!("Failed to fetch IDs page {}:\n{e:?}", self.page);
-                return true;
-            }
-        };
+            .with_context(|| format!("Failed to fetch IDs page {}", self.page))?;
 
         let len = response.items.len();
         info!("Fetched page {} with {len} contracts", self.page);
@@ -171,35 +168,40 @@ impl PageScan {
         }
 
         self.next_page = self.page + 1;
-        true
+        Ok(true)
     }
 }
 
-async fn fetch_and_save(client: &ThrottledClient, store: &Store, id: u64) -> bool {
-    let Some(contract) = fetch_contract(client, id).await else {
-        return false;
+async fn fetch_and_save(client: &ThrottledClient, store: &Store, id: u64) -> anyhow::Result<()> {
+    let Some(contract) = fetch_contract(client, id).await? else {
+        info!("Contract {id} no longer exists in the portal, deleting it...");
+        return store
+            .delete_contract(id)
+            .await
+            .with_context(|| format!("Failed to delete contract {id}"));
     };
 
-    match store.save_contract(contract).await {
-        Ok(()) => {
-            metrics::contract_saved();
-            true
-        }
-        Err(e) => {
-            error!("Failed to save details for ID {id}:\n{e:?}");
-            metrics::contract_failed(ContractFailure::Save);
-            false
-        }
-    }
+    store
+        .save_contract(contract)
+        .await
+        .inspect_err(|_| metrics::contract_failed(ContractFailure::Save))
+        .with_context(|| format!("Failed to save details for ID {id}"))?;
+
+    metrics::contract_saved();
+    Ok(())
 }
 
-async fn fetch_contract(client: &ThrottledClient, id: u64) -> Option<BasePortalContract> {
+/// Returns `None` if the portal doesn't have the contract.
+async fn fetch_contract(
+    client: &ThrottledClient,
+    id: u64,
+) -> anyhow::Result<Option<BasePortalContract>> {
     for attempt in 1..=MAX_CONTRACT_ATTEMPTS {
         info!("Fetching details for contract {id}...");
         match client.get_contract_details(id).await {
             Ok(contract) => {
                 info!("Fetched details for contract {id}");
-                return Some(contract);
+                return Ok(contract);
             }
             Err(e) => error!(
                 "Failed to fetch details for ID {id} (attempt {attempt}/{MAX_CONTRACT_ATTEMPTS}):\n{e:?}"
@@ -207,7 +209,6 @@ async fn fetch_contract(client: &ThrottledClient, id: u64) -> Option<BasePortalC
         }
     }
 
-    error!("Giving up on contract {id} after {MAX_CONTRACT_ATTEMPTS} failed attempts");
     metrics::contract_failed(ContractFailure::Fetch);
-    None
+    anyhow::bail!("Giving up on contract {id} after {MAX_CONTRACT_ATTEMPTS} failed attempts")
 }

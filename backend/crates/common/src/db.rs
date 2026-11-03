@@ -279,6 +279,16 @@ impl ContractDatabase {
         }))
     }
 
+    pub async fn delete_contracts(&self, ids: &[i64]) -> Result<(), sqlx::Error> {
+        // ON DELETE CASCADE also deletes every row of these contracts in the relationship tables
+        sqlx::query("DELETE FROM contracts WHERE id = ANY($1)")
+            .bind(ids)
+            .execute(&self.pool)
+            .await?;
+
+        Ok(())
+    }
+
     pub async fn insert_contract(&self, contract: &Contract) -> Result<(), sqlx::Error> {
         let mut tx = self.pool.begin().await?;
 

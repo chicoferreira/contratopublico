@@ -107,6 +107,13 @@ impl Store {
             .context("Failed to save raw contract in database")
     }
 
+    pub async fn delete_contract(&self, id: u64) -> anyhow::Result<()> {
+        self.raw_contract_database
+            .delete_contract(ContractSource::BasePortal, id)
+            .await
+            .context("Failed to delete raw contract from database")
+    }
+
     pub fn mark_saved(
         &self,
         id: u64,

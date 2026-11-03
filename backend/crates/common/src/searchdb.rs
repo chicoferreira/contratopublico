@@ -52,6 +52,10 @@ impl SearchDatabase {
         self.index().add_documents(&contracts, Some("id")).await
     }
 
+    pub async fn delete_contracts(&self, ids: &[i64]) -> Result<TaskInfo, MeilisearchError> {
+        self.index().delete_documents(ids).await
+    }
+
     pub fn client(&self) -> &Client {
         &self.client
     }

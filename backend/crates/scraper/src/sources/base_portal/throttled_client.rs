@@ -39,7 +39,10 @@ impl ThrottledClient {
         self.request(self.client.fetch_page(sort, page, size)).await
     }
 
-    pub async fn get_contract_details(&self, id: u64) -> anyhow::Result<BasePortalContract> {
+    pub async fn get_contract_details(
+        &self,
+        id: u64,
+    ) -> anyhow::Result<Option<BasePortalContract>> {
         self.request(self.client.get_contract_details(id)).await
     }
 

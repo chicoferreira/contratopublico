@@ -99,12 +99,27 @@ impl BasePortalClient {
         self.send_payload(payload, RequestKind::Page).await
     }
 
-    pub async fn get_contract_details(&self, id: u64) -> anyhow::Result<BasePortalContract> {
+    /// Returns `None` if the portal doesn't have the contract, which it answers with a record
+    /// with empty fields and `id` 0.
+    pub async fn get_contract_details(
+        &self,
+        id: u64,
+    ) -> anyhow::Result<Option<BasePortalContract>> {
         let payload = BasePortalPayload::ContractDetails {
             version: "140.0",
             id,
         };
-        self.send_payload(payload, RequestKind::Details).await
+        let value: serde_json::Value = self.send_payload(payload, RequestKind::Details).await?;
+
+        // This record has `null` in some fields that we declare as non-nullable (since it
+        // never is on valid records), so we can't parse it as a `BasePortalContract` directly.
+        if value["id"] == 0 {
+            return Ok(None);
+        }
+
+        BasePortalContract::deserialize(&value)
+            .map(Some)
+            .with_context(|| format!("Failed to parse JSON response to contract details: {value}"))
     }
 
     async fn send_payload<T: DeserializeOwned>(

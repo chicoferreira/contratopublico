@@ -51,6 +51,7 @@ async fn join_pending(
 ) -> anyhow::Result<()> {
     let mut last_id = 0;
     let mut joined = 0;
+    let mut deleted = 0;
     let mut failed = 0;
 
     loop {
@@ -65,6 +66,7 @@ async fn join_pending(
         last_id = last_entry.contract_id;
 
         let mut contracts = vec![];
+        let mut deleted_ids = vec![];
         let mut joined_entries = vec![];
 
         for entry in queued {
@@ -79,6 +81,12 @@ async fn join_pending(
                 .get_contract::<BasePortalContract>(ContractSource::BasePortal, id)
                 .await
                 .with_context(|| format!("Failed to read Portal BASE contract {id}"))?;
+
+            if api.is_none() && portal.is_none() {
+                deleted_ids.push(id);
+                joined_entries.push(entry);
+                continue;
+            }
 
             match join_contract(api, portal) {
                 Ok(contract) => {
@@ -98,11 +106,24 @@ async fn join_pending(
         }
 
         joined += contracts.len();
+        deleted += deleted_ids.len();
 
         search_db
             .save_contracts(contracts)
             .await
             .context("Failed to save contracts to search")?;
+
+        if !deleted_ids.is_empty() {
+            contract_db
+                .delete_contracts(&deleted_ids)
+                .await
+                .context("Failed to delete contracts")?;
+
+            search_db
+                .delete_contracts(&deleted_ids)
+                .await
+                .context("Failed to delete contracts from search")?;
+        }
 
         raw_contract_db
             .dequeue(&joined_entries)
@@ -110,8 +131,8 @@ async fn join_pending(
             .context("Failed to remove joined contracts from the queue")?;
     }
 
-    if joined > 0 || failed > 0 {
-        info!("Joined {joined} contracts, {failed} failed");
+    if joined > 0 || deleted > 0 || failed > 0 {
+        info!("Joined {joined} contracts, deleted {deleted}, {failed} failed");
     }
 
     Ok(())

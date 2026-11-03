@@ -17,6 +17,7 @@ const RECENT_SYNC_SCHEDULE: &str = "0 0 * * * *";
 // Every Sunday at 04:00 (UTC)
 const FULL_SYNC_SCHEDULE: &str = "0 0 4 * * Sun";
 const RECENT_SYNC_LOOKBACK_DAYS: u16 = 2;
+const BATCH_SIZE: usize = 1000;
 
 pub async fn run_sync_task(client: BaseApiClient, raw_contract_database: RawContractDatabase) {
     let recent_schedule = Schedule::from_str(RECENT_SYNC_SCHEDULE).unwrap();
@@ -49,6 +50,11 @@ pub async fn sync_all(
     // The first year that the BASE API has contracts is 2012, so we start from there
     const FIRST_YEAR: u16 = 2012;
 
+    let mut snapshot = raw_contract_database
+        .begin_snapshot(ContractSource::BaseApi)
+        .await
+        .context("Failed to start the BASE API snapshot")?;
+
     for year in FIRST_YEAR..=Utc::now().year() as u16 {
         let contracts = client
             .fetch_by_year(year)
@@ -56,8 +62,26 @@ pub async fn sync_all(
             .with_context(|| format!("Failed to fetch contracts of {year}"))?;
 
         info!("Fetched {} BASE API contracts of {year}", contracts.len());
-        save(raw_contract_database, contracts).await?;
+
+        for batch in contracts.chunks(BATCH_SIZE) {
+            snapshot
+                .add(batch.iter().map(|contract| (contract.id, contract)))
+                .await
+                .context("Failed to add contracts to the BASE API snapshot")?;
+        }
     }
+
+    let deleted = snapshot
+        .merge()
+        .await
+        .context("Failed to merge the BASE API snapshot")?;
+
+    snapshot
+        .commit()
+        .await
+        .context("Failed to save the BASE API snapshot")?;
+
+    info!("Deleted {deleted} contracts that are no longer in the BASE API");
 
     Ok(())
 }
@@ -85,8 +109,6 @@ async fn save(
         .unique_by(|contract| contract.id)
         .map(|contract| (contract.id, contract))
         .collect();
-
-    const BATCH_SIZE: usize = 1000;
 
     for batch in contracts.chunks(BATCH_SIZE) {
         raw_contract_database
