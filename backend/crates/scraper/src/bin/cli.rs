@@ -9,9 +9,13 @@ use log::info;
 use reqwest::Url;
 use scraper::{
     export, search,
-    sources::base_portal::{
-        self,
-        client::{BasePortalClient, ContractSort, ContractSortMethod, SortOrder},
+    sources::{
+        base_api::{self, client::BaseApiClient},
+        base_portal::{
+            self,
+            client::{BasePortalClient, ContractSort, ContractSortMethod, SortOrder},
+        },
+        db::RawContractDatabase,
     },
 };
 
@@ -48,6 +52,12 @@ enum Command {
         postgres_config: PostgresConfig,
         #[command(flatten)]
         meilisearch_config: MeilisearchConfig,
+    },
+    SyncBaseApi {
+        #[command(flatten)]
+        postgres_config: PostgresConfig,
+        #[arg(long, env)]
+        base_api_token: String,
     },
 }
 
@@ -103,6 +113,14 @@ async fn main() -> anyhow::Result<()> {
                     info!("Rebuild search index interrupted by user");
                 },
             }
+        }
+        Command::SyncBaseApi {
+            postgres_config,
+            base_api_token,
+        } => {
+            let client = BaseApiClient::new(base_api_token);
+            let raw_contract_database = RawContractDatabase::new(postgres_config.connect().await?);
+            base_api::scraper::sync_all(&client, &raw_contract_database).await?;
         }
     }
 

@@ -32,7 +32,7 @@ flowchart LR
 
 The Portal BASE is scraped as new contracts appear, respecting the rate limit. The scraper goes through each page of contracts, checks whether any haven't been scraped yet, and downloads each of those.
 
-The BASE API is checked every hour. We download the contracts published or changed in the last 2 days, adding the new ones and updating the ones we already have. To catch any changes that were missed, every contract is downloaded again every week. This is also run manually when needed (e.g., when first setting up the database).
+The BASE API is checked every hour. We download the contracts published or changed in the last 2 days, adding the new ones and updating the ones we already have. To catch any changes that were missed, every contract is downloaded again every week. This is also run manually with the CLI when needed (e.g., when first setting up the database).
 
 The BASE API can return several rows for the same contract id. How we handle this is TBD.
 

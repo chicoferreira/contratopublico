@@ -32,7 +32,7 @@ pub async fn run_sync_task(client: BaseApiClient, raw_contract_database: RawCont
     }
 }
 
-async fn sync_all(
+pub async fn sync_all(
     client: &BaseApiClient,
     raw_contract_database: &RawContractDatabase,
 ) -> anyhow::Result<()> {
