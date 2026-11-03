@@ -13,6 +13,11 @@ import GithubBadge from "./GithubBadge.svelte"
 
 Este changelog documenta todas as alterações, melhorias e atualizações mais relevantes feitas na plataforma do **Contrato Público**.
 
+## Novembro de 2026 <MonthCommits startDate="2026-11-01" endDate="2026-11-30" />
+
+- Os contratos passaram a ser recolhidos também da [API BASE](https://www.base.gov.pt/APIBase2), além do Portal BASE, permitindo atualizar toda a base de dados muito mais rapidamente. <GithubBadge commit="b4ddc75d061174b9474b0aee47e8f5492dd3a7a9"/> <Muted>(02/11/2026)</Muted>
+- Os contratos que deixam de existir no Portal BASE e na API BASE passaram a ser removidos automaticamente da plataforma. <GithubBadge commit="adc316d7481fc8a6484adcf8d834a4e561af94a8"/> <Muted>(03/11/2026)</Muted>
+
 ## Julho de 2026 <MonthCommits startDate="2026-07-01" endDate="2026-07-31" />
 
 - Corrigido problema da barra de pesquisa que podia reverter para um texto escrito num momento anterior. <GithubBadge issue="63"/> <GithubBadge commit="f2f2ac36e6741cbb59d05d0e930b45ba27ec8950"/> <Muted>(30/07/2026)</Muted>
