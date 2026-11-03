@@ -25,7 +25,7 @@ O **Contrato Público** procura manter os dados alinhados com o Portal BASE, mas
 
 ### Correções e Atualizações
 
-Pedidos de correção, atualização ou remoção de dados relativos a contratos públicos devem ser submetidos diretamente ao **IMPIC**. Se já tiver solicitado a alteração e esta estiver refletida no Portal BASE mas ainda não no **Contrato Público**, contacte-nos via [contacto@contratopublico.pt](mailto:contacto@contratopublico.pt) para procedermos à atualização manual.
+Pedidos de correção, atualização ou remoção de dados relativos a contratos públicos devem ser submetidos diretamente ao **IMPIC**. Os contratos removidos do Portal BASE e da respetiva API são também removidos automaticamente do **Contrato Público**. Se já tiver solicitado a alteração ou remoção e esta estiver refletida no Portal BASE há mais de 7 dias mas ainda não no **Contrato Público**, contacte-nos via [contacto@contratopublico.pt](mailto:contacto@contratopublico.pt) para procedermos à atualização manual.
 
 ## Proteção de Dados Pessoais (RGPD)
 
