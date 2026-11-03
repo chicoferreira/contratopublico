@@ -34,7 +34,7 @@ The Portal BASE is scraped as new contracts appear, respecting the rate limit. T
 
 The BASE API is checked every hour. We download the contracts whose last update was in the last 2 days, adding the new ones and updating the ones we already have. To catch any changes that were missed, every contract is downloaded again every week. This is also run manually with the CLI when needed (e.g., when first setting up the database).
 
-The BASE API can return several rows for the same contract id. How we handle this is TBD.
+The BASE API can return several rows for the same contract id. We keep only one, picked so it's consistent between fetches (see [#72](https://github.com/chicoferreira/contratopublico/issues/72)).
 
 The weekly download has every contract, so it replaces the saved BASE API contracts instead of only adding and updating them. Each year is added to a temporary `snapshot` table inside one transaction, and a single `MERGE` then adds the new contracts, updates the changed ones, and deletes the ones that are no longer in the API.
 ```sql
