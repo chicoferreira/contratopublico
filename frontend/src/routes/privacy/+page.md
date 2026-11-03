@@ -5,13 +5,13 @@ description: Política de privacidade e proteção de dados do Contrato Público
 
 # Política de Privacidade e Proteção de Dados
 
-_Última atualização: Outubro de 2026_
+_Última atualização: Novembro de 2026_
 
 ## Sobre os Dados dos Contratos
 
 ### Origem dos Dados
 
-Todos os dados de contratos públicos disponibilizados no **Contrato Público** são recolhidos exclusivamente do [Portal BASE](https://www.base.gov.pt/base4).
+Todos os dados de contratos públicos disponibilizados no **Contrato Público** são recolhidos exclusivamente do [Portal BASE](https://www.base.gov.pt/base4) e da respetiva [API](https://www.base.gov.pt/APIBase2).
 
 O **Contrato Público** atua como um agregador e motor de pesquisa, facilitando o acesso e pesquisa destes dados públicos através de uma interface mais rápida, intuitiva e funcional. Não somos afiliados ao IMPIC nem ao Governo de Portugal.
 
@@ -41,7 +41,7 @@ Não utilizamos cookies próprios nem guardamos o conteúdo das pesquisas, salvo
 
 O tráfego passa pela Cloudflare, que poderá utilizar cookies para fins de segurança e desempenho.
 
-Cada pedido à API fica registado com o endereço IP, o país de origem, o *User-Agent* e detalhes técnicos do pedido (URL, data e hora, resultado e eventuais erros).
+Cada pedido à API fica registado com o endereço IP, o país de origem, o _User-Agent_ e detalhes técnicos do pedido (URL, data e hora, resultado e eventuais erros).
 
 Estes dados são usados para prevenir abusos e diagnosticar problemas, com base no interesse legítimo em garantir a segurança e disponibilidade do serviço (artigo 6.º, n.º 1, alínea f), do RGPD).
 

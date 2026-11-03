@@ -8,10 +8,10 @@
 
 <footer class="bg-muted/30 mt-auto border-y">
   <div class="container mx-auto px-4 py-7 text-sm">
-    <nav class="flex items-center justify-center gap-3 text-muted-foreground mb-8">
-      <a href="/changelog" class="transition-colors hover:text-primary">Changelog</a>
+    <nav class="text-muted-foreground mb-8 flex items-center justify-center gap-3">
+      <a href="/changelog" class="hover:text-primary transition-colors">Changelog</a>
       <Separator orientation="vertical" class="hidden !h-4 sm:block" />
-      <a href="/privacy" class="transition-colors hover:text-primary">Privacidade</a>
+      <a href="/privacy" class="hover:text-primary transition-colors">Privacidade</a>
     </nav>
     <div class="flex flex-col items-center space-y-5 text-center">
       <div class="text-muted-foreground max-w-2xl space-y-2">
@@ -22,7 +22,7 @@
           <span class="text-primary font-semibold">Governo de Portugal</span>
         </p>
         <p>
-          Todas as informações são públicas e recolhidas do site
+          Todas as informações são públicas e recolhidas do
           <Link url="https://www.base.gov.pt" class="!text-primary hover:!text-primary font-medium">
             Portal BASE
           </Link>
