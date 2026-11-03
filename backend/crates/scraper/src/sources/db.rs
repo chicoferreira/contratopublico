@@ -205,7 +205,6 @@ impl Snapshot {
     ) -> Result<(), sqlx::Error> {
         let (ids, data) = unzip_contracts(contracts);
 
-        // TODO: handle several rows for the same contract id, for now only the first one is kept
         sqlx::query(
             r#"
             INSERT INTO snapshot

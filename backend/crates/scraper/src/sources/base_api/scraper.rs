@@ -62,6 +62,7 @@ pub async fn sync_all(
             .with_context(|| format!("Failed to fetch contracts of {year}"))?;
 
         info!("Fetched {} BASE API contracts of {year}", contracts.len());
+        let contracts = dedup_contracts(contracts);
 
         for batch in contracts.chunks(BATCH_SIZE) {
             snapshot
@@ -96,17 +97,9 @@ async fn sync_recent(
         .context("Failed to fetch recent contracts")?;
 
     info!("Fetched {} recent BASE API contracts", contracts.len());
-    save(raw_contract_database, contracts).await
-}
 
-async fn save(
-    raw_contract_database: &RawContractDatabase,
-    contracts: Vec<BaseApiContract>,
-) -> anyhow::Result<()> {
-    // TODO: handle several rows for the same contract id, for now only one of them is kept
-    let contracts: Vec<_> = contracts
+    let contracts: Vec<_> = dedup_contracts(contracts)
         .into_iter()
-        .unique_by(|contract| contract.id)
         .map(|contract| (contract.id, contract))
         .collect();
 
@@ -118,4 +111,22 @@ async fn save(
     }
 
     Ok(())
+}
+
+/// The API returns several entries for the same contract id, so this keeps only the one with the
+/// highest values of the fields that differ between them, in alphabetical order, which makes the
+/// pick stable between fetches.
+///
+/// This is not the most elegant solution, but it works for now.
+/// See https://github.com/chicoferreira/contratopublico/issues/72 for more details.
+fn dedup_contracts(contracts: Vec<BaseApiContract>) -> Vec<BaseApiContract> {
+    contracts
+        .into_iter()
+        .into_grouping_map_by(|contract| contract.id)
+        .max_by(|_, a, b| {
+            (&a.ambient_criteria, &a.award_criterion)
+                .cmp(&(&b.ambient_criteria, &b.award_criterion))
+        })
+        .into_values()
+        .collect()
 }
