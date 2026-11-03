@@ -104,6 +104,14 @@ impl RawContractDatabase {
         Ok(())
     }
 
+    /// Returns a listener that is notified every time contracts are added to the join queue.
+    pub async fn listen_join_queue(&self) -> Result<PgListener, sqlx::Error> {
+        let mut listener = PgListener::connect_with(&self.pool).await?;
+        listener.listen("join_queue").await?;
+
+        Ok(listener)
+    }
+
     /// Returns the queued contract with the lowest id, skipping `excluded_ids`.
     pub async fn next_portal_refetch(
         &self,

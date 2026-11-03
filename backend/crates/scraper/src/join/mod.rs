@@ -14,7 +14,7 @@ use crate::{
     },
 };
 
-const JOIN_INTERVAL: Duration = Duration::from_mins(1);
+const RETRY_INTERVAL: Duration = Duration::from_mins(1);
 const BATCH_SIZE: i64 = 1000;
 
 pub async fn run_join_task(
@@ -22,12 +22,25 @@ pub async fn run_join_task(
     contract_db: ContractDatabase,
     search_db: SearchDatabase,
 ) {
+    let mut listener = match raw_contract_db.listen_join_queue().await {
+        Ok(listener) => listener,
+        Err(e) => {
+            error!("Failed to listen to the join queue:\n{e:?}");
+            return;
+        }
+    };
+
     loop {
         if let Err(e) = join_pending(&raw_contract_db, &contract_db, &search_db).await {
             error!("Failed to join contracts:\n{e:?}");
+            tokio::time::sleep(RETRY_INTERVAL).await;
+            continue;
         }
 
-        tokio::time::sleep(JOIN_INTERVAL).await;
+        if let Err(e) = listener.try_recv().await {
+            error!("Failed to wait for the join queue:\n{e:?}");
+            tokio::time::sleep(RETRY_INTERVAL).await;
+        }
     }
 }
 

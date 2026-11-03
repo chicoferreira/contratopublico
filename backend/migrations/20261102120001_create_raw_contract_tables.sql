@@ -20,6 +20,9 @@ BEGIN
     INSERT INTO join_queue (contract_id)
     SELECT DISTINCT contract_id FROM changed ORDER BY contract_id
     ON CONFLICT (contract_id) DO UPDATE SET version = join_queue.version + 1;
+    IF FOUND THEN
+        PERFORM pg_notify('join_queue', '');
+    END IF;
     RETURN NULL;
 END
 $$ LANGUAGE plpgsql;

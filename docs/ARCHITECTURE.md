@@ -74,7 +74,7 @@ A contract can change again while it's being fetched, so each queue entry also h
 
 The join merges the data from both sources into one coherent contract, with every field parsed and in a consistent format. The result is saved to the `contracts` table in Postgres and to Meilisearch, which is what the site uses.
 
-The contracts to join are kept in a `join_queue` table, which works like the [portal refetch queue](#fetch). A trigger on `raw_contracts` adds a contract to it every time one of its rows is added or changes. Periodically, the joiner goes through the queue: for each contract, it reads its rows from `raw_contracts`, joins them, saves the result to `contracts` and Meilisearch, and removes the contract from the queue.
+The contracts to join are kept in a `join_queue` table, which works like the [portal refetch queue](#fetch). A trigger on `raw_contracts` adds a contract to it every time one of its rows is added or changes, and notifies the joiner with `pg_notify`. The joiner then goes through the queue: for each contract, it reads its rows from `raw_contracts`, joins them, saves the result to `contracts` and Meilisearch, and removes the contract from the queue.
 
 ```sql
 CREATE TABLE join_queue (
