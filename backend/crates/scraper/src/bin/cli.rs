@@ -1,22 +1,14 @@
-use std::path::PathBuf;
-
 use clap::Parser;
-use common::{
-    db::{ContractDatabase, PostgresConfig},
-    searchdb::{MeilisearchConfig, SearchDatabase},
-};
+use common::db::PostgresConfig;
 use log::info;
 use reqwest::Url;
-use scraper::{
-    export, search,
-    sources::{
-        base_api::{self, client::BaseApiClient},
-        base_portal::{
-            self,
-            client::{BasePortalClient, ContractSort, ContractSortMethod, SortOrder},
-        },
-        db::RawContractDatabase,
+use scraper::sources::{
+    base_api::{self, client::BaseApiClient},
+    base_portal::{
+        self,
+        client::{BasePortalClient, ContractSort, ContractSortMethod, SortOrder},
     },
+    db::RawContractDatabase,
 };
 
 #[derive(clap::Parser)]
@@ -41,17 +33,6 @@ enum Command {
     Fetch {
         contract_id: u64,
         base_gov_client_proxy: Option<Url>,
-    },
-    ExportOldFormatToJson {
-        #[command(flatten)]
-        meilisearch_config: MeilisearchConfig,
-        output_path: PathBuf,
-    },
-    RebuildSearchIndex {
-        #[command(flatten)]
-        postgres_config: PostgresConfig,
-        #[command(flatten)]
-        meilisearch_config: MeilisearchConfig,
     },
     SyncBaseApi {
         #[command(flatten)]
@@ -93,26 +74,6 @@ async fn main() -> anyhow::Result<()> {
             let contract = base_portal_client.get_contract_details(contract_id).await?;
 
             info!("Fetched contract: {contract:#?}")
-        }
-        Command::ExportOldFormatToJson {
-            meilisearch_config,
-            output_path,
-        } => {
-            let meilisearch_client = meilisearch_config.create_client()?;
-            export::export_old_format_to_json(meilisearch_client, output_path).await?;
-        }
-        Command::RebuildSearchIndex {
-            postgres_config,
-            meilisearch_config,
-        } => {
-            let contract_database = ContractDatabase::new(postgres_config.connect().await?);
-            let search_database = SearchDatabase::new(meilisearch_config.create_client()?);
-            tokio::select! {
-                result = search::rebuild::rebuild_search_index(&contract_database, &search_database) => result?,
-                _ = tokio::signal::ctrl_c() => {
-                    info!("Rebuild search index interrupted by user");
-                },
-            }
         }
         Command::SyncBaseApi {
             postgres_config,

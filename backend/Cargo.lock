@@ -2255,12 +2255,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ringbuffer"
-version = "0.16.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57b0b88a509053cbfd535726dcaaceee631313cef981266119527a1d110f6d2b"
-
-[[package]]
 name = "rsa"
 version = "0.9.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2381,12 +2375,9 @@ dependencies = [
  "governor",
  "itertools",
  "log",
- "meilisearch-sdk",
  "metrics",
- "nonzero_ext",
  "num-traits",
  "reqwest",
- "ringbuffer",
  "serde",
  "serde_json",
  "sqlx",
