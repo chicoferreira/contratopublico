@@ -6,6 +6,7 @@
   import SortDropdown from "$lib/components/SortDropdown.svelte";
   import ErrorDisplay from "$lib/components/ErrorDisplay.svelte";
   import SlowDown from "$lib/components/SlowDown.svelte";
+  import UpdateNotice from "$lib/components/UpdateNotice.svelte";
   import { blur, fade, slide } from "svelte/transition";
   import { buildSearchParams } from "$lib";
   import ContractPagination from "$lib/components/ContractPagination.svelte";
@@ -181,6 +182,8 @@
 <HeadMeta title={metaTitle} description={metaDescription} />
 
 <div class="space-y-4">
+  <UpdateNotice />
+
   <div class="space-y-2.5">
     <div class="space-y-0.5">
       <div class="text-2xl font-semibold">
