@@ -7,11 +7,8 @@ use common::{db::ContractDatabase, searchdb::SearchDatabase};
 use log::{error, info};
 
 use crate::{
-    join::joiner::join_contract,
-    sources::{
-        ContractSource, base_api::BaseApiContract, base_portal::BasePortalContract,
-        db::RawContractDatabase,
-    },
+    join::joiner::{Sources, join_contract},
+    sources::db::{QueuedContract, RawContractDatabase},
 };
 
 const RETRY_INTERVAL: Duration = Duration::from_mins(1);
@@ -60,50 +57,37 @@ async fn join_pending(
             .await
             .context("Failed to fetch queued contracts")?;
 
-        let Some(last_entry) = queued.last() else {
+        let Some(last) = queued.last() else {
             break;
         };
-        last_id = last_entry.contract_id;
+        last_id = last.entry.contract_id;
 
         let mut contracts = vec![];
         let mut deleted_ids = vec![];
         let mut joined_entries = vec![];
 
-        for entry in queued {
+        for QueuedContract { entry, api, portal } in queued {
             let id = entry.contract_id;
 
-            let api = raw_contract_db
-                .get_contract::<BaseApiContract>(ContractSource::BaseApi, id)
-                .await
-                .with_context(|| format!("Failed to read BASE API contract {id}"))?;
-
-            let portal = raw_contract_db
-                .get_contract::<BasePortalContract>(ContractSource::BasePortal, id)
-                .await
-                .with_context(|| format!("Failed to read Portal BASE contract {id}"))?;
-
-            if api.is_none() && portal.is_none() {
-                deleted_ids.push(id);
-                joined_entries.push(entry);
-                continue;
+            match Sources::new(&api, &portal) {
+                None => deleted_ids.push(id),
+                Some(sources) => match join_contract(sources) {
+                    Ok(contract) => contracts.push(contract),
+                    Err(e) => {
+                        error!("Failed to join contract {id}:\n{e:?}");
+                        failed += 1;
+                        continue;
+                    }
+                },
             }
 
-            match join_contract(api, portal) {
-                Ok(contract) => {
-                    contract_db
-                        .insert_contract(&contract)
-                        .await
-                        .with_context(|| format!("Failed to save contract {id}"))?;
-
-                    contracts.push(contract);
-                    joined_entries.push(entry);
-                }
-                Err(e) => {
-                    error!("Failed to join contract {id}:\n{e:?}");
-                    failed += 1;
-                }
-            }
+            joined_entries.push(entry);
         }
+
+        contract_db
+            .insert_contracts(&contracts)
+            .await
+            .context("Failed to save contracts")?;
 
         joined += contracts.len();
         deleted += deleted_ids.len();

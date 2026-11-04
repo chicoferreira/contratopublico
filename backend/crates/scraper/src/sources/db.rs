@@ -14,6 +14,17 @@ pub struct QueueEntry {
     pub version: i64,
 }
 
+/// A queued contract with its data from each source, which is `None` if that source doesn't have it.
+#[derive(Debug, sqlx::FromRow)]
+pub struct QueuedContract<Api, Portal> {
+    #[sqlx(flatten)]
+    pub entry: QueueEntry,
+    #[sqlx(json(nullable))]
+    pub api: Option<Api>,
+    #[sqlx(json(nullable))]
+    pub portal: Option<Portal>,
+}
+
 /// A full redownload of a source, used to make the saved contracts of that source match it
 /// exactly, including deleting the contracts that the source no longer has.
 ///
@@ -92,36 +103,31 @@ impl RawContractDatabase {
         Ok(())
     }
 
-    pub async fn get_contract<T: DeserializeOwned + Send + Unpin + 'static>(
-        &self,
-        source: ContractSource,
-        id: i64,
-    ) -> Result<Option<T>, sqlx::Error> {
-        let contract = sqlx::query_scalar::<_, Json<T>>(
-            "SELECT data FROM raw_contracts WHERE source = $1 AND contract_id = $2",
-        )
-        .bind(source)
-        .bind(id)
-        .fetch_optional(&self.pool)
-        .await?;
-
-        Ok(contract.map(|contract| contract.0))
-    }
-
-    pub async fn list_queued_after(
+    /// Returns the queued contracts after `last_id`, with their data from each source.
+    pub async fn list_queued_after<Api, Portal>(
         &self,
         last_id: i64,
         limit: i64,
-    ) -> Result<Vec<QueueEntry>, sqlx::Error> {
+    ) -> Result<Vec<QueuedContract<Api, Portal>>, sqlx::Error>
+    where
+        Api: DeserializeOwned + Send + Unpin + 'static,
+        Portal: DeserializeOwned + Send + Unpin + 'static,
+    {
         sqlx::query_as(
             r#"
-            SELECT contract_id, version
-            FROM join_queue
-            WHERE contract_id > $1
-            ORDER BY contract_id
-            LIMIT $2
+            SELECT q.contract_id, q.version, api.data AS api, portal.data AS portal
+            FROM join_queue q
+            LEFT JOIN raw_contracts api
+                ON api.source = $1 AND api.contract_id = q.contract_id
+            LEFT JOIN raw_contracts portal
+                ON portal.source = $2 AND portal.contract_id = q.contract_id
+            WHERE q.contract_id > $3
+            ORDER BY q.contract_id
+            LIMIT $4
             "#,
         )
+        .bind(ContractSource::BaseApi)
+        .bind(ContractSource::BasePortal)
         .bind(last_id)
         .bind(limit)
         .fetch_all(&self.pool)
@@ -324,6 +330,33 @@ mod tests {
 
         assert_eq!(contract_ids(&pool, "join_queue").await, [1, 2, 4]);
         assert_eq!(contract_ids(&pool, "portal_refetch_queue").await, [1, 2]);
+
+        Ok(())
+    }
+
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn list_queued_after_pairs_both_sources(pool: PgPool) -> sqlx::Result<()> {
+        let db = RawContractDatabase::new(pool);
+        let (api, portal) = (ContractSource::BaseApi, ContractSource::BasePortal);
+
+        db.save_contracts(api, &[(1, 10), (2, 20), (4, 40)]).await?;
+        db.save_contracts(portal, &[(2, 200), (3, 300)]).await?;
+        db.delete_contract(api, 4).await?;
+
+        let queued = db.list_queued_after::<i64, i64>(1, 10).await?;
+        let queued: Vec<_> = queued
+            .iter()
+            .map(|c| (c.entry.contract_id, c.api, c.portal))
+            .collect();
+
+        assert_eq!(
+            queued,
+            [
+                (2, Some(20), Some(200)),
+                (3, None, Some(300)),
+                (4, None, None)
+            ]
+        );
 
         Ok(())
     }

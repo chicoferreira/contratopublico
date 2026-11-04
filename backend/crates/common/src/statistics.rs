@@ -85,7 +85,10 @@ mod tests {
             ..Contract::default()
         };
 
-        contract_database.insert_contract(&contract).await.unwrap();
+        contract_database
+            .insert_contracts(&[contract])
+            .await
+            .unwrap();
     }
 
     #[sqlx::test(migrations = "../../migrations")]

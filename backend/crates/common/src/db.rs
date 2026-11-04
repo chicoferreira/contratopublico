@@ -1,6 +1,6 @@
 use anyhow::Context;
 use chrono::NaiveDate;
-use sqlx::PgPool;
+use sqlx::{PgConnection, PgPool};
 
 use crate::{Contract, Cpv, Currency, Document, Entity};
 
@@ -289,52 +289,61 @@ impl ContractDatabase {
         Ok(())
     }
 
-    pub async fn insert_contract(&self, contract: &Contract) -> Result<(), sqlx::Error> {
+    pub async fn insert_contracts(&self, contracts: &[Contract]) -> Result<(), sqlx::Error> {
         let mut tx = self.pool.begin().await?;
 
-        // ON DELETE CASCADE also deletes every row of this contract in the relationship tables
-        sqlx::query("DELETE FROM contracts WHERE id = $1")
-            .bind(contract.id as i64)
-            .execute(&mut *tx)
-            .await?;
-
-        for cpv in &contract.cpvs {
-            sqlx::query!(
-                "INSERT INTO cpv (code, designation) VALUES ($1, $2) ON CONFLICT (code) DO NOTHING",
-                cpv.code,
-                cpv.designation
-            )
-            .execute(&mut *tx)
-            .await?;
+        for contract in contracts {
+            insert_contract(&mut tx, contract).await?;
         }
 
-        for entity in contract
-            .contracting
-            .iter()
-            .chain(contract.contracted.iter())
-            .chain(contract.contestants.iter())
-            .chain(contract.invitees.iter())
-        {
-            sqlx::query!(
-                "INSERT INTO entities (id, nif) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING",
-                entity.id as i64,
-                entity.nif
-            )
-            .execute(&mut *tx)
-            .await?;
-        }
+        tx.commit().await
+    }
+}
 
-        for document in &contract.documents {
-            sqlx::query!(
-                "INSERT INTO documents (id, description) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING",
-                document.id as i64,
-                document.description
-            )
-            .execute(&mut *tx)
-            .await?;
-        }
+async fn insert_contract(tx: &mut PgConnection, contract: &Contract) -> Result<(), sqlx::Error> {
+    // ON DELETE CASCADE also deletes every row of this contract in the relationship tables
+    sqlx::query("DELETE FROM contracts WHERE id = $1")
+        .bind(contract.id as i64)
+        .execute(&mut *tx)
+        .await?;
 
+    for cpv in &contract.cpvs {
         sqlx::query!(
+            "INSERT INTO cpv (code, designation) VALUES ($1, $2) ON CONFLICT (code) DO NOTHING",
+            cpv.code,
+            cpv.designation
+        )
+        .execute(&mut *tx)
+        .await?;
+    }
+
+    for entity in contract
+        .contracting
+        .iter()
+        .chain(contract.contracted.iter())
+        .chain(contract.contestants.iter())
+        .chain(contract.invitees.iter())
+    {
+        sqlx::query!(
+            "INSERT INTO entities (id, nif) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING",
+            entity.id as i64,
+            entity.nif
+        )
+        .execute(&mut *tx)
+        .await?;
+    }
+
+    for document in &contract.documents {
+        sqlx::query!(
+            "INSERT INTO documents (id, description) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING",
+            document.id as i64,
+            document.description
+        )
+        .execute(&mut *tx)
+        .await?;
+    }
+
+    sqlx::query!(
             r#"
             INSERT INTO contracts (
                 id, contracting_procedure_type, publication_date, signing_date,
@@ -376,10 +385,10 @@ impl ContractDatabase {
         .execute(&mut *tx)
         .await?;
 
-        let contract_id = contract.id as i64;
+    let contract_id = contract.id as i64;
 
-        for entity in &contract.contracting {
-            sqlx::query!(
+    for entity in &contract.contracting {
+        sqlx::query!(
                 "INSERT INTO contract_contracting (contract_id, entity_id, description) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
                 contract_id,
                 entity.id as i64,
@@ -387,10 +396,10 @@ impl ContractDatabase {
             )
             .execute(&mut *tx)
             .await?;
-        }
+    }
 
-        for entity in &contract.contracted {
-            sqlx::query!(
+    for entity in &contract.contracted {
+        sqlx::query!(
                 "INSERT INTO contract_contracted (contract_id, entity_id, description) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
                 contract_id,
                 entity.id as i64,
@@ -398,10 +407,10 @@ impl ContractDatabase {
             )
             .execute(&mut *tx)
             .await?;
-        }
+    }
 
-        for entity in &contract.contestants {
-            sqlx::query!(
+    for entity in &contract.contestants {
+        sqlx::query!(
                 "INSERT INTO contract_contestants (contract_id, entity_id, description) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
                 contract_id,
                 entity.id as i64,
@@ -409,10 +418,10 @@ impl ContractDatabase {
             )
             .execute(&mut *tx)
             .await?;
-        }
+    }
 
-        for entity in &contract.invitees {
-            sqlx::query!(
+    for entity in &contract.invitees {
+        sqlx::query!(
                 "INSERT INTO contract_invitees (contract_id, entity_id, description) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
                 contract_id,
                 entity.id as i64,
@@ -420,31 +429,29 @@ impl ContractDatabase {
             )
             .execute(&mut *tx)
             .await?;
-        }
+    }
 
-        for document in &contract.documents {
-            sqlx::query!(
+    for document in &contract.documents {
+        sqlx::query!(
                 "INSERT INTO contract_documents (contract_id, document_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
                 contract_id,
                 document.id as i64
             )
             .execute(&mut *tx)
             .await?;
-        }
+    }
 
-        for cpv in &contract.cpvs {
-            sqlx::query!(
+    for cpv in &contract.cpvs {
+        sqlx::query!(
                 "INSERT INTO contract_cpvs (contract_id, cpv_code) VALUES ($1, $2) ON CONFLICT DO NOTHING",
                 contract_id,
                 cpv.code
             )
             .execute(&mut *tx)
             .await?;
-        }
-
-        tx.commit().await?;
-        Ok(())
     }
+
+    Ok(())
 }
 
 #[cfg(test)]
@@ -506,7 +513,7 @@ mod tests {
 
         assert_eq!(None, db.get_contract(contract.id).await?);
 
-        db.insert_contract(&contract).await?;
+        db.insert_contracts(std::slice::from_ref(&contract)).await?;
 
         let contract_from_db = db.get_contract(contract.id).await?;
         assert_eq!(Some(contract), contract_from_db);

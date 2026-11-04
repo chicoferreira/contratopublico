@@ -12,17 +12,7 @@ use crate::sources::{
 
 const DIRECT_AWARD_NOT_APPLICABLE: &str = "Não aplicável";
 
-pub fn join_contract(
-    api: Option<BaseApiContract>,
-    portal: Option<BasePortalContract>,
-) -> anyhow::Result<Contract> {
-    let sources = match (&api, &portal) {
-        (Some(api), Some(portal)) => Sources::Both(api, portal),
-        (Some(api), None) => Sources::Api(api),
-        (None, Some(portal)) => Sources::Portal(portal),
-        (None, None) => anyhow::bail!("Can't join contract with no sources"),
-    };
-
+pub fn join_contract(sources: Sources) -> anyhow::Result<Contract> {
     Ok(Contract {
         id: sources.api_first(|c| c.id, |c| c.id),
         contracting_procedure_type: sources.api_first(
@@ -124,13 +114,26 @@ pub fn join_contract(
     })
 }
 
-enum Sources<'a> {
+pub enum Sources<'a> {
     Api(&'a BaseApiContract),
     Portal(&'a BasePortalContract),
     Both(&'a BaseApiContract, &'a BasePortalContract),
 }
 
-impl Sources<'_> {
+impl<'a> Sources<'a> {
+    /// Returns `None` if neither source has the contract.
+    pub fn new(
+        api: &'a Option<BaseApiContract>,
+        portal: &'a Option<BasePortalContract>,
+    ) -> Option<Self> {
+        match (api, portal) {
+            (Some(api), Some(portal)) => Some(Self::Both(api, portal)),
+            (Some(api), None) => Some(Self::Api(api)),
+            (None, Some(portal)) => Some(Self::Portal(portal)),
+            (None, None) => None,
+        }
+    }
+
     fn api_first<T>(
         &self,
         api: impl FnOnce(&BaseApiContract) -> T,
