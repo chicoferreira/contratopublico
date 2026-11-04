@@ -54,6 +54,7 @@ impl RawContractDatabase {
     ) -> Result<(), sqlx::Error> {
         let (ids, data) = unzip_contracts(contracts.iter().map(|(id, contract)| (*id, contract)));
 
+        // Only update the row if the data changed, so the triggers don't queue unchanged contracts.
         sqlx::query(
             r#"
             INSERT INTO raw_contracts (source, contract_id, data)
@@ -271,6 +272,8 @@ fn unzip_contracts<'a, T>(
 
 #[cfg(test)]
 mod tests {
+    use std::time::Duration;
+
     use serde_json::{Value, json};
     use sqlx::PgPool;
 
@@ -302,6 +305,7 @@ mod tests {
         db.save_contracts(ContractSource::BasePortal, &[(1, json!({"p": 1}))])
             .await?;
         sqlx::query("DELETE FROM join_queue").execute(&pool).await?;
+        let mut listener = db.listen_portal_refetches().await?;
 
         let mut snapshot = db.begin_snapshot(ContractSource::BaseApi).await?;
         let changed = json!({"v": 20});
@@ -330,6 +334,9 @@ mod tests {
 
         assert_eq!(contract_ids(&pool, "join_queue").await, [1, 2, 4]);
         assert_eq!(contract_ids(&pool, "portal_refetch_queue").await, [1, 2]);
+        tokio::time::timeout(Duration::from_secs(5), listener.recv())
+            .await
+            .expect("Queueing didn't notify the portal scraper")?;
 
         Ok(())
     }
