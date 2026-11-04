@@ -25,6 +25,7 @@ struct Args {
 
 #[derive(clap::Subcommand)]
 enum Command {
+    /// Fetches a page of the Portal BASE contract list and prints it, without saving anything.
     FetchPage {
         #[arg(long, default_value = "id")]
         contract_sort_method: ContractSortMethod,
@@ -35,6 +36,7 @@ enum Command {
         size: usize,
         base_gov_client_proxy: Option<Url>,
     },
+    /// Fetches the details of a contract from Portal BASE and prints them, without saving anything.
     Fetch {
         contract_id: u64,
         base_gov_client_proxy: Option<Url>,
@@ -47,6 +49,7 @@ enum Command {
         #[command(flatten)]
         meilisearch_config: MeilisearchConfig,
     },
+    /// Downloads every contract from the BASE API into `raw_contracts`, deleting the ones it no longer has.
     SyncBaseApi {
         #[command(flatten)]
         postgres_config: PostgresConfig,
