@@ -103,10 +103,10 @@ impl RawContractDatabase {
         Ok(())
     }
 
-    /// Returns the queued contracts after `last_id`, with their data from each source.
-    pub async fn list_queued_after<Api, Portal>(
+    /// Returns the queued contracts before `before_id`, newest first, with their data from each source.
+    pub async fn list_queued_before<Api, Portal>(
         &self,
-        last_id: i64,
+        before_id: i64,
         limit: i64,
     ) -> Result<Vec<QueuedContract<Api, Portal>>, sqlx::Error>
     where
@@ -121,14 +121,14 @@ impl RawContractDatabase {
                 ON api.source = $1 AND api.contract_id = q.contract_id
             LEFT JOIN raw_contracts portal
                 ON portal.source = $2 AND portal.contract_id = q.contract_id
-            WHERE q.contract_id > $3
-            ORDER BY q.contract_id
+            WHERE q.contract_id < $3
+            ORDER BY q.contract_id DESC
             LIMIT $4
             "#,
         )
         .bind(ContractSource::BaseApi)
         .bind(ContractSource::BasePortal)
-        .bind(last_id)
+        .bind(before_id)
         .bind(limit)
         .fetch_all(&self.pool)
         .await
@@ -163,7 +163,7 @@ impl RawContractDatabase {
         Ok(listener)
     }
 
-    /// Returns the queued contract with the lowest id, skipping `excluded_ids`.
+    /// Returns the queued contract with the highest id (the newest), skipping `excluded_ids`.
     pub async fn next_portal_refetch(
         &self,
         excluded_ids: &[i64],
@@ -173,7 +173,7 @@ impl RawContractDatabase {
             SELECT contract_id, version
             FROM portal_refetch_queue
             WHERE contract_id <> ALL($1)
-            ORDER BY contract_id
+            ORDER BY contract_id DESC
             LIMIT 1
             "#,
         )
@@ -335,15 +335,15 @@ mod tests {
     }
 
     #[sqlx::test(migrations = "../../migrations")]
-    async fn list_queued_after_pairs_both_sources(pool: PgPool) -> sqlx::Result<()> {
+    async fn list_queued_before_pairs_both_sources(pool: PgPool) -> sqlx::Result<()> {
         let db = RawContractDatabase::new(pool);
         let (api, portal) = (ContractSource::BaseApi, ContractSource::BasePortal);
 
         db.save_contracts(api, &[(1, 10), (2, 20), (4, 40)]).await?;
         db.save_contracts(portal, &[(2, 200), (3, 300)]).await?;
-        db.delete_contract(api, 4).await?;
+        db.delete_contract(api, 1).await?;
 
-        let queued = db.list_queued_after::<i64, i64>(1, 10).await?;
+        let queued = db.list_queued_before::<i64, i64>(4, 10).await?;
         let queued: Vec<_> = queued
             .iter()
             .map(|c| (c.entry.contract_id, c.api, c.portal))
@@ -352,9 +352,9 @@ mod tests {
         assert_eq!(
             queued,
             [
-                (2, Some(20), Some(200)),
                 (3, None, Some(300)),
-                (4, None, None)
+                (2, Some(20), Some(200)),
+                (1, None, None)
             ]
         );
 

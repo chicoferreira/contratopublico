@@ -46,14 +46,15 @@ async fn join_pending(
     contract_db: &ContractDatabase,
     search_db: &SearchDatabase,
 ) -> anyhow::Result<()> {
-    let mut last_id = 0;
+    let mut last_id = i64::MAX;
     let mut joined = 0;
     let mut deleted = 0;
     let mut failed = 0;
 
     loop {
+        // Newest first, so recent contracts don't wait behind a large backlog
         let queued = raw_contract_db
-            .list_queued_after(last_id, BATCH_SIZE)
+            .list_queued_before(last_id, BATCH_SIZE)
             .await
             .context("Failed to fetch queued contracts")?;
 
