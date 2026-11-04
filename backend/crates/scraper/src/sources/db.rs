@@ -262,3 +262,69 @@ fn unzip_contracts<'a, T>(
         .map(|(id, contract)| (id as i64, Json(contract)))
         .unzip()
 }
+
+#[cfg(test)]
+mod tests {
+    use serde_json::{Value, json};
+    use sqlx::PgPool;
+
+    use super::RawContractDatabase;
+    use crate::sources::ContractSource;
+
+    async fn contract_ids(pool: &PgPool, table: &str) -> Vec<i64> {
+        sqlx::query_scalar(&format!(
+            "SELECT contract_id FROM {table} ORDER BY contract_id"
+        ))
+        .fetch_all(pool)
+        .await
+        .unwrap()
+    }
+
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn snapshot_merge_only_changes_its_source(pool: PgPool) -> sqlx::Result<()> {
+        let db = RawContractDatabase::new(pool.clone());
+
+        db.save_contracts(
+            ContractSource::BaseApi,
+            &[
+                (1, json!({"v": 1})),
+                (2, json!({"v": 2})),
+                (3, json!({"v": 3})),
+            ],
+        )
+        .await?;
+        db.save_contracts(ContractSource::BasePortal, &[(1, json!({"p": 1}))])
+            .await?;
+        sqlx::query("DELETE FROM join_queue").execute(&pool).await?;
+
+        let mut snapshot = db.begin_snapshot(ContractSource::BaseApi).await?;
+        let changed = json!({"v": 20});
+        let unchanged = json!({"v": 3});
+        let added = json!({"v": 4});
+        snapshot
+            .add([(2, &changed), (3, &unchanged), (4, &added)])
+            .await?;
+        assert_eq!(snapshot.merge().await?, 1);
+        snapshot.commit().await?;
+
+        let rows: Vec<(String, i64, Value)> = sqlx::query_as(
+            "SELECT source::TEXT, contract_id, data FROM raw_contracts ORDER BY source, contract_id",
+        )
+        .fetch_all(&pool)
+        .await?;
+        assert_eq!(
+            rows,
+            [
+                ("base_api".to_string(), 2, changed),
+                ("base_api".to_string(), 3, unchanged),
+                ("base_api".to_string(), 4, added),
+                ("base_portal".to_string(), 1, json!({"p": 1})),
+            ]
+        );
+
+        assert_eq!(contract_ids(&pool, "join_queue").await, [1, 2, 4]);
+        assert_eq!(contract_ids(&pool, "portal_refetch_queue").await, [1, 2]);
+
+        Ok(())
+    }
+}
