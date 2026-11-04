@@ -18,6 +18,7 @@ const RECENT_SYNC_SCHEDULE: &str = "0 0 * * * *";
 const FULL_SYNC_SCHEDULE: &str = "0 0 4 * * Sun";
 const RECENT_SYNC_LOOKBACK_DAYS: u16 = 2;
 const BATCH_SIZE: usize = 1000;
+const MAX_FULL_SYNC_DELETIONS: i64 = 10_000;
 
 pub async fn run_sync_task(client: BaseApiClient, raw_contract_database: RawContractDatabase) {
     let recent_schedule = Schedule::from_str(RECENT_SYNC_SCHEDULE).unwrap();
@@ -76,6 +77,11 @@ pub async fn sync_all(
         .merge()
         .await
         .context("Failed to merge the BASE API snapshot")?;
+
+    anyhow::ensure!(
+        deleted <= MAX_FULL_SYNC_DELETIONS,
+        "The BASE API snapshot would delete {deleted} contracts, more than the limit of {MAX_FULL_SYNC_DELETIONS}, so nothing was saved"
+    );
 
     snapshot
         .commit()
