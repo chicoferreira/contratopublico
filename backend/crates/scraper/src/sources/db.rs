@@ -135,6 +135,22 @@ impl RawContractDatabase {
         .await
     }
 
+    /// Queues every raw contract to be joined again, and returns how many were queued.
+    pub async fn queue_all_for_join(&self) -> Result<u64, sqlx::Error> {
+        let queued = sqlx::query(
+            r#"
+            INSERT INTO join_queue (contract_id)
+            SELECT DISTINCT contract_id FROM raw_contracts
+            ON CONFLICT (contract_id) DO UPDATE SET version = join_queue.version + 1
+            "#,
+        )
+        .execute(&self.pool)
+        .await?
+        .rows_affected();
+
+        Ok(queued)
+    }
+
     pub async fn dequeue(&self, queued: &[QueueEntry]) -> Result<(), sqlx::Error> {
         let (ids, versions): (Vec<i64>, Vec<i64>) = queued
             .iter()
@@ -364,6 +380,27 @@ mod tests {
                 (1, None, None)
             ]
         );
+
+        Ok(())
+    }
+
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn queue_all_for_join_queues_every_raw_contract(pool: PgPool) -> sqlx::Result<()> {
+        let db = RawContractDatabase::new(pool.clone());
+        let (api, portal) = (ContractSource::BaseApi, ContractSource::BasePortal);
+
+        db.save_contracts(api, &[(1, 10), (2, 20)]).await?;
+        db.save_contracts(portal, &[(2, 200), (3, 300)]).await?;
+        sqlx::query("DELETE FROM join_queue WHERE contract_id = 1")
+            .execute(&pool)
+            .await?;
+        let mut listener = db.listen_join_queue().await?;
+
+        assert_eq!(db.queue_all_for_join().await?, 3);
+        assert_eq!(contract_ids(&pool, "join_queue").await, [1, 2, 3]);
+        tokio::time::timeout(Duration::from_secs(5), listener.recv())
+            .await
+            .expect("Queueing didn't notify the joiner")?;
 
         Ok(())
     }

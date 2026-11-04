@@ -267,6 +267,15 @@ impl ContractDatabase {
         Ok(())
     }
 
+    /// Deletes every contract, along with the entities, CPVs and documents.
+    pub async fn delete_all_contracts(&self) -> Result<(), sqlx::Error> {
+        sqlx::query("TRUNCATE contracts, entities, cpv, documents CASCADE")
+            .execute(&self.pool)
+            .await?;
+
+        Ok(())
+    }
+
     pub async fn insert_contracts(&self, contracts: &[Contract]) -> Result<(), sqlx::Error> {
         let mut tx = self.pool.begin().await?;
 
@@ -494,7 +503,15 @@ mod tests {
         db.insert_contracts(std::slice::from_ref(&contract)).await?;
 
         let contract_from_db = db.get_contract(contract.id).await?;
-        assert_eq!(Some(contract), contract_from_db);
+        assert_eq!(Some(contract.clone()), contract_from_db);
+
+        db.delete_all_contracts().await?;
+
+        assert_eq!(None, db.get_contract(contract.id).await?);
+        let entities: i64 = sqlx::query_scalar("SELECT count(*) FROM entities")
+            .fetch_one(&db.pool)
+            .await?;
+        assert_eq!(entities, 0);
 
         Ok(())
     }

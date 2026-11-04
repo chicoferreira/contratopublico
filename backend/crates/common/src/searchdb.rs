@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 
 use meilisearch_sdk::{client::Client, indexes::Index, task_info::TaskInfo};
 
@@ -54,6 +54,27 @@ impl SearchDatabase {
 
     pub async fn delete_contracts(&self, ids: &[i64]) -> Result<TaskInfo, MeilisearchError> {
         self.index().delete_documents(ids).await
+    }
+
+    pub async fn delete_all_contracts(&self) -> Result<TaskInfo, MeilisearchError> {
+        self.index().delete_all_documents().await
+    }
+
+    /// Waits for the task to finish, and returns its error if it failed.
+    pub async fn wait_for_success(
+        &self,
+        task: TaskInfo,
+        timeout: Duration,
+    ) -> Result<(), MeilisearchError> {
+        let task = task
+            .wait_for_completion(&self.client, None, Some(timeout))
+            .await?;
+
+        if task.is_failure() {
+            return Err(task.unwrap_failure().into());
+        }
+
+        Ok(())
     }
 
     pub fn client(&self) -> &Client {

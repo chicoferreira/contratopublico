@@ -1,5 +1,10 @@
+use std::time::Duration;
+
 use clap::Parser;
-use common::db::PostgresConfig;
+use common::{
+    db::{ContractDatabase, PostgresConfig},
+    searchdb::{MeilisearchConfig, SearchDatabase},
+};
 use log::info;
 use reqwest::Url;
 use scraper::sources::{
@@ -33,6 +38,14 @@ enum Command {
     Fetch {
         contract_id: u64,
         base_gov_client_proxy: Option<Url>,
+    },
+    /// Deletes every joined contract and clears the search index, then queues every contract to be
+    /// joined again. Use this to regenerate the contracts and the search index.
+    Rejoin {
+        #[command(flatten)]
+        postgres_config: PostgresConfig,
+        #[command(flatten)]
+        meilisearch_config: MeilisearchConfig,
     },
     SyncBaseApi {
         #[command(flatten)]
@@ -74,6 +87,27 @@ async fn main() -> anyhow::Result<()> {
             let contract = base_portal_client.get_contract_details(contract_id).await?;
 
             info!("Fetched contract: {contract:#?}")
+        }
+        Command::Rejoin {
+            postgres_config,
+            meilisearch_config,
+        } => {
+            let pool = postgres_config.connect().await?;
+            let contract_db = ContractDatabase::new(pool.clone());
+            let raw_contract_db = RawContractDatabase::new(pool);
+            let search_db = SearchDatabase::new_from_config(meilisearch_config)?;
+
+            let task = search_db.delete_all_contracts().await?;
+            let timeout = Duration::from_mins(30);
+            search_db.wait_for_success(task, timeout).await?;
+            info!("Cleared the search index");
+
+            contract_db.delete_all_contracts().await?;
+            info!("Deleted every contract");
+
+            let queued = raw_contract_db.queue_all_for_join().await?;
+
+            info!("Queued {queued} contracts to join again")
         }
         Command::SyncBaseApi {
             postgres_config,
