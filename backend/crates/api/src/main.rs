@@ -124,9 +124,7 @@ fn run_scraper(
     base_gov_client_proxy: Option<Url>,
     base_api_token: Option<String>,
 ) -> anyhow::Result<()> {
-    let scraper_store = Store::new(raw_contract_db.clone(), saved_pages_path)
-        .context("Failed to create scraper store")?;
-    let scraper_store = Arc::new(scraper_store);
+    let scraper_store = Store::new(saved_pages_path).context("Failed to create scraper store")?;
 
     if let Some(token) = base_api_token {
         let client = BaseApiClient::new(token);
@@ -142,6 +140,7 @@ fn run_scraper(
     tokio::spawn(base_portal::scraper::run_scrape_task(
         client,
         scraper_store,
+        raw_contract_db.clone(),
         scraper_interval,
     ));
 

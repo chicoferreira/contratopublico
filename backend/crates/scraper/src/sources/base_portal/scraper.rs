@@ -1,16 +1,20 @@
 use crate::{
     metrics::{self, ContractFailure},
-    sources::base_portal::{
-        self, BasePortalContract,
-        client::{BasePortalClient, ContractSort},
-        store::Store,
-        throttled_client::ThrottledClient,
+    sources::{
+        ContractSource,
+        base_portal::{
+            self, BasePortalContract,
+            client::{BasePortalClient, ContractSort},
+            store::Store,
+            throttled_client::ThrottledClient,
+        },
+        db::RawContractDatabase,
     },
 };
 use anyhow::Context;
 use governor::Quota;
 use log::{error, info};
-use std::{collections::VecDeque, sync::Arc, time::Duration};
+use std::{collections::VecDeque, time::Duration};
 use tokio::time::Instant;
 
 pub const MAX_PAGE_SIZE: usize = 50;
@@ -25,13 +29,18 @@ fn max_request_quota() -> Quota {
     Quota::with_period(Duration::from_secs(2)).unwrap()
 }
 
-pub async fn run_scrape_task(client: BasePortalClient, store: Arc<Store>, interval: Duration) {
+pub async fn run_scrape_task(
+    client: BasePortalClient,
+    store: Store,
+    raw_contract_db: RawContractDatabase,
+    interval: Duration,
+) {
     let client = ThrottledClient::new(client, max_request_quota());
 
-    let mut listener = match store.listen_refetches().await {
+    let mut listener = match raw_contract_db.listen_portal_refetches().await {
         Ok(listener) => listener,
         Err(e) => {
-            error!("{e:?}");
+            error!("Failed to listen to the portal refetch queue:\n{e:?}");
             return;
         }
     };
@@ -42,10 +51,10 @@ pub async fn run_scrape_task(client: BasePortalClient, store: Arc<Store>, interv
     let mut next_scan = Instant::now();
 
     loop {
-        refetch_queued_contracts(&client, &store, &mut failed_refetches).await;
+        refetch_queued_contracts(&client, &raw_contract_db, &mut failed_refetches).await;
 
         if let Some(current_scan) = &mut scan {
-            match current_scan.step(&client, &store).await {
+            match current_scan.step(&client, &store, &raw_contract_db).await {
                 Ok(true) => {}
                 Ok(false) => {
                     metrics::run_finished(true, scan_start.elapsed());
@@ -81,27 +90,27 @@ pub async fn run_scrape_task(client: BasePortalClient, store: Arc<Store>, interv
 /// A contract that fails is kept in the queue and skipped until the next scan.
 async fn refetch_queued_contracts(
     client: &ThrottledClient,
-    store: &Store,
+    raw_contract_db: &RawContractDatabase,
     failed_refetches: &mut Vec<i64>,
 ) {
     loop {
-        let entry = match store.next_refetch(failed_refetches).await {
+        let entry = match raw_contract_db.next_portal_refetch(failed_refetches).await {
             Ok(Some(entry)) => entry,
             Ok(None) => return,
             Err(e) => {
-                error!("{e:?}");
+                error!("Failed to read the portal refetch queue:\n{e:?}");
                 return;
             }
         };
 
-        if let Err(e) = fetch_and_save(client, store, entry.contract_id as u64).await {
+        if let Err(e) = fetch_and_save(client, raw_contract_db, entry.contract_id as u64).await {
             error!("{e:?}");
             failed_refetches.push(entry.contract_id);
             continue;
         }
 
-        if let Err(e) = store.dequeue_refetch(entry).await {
-            error!("{e:?}");
+        if let Err(e) = raw_contract_db.dequeue_portal_refetch(entry).await {
+            error!("Failed to remove contract from the portal refetch queue:\n{e:?}");
             failed_refetches.push(entry.contract_id);
         }
     }
@@ -119,14 +128,19 @@ impl PageScan {
     /// Fetches the next contract of the current page, or the next page.
     ///
     /// Returns `true` if there is more to scan.
-    async fn step(&mut self, client: &ThrottledClient, store: &Store) -> anyhow::Result<bool> {
+    async fn step(
+        &mut self,
+        client: &ThrottledClient,
+        store: &Store,
+        raw_contract_db: &RawContractDatabase,
+    ) -> anyhow::Result<bool> {
         while let Some(id) = self.ids.pop_front() {
             if store.already_exists(id, self.page).await {
                 info!("Contract {id} already exists, skipping...");
                 continue;
             }
 
-            fetch_and_save(client, store, id).await?;
+            fetch_and_save(client, raw_contract_db, id).await?;
             store.mark_saved(id, self.page, MAX_PAGE_SIZE)?;
             return Ok(true);
         }
@@ -172,17 +186,21 @@ impl PageScan {
     }
 }
 
-async fn fetch_and_save(client: &ThrottledClient, store: &Store, id: u64) -> anyhow::Result<()> {
+async fn fetch_and_save(
+    client: &ThrottledClient,
+    raw_contract_db: &RawContractDatabase,
+    id: u64,
+) -> anyhow::Result<()> {
     let Some(contract) = fetch_contract(client, id).await? else {
         info!("Contract {id} no longer exists in the portal, deleting it...");
-        return store
-            .delete_contract(id)
+        return raw_contract_db
+            .delete_contract(ContractSource::BasePortal, id)
             .await
             .with_context(|| format!("Failed to delete contract {id}"));
     };
 
-    store
-        .save_contract(contract)
+    raw_contract_db
+        .save_contracts(ContractSource::BasePortal, &[(contract.id, contract)])
         .await
         .inspect_err(|_| metrics::contract_failed(ContractFailure::Save))
         .with_context(|| format!("Failed to save details for ID {id}"))?;

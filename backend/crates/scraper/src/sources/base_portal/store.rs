@@ -7,19 +7,10 @@ use std::{
 
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
-use sqlx::postgres::PgListener;
 
-use crate::{
-    sources::{
-        ContractSource,
-        base_portal::BasePortalContract,
-        db::{QueueEntry, RawContractDatabase},
-    },
-    util::range_set::RangeSet,
-};
+use crate::util::range_set::RangeSet;
 
 pub struct Store {
-    raw_contract_database: RawContractDatabase,
     scrape_progress: Mutex<ScrapeProgress>,
     path: PathBuf,
 }
@@ -76,15 +67,11 @@ impl Store {
             .context("Failed to open saved pages file")
     }
 
-    pub fn new(
-        raw_contract_database: RawContractDatabase,
-        scrape_progress_path: PathBuf,
-    ) -> anyhow::Result<Self> {
+    pub fn new(scrape_progress_path: PathBuf) -> anyhow::Result<Self> {
         let scrape_progress =
             Self::load_progress(&scrape_progress_path).context("Failed to load progress")?;
 
         Ok(Self {
-            raw_contract_database,
             scrape_progress: Mutex::new(scrape_progress),
             path: scrape_progress_path,
         })
@@ -100,20 +87,6 @@ impl Store {
                 .map_or(false, |entry| entry.contains(&id))
     }
 
-    pub async fn save_contract(&self, contract: BasePortalContract) -> anyhow::Result<()> {
-        self.raw_contract_database
-            .save_contracts(ContractSource::BasePortal, &[(contract.id, contract)])
-            .await
-            .context("Failed to save raw contract in database")
-    }
-
-    pub async fn delete_contract(&self, id: u64) -> anyhow::Result<()> {
-        self.raw_contract_database
-            .delete_contract(ContractSource::BasePortal, id)
-            .await
-            .context("Failed to delete raw contract from database")
-    }
-
     pub fn mark_saved(
         &self,
         id: u64,
@@ -127,27 +100,6 @@ impl Store {
         serde_json::to_writer(file, &*scrape_progress).context("Failed to write saved pages")?;
 
         Ok(())
-    }
-
-    pub async fn next_refetch(&self, excluded_ids: &[i64]) -> anyhow::Result<Option<QueueEntry>> {
-        self.raw_contract_database
-            .next_portal_refetch(excluded_ids)
-            .await
-            .context("Failed to read the portal refetch queue")
-    }
-
-    pub async fn listen_refetches(&self) -> anyhow::Result<PgListener> {
-        self.raw_contract_database
-            .listen_portal_refetches()
-            .await
-            .context("Failed to listen to the portal refetch queue")
-    }
-
-    pub async fn dequeue_refetch(&self, entry: QueueEntry) -> anyhow::Result<()> {
-        self.raw_contract_database
-            .dequeue_portal_refetch(entry)
-            .await
-            .context("Failed to remove contract from the portal refetch queue")
     }
 
     pub fn get_next_page_to_query(&self, current_page: usize) -> usize {
