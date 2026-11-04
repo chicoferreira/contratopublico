@@ -65,6 +65,7 @@ services:
       - ${DATA_FOLDER}/scraper:/data/scraper
     environment:
       - RUST_LOG=info
+      - BASE_API_TOKEN
       - MEILISEARCH_URL=http://meilisearch:7700
       - MEILI_MASTER_KEY
       - POSTGRES_HOST=postgres
