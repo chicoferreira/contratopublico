@@ -8,7 +8,7 @@ module.exports = {
             '--tw-prose-body': 'var(--color-foreground)',
             '--tw-prose-headings': 'var(--color-foreground)',
             '--tw-prose-lead': 'var(--color-foreground)',
-            '--tw-prose-links': 'var(--color-primary)',
+            '--tw-prose-links': 'var(--color-link)',
             '--tw-prose-links-underline': 'none',
             '--tw-prose-bold': 'var(--color-foreground)',
             '--tw-prose-counters': 'var(--color-muted-foreground)',

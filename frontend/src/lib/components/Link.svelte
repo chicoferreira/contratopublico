@@ -18,23 +18,14 @@
   href={url}
   target={"_blank"}
   rel={"noopener noreferrer"}
-  class="group inline-flex w-fit shrink-0 items-center gap-[6px] transition-opacity hover:opacity-80 cursor-pointer"
+  class="group inline-flex w-fit shrink-0 cursor-pointer items-center gap-[6px] transition-opacity hover:opacity-80"
   {title}>
-  <span
-    class={cn(
-      "text-sm text-blue-500 transition-colors group-hover:text-blue-500 group-hover:underline dark:text-blue-400",
-      extraClasses,
-    )}>
+  <span class={cn("text-link text-sm transition-colors group-hover:underline", extraClasses)}>
     {#if children}
       {@render children()}
     {/if}
   </span>
   {#if showIcon}
-    <ExternalLink
-      size={15}
-      class={cn(
-        "text-blue-500 transition-colors group-hover:text-blue-500 dark:text-blue-400",
-        extraClasses,
-      )} />
+    <ExternalLink size={15} class={cn("text-link transition-colors", extraClasses)} />
   {/if}
 </a>

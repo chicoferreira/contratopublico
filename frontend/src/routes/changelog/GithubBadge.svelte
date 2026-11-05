@@ -32,7 +32,7 @@
   const badgeClass = $derived(badges[type]);
 </script>
 
-<Badge variant="secondary" class={badgeClass}>
+<Badge variant="secondary" class="not-prose {badgeClass}">
   <a href={url} target="_blank" class="text-white hover:text-white/80">
     {label}
   </a>
