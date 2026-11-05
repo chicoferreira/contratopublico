@@ -6,7 +6,7 @@ use common::{Contract, Cpv, Currency, Document, Entity};
 use itertools::Itertools;
 
 use crate::sources::{
-    base_api::{BaseApiContract, BaseApiCpv, BaseApiEntity},
+    base_api::{BaseApiContract, BaseApiCpv, BaseApiEntity, BaseApiInvitee},
     base_portal::{BasePortalContract, BasePortalDocument, BasePortalEntity},
 };
 
@@ -51,7 +51,10 @@ pub fn join_contract(sources: Sources) -> anyhow::Result<Contract> {
             |c| parse_portal_cpvs(&c.cpvs, &c.cpvs_designation),
         )?,
         regime: sources.api_first_option(|c| non_empty(&c.regime), |c| c.regime.clone()),
-        contract_status: sources.portal_or_default(|c| c.contract_status.clone()),
+        contract_status: sources.api_first_option(
+            |c| non_empty(&c.contract_status),
+            |c| c.contract_status.clone(),
+        ),
         non_written_contract_justification_types: sources.portal_first(
             |c| parse_portal_list(&c.non_written_contract_justification_types, "<br/>"),
             |c| api_list(&c.non_written_contract_justification_types),
@@ -76,13 +79,19 @@ pub fn join_contract(sources: Sources) -> anyhow::Result<Contract> {
             |c| portal_entities(&c.contestants),
             |c| api_contestants(&c.contestants),
         ),
-        invitees: sources.portal_or_default(|c| portal_entities(&c.invitees)),
+        invitees: sources.portal_first(
+            |c| portal_entities(&c.invitees),
+            |c| api_invitees(&c.invitees),
+        ),
         documents: sources.portal_or_default(|c| portal_documents(&c.documents)),
         contracting_procedure_url: sources.api_first_option(
             |c| non_empty(&c.contracting_procedure_url),
             |c| c.contracting_procedure_url.clone(),
         ),
-        announcement_id: sources.portal_or_default(|c| usize::try_from(c.announcement_id).ok()),
+        announcement_id: sources.try_api_first_option(
+            |c| parse_optional_api_id(&c.announcement_id),
+            |c| Ok(usize::try_from(c.announcement_id).ok()),
+        )?,
         direct_award_fundamentation_type: sources.portal_first_option(
             |c| {
                 Some(c.direct_award_fundamentation_type.clone())
@@ -109,8 +118,14 @@ pub fn join_contract(sources: Sources) -> anyhow::Result<Contract> {
                     .transpose()
             },
         )?,
-        causes_deadline_change: sources.portal_or_default(|c| c.causes_deadline_change.clone()),
-        causes_price_change: sources.portal_or_default(|c| c.causes_price_change.clone()),
+        causes_deadline_change: sources.api_first_option(
+            |c| non_empty(&c.causes_deadline_change),
+            |c| c.causes_deadline_change.clone(),
+        ),
+        causes_price_change: sources.api_first_option(
+            |c| non_empty(&c.causes_price_change),
+            |c| c.causes_price_change.clone(),
+        ),
     })
 }
 
@@ -238,6 +253,12 @@ fn parse_optional_api_date(date: &str) -> anyhow::Result<Option<NaiveDate>> {
     (!date.is_empty()).then(|| parse_api_date(date)).transpose()
 }
 
+fn parse_optional_api_id(id: &str) -> anyhow::Result<Option<usize>> {
+    (!id.is_empty())
+        .then(|| id.parse().with_context(|| format!("Invalid id: {id}")))
+        .transpose()
+}
+
 fn parse_api_execution_deadline(days: i32) -> anyhow::Result<usize> {
     usize::try_from(days).with_context(|| format!("Invalid execution deadline: {days}"))
 }
@@ -295,6 +316,19 @@ fn api_contestants(contestants: &Option<Vec<String>>) -> Vec<Entity> {
                 None => contestant.split_once('-').unwrap_or(("", contestant)),
             };
             api_entity(nif, description)
+        })
+        .collect()
+}
+
+fn api_invitees(invitees: &Option<Vec<BaseApiInvitee>>) -> Vec<Entity> {
+    invitees
+        .iter()
+        .flatten()
+        .map(|invitee| {
+            api_entity(
+                &invitee.nif,
+                invitee.description.as_deref().unwrap_or_default(),
+            )
         })
         .collect()
 }
