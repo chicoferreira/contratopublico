@@ -333,36 +333,38 @@
               {/if}
             </span>
           </p>
-          <p class="text-muted-foreground">
-            Causa da extinção do contrato:
-            <span class="text-foreground font-medium">
-              {contract.endOfContractType || "—"}
-            </span>
-          </p>
-          <p class="text-muted-foreground">
-            Data do fecho de contrato:
-            <span class="text-foreground font-medium">
-              {formatDate(contract.closeDate)}
-            </span>
-          </p>
-          <p class="text-muted-foreground">
-            Preço total efetivo:
-            <span class="text-foreground font-medium">
-              {formatMoney(contract.totalEffectivePrice)}
-            </span>
-          </p>
-          <p class="text-muted-foreground">
-            Causas das alterações ao prazo:
-            <span class="text-foreground font-medium">
-              {contract.causesDeadlineChange || "—"}
-            </span>
-          </p>
-          <p class="text-muted-foreground">
-            Causas das alterações ao preço:
-            <span class="text-foreground font-medium">
-              {contract.causesPriceChange || "—"}
-            </span>
-          </p>
+          {#if contract.endOfContractType}
+            <p class="text-muted-foreground">
+              Causa da extinção do contrato:
+              <span class="text-foreground font-medium">{contract.endOfContractType}</span>
+            </p>
+          {/if}
+          {#if contract.closeDate}
+            <p class="text-muted-foreground">
+              Data do fecho de contrato:
+              <span class="text-foreground font-medium">{formatDate(contract.closeDate)}</span>
+            </p>
+          {/if}
+          {#if contract.totalEffectivePrice != null}
+            <p class="text-muted-foreground">
+              Preço total efetivo:
+              <span class="text-foreground font-medium">
+                {formatMoney(contract.totalEffectivePrice)}
+              </span>
+            </p>
+          {/if}
+          {#if contract.causesDeadlineChange}
+            <p class="text-muted-foreground">
+              Causas das alterações ao prazo:
+              <span class="text-foreground font-medium">{contract.causesDeadlineChange}</span>
+            </p>
+          {/if}
+          {#if contract.causesPriceChange}
+            <p class="text-muted-foreground">
+              Causas das alterações ao preço:
+              <span class="text-foreground font-medium">{contract.causesPriceChange}</span>
+            </p>
+          {/if}
         </div>
       </GridCardTitle>
     </div>
