@@ -29,12 +29,15 @@ pub fn router(app_state: AppState, blocklist: Arc<Blocklist>) -> Router {
     let contract_rate_limit = Quota::with_period(Duration::from_millis(200))
         .unwrap()
         .allow_burst(NonZero::try_from(2).unwrap());
+    let hourly_rate_limit = Quota::per_hour(NonZero::try_from(600).unwrap())
+        .allow_burst(NonZero::try_from(200).unwrap());
 
     Router::new()
         .merge(
             Router::new()
                 .route("/api/search", post(search))
                 .route("/api/contract/{id}", get(contract))
+                .route_layer(RateLimitLayer::new(hourly_rate_limit))
                 .route_layer(RateLimitLayer::new(contract_rate_limit)),
         )
         .route("/api/statistics", get(statistics))
