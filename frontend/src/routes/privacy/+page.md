@@ -27,6 +27,14 @@ O **Contrato Público** procura manter os dados alinhados com o Portal BASE, mas
 
 Pedidos de correção, atualização ou remoção de dados relativos a contratos públicos devem ser submetidos diretamente ao **IMPIC**. Os contratos removidos do Portal BASE e da respetiva API são também removidos automaticamente do **Contrato Público**. Se já tiver solicitado a alteração ou remoção e esta estiver refletida no Portal BASE há mais de 7 dias mas ainda não no **Contrato Público**, contacte-nos via [contacto@contratopublico.pt](mailto:contacto@contratopublico.pt) para procedermos à atualização manual.
 
+## Utilização Automatizada
+
+O **Contrato Público** corre num servidor pessoal com recursos limitados. Para que o serviço continue operacional para todos, pedimos que não extraia dados do site de forma automatizada.
+
+Como alternativa poderá utilizar o [scraper incluído no repositório do projeto](https://github.com/chicoferreira/contratopublico/tree/main/backend/crates/scraper), a [API do Portal BASE](https://www.base.gov.pt/APIBase2V2) diretamente, ou o [_dataset_ de contratos públicos do Portal BASE do dados.gov](https://dados.gov.pt/pt/datasets/contratos-publicos-portal-base-impic-contratos-de-2012-a-2026). Em qualquer dos casos, deve respeitar os termos de utilização de cada plataforma.
+
+Pedidos automatizados podem ser bloqueados sem aviso prévio. Para solicitar o desbloqueio, contacte-nos através de [contacto@contratopublico.pt](mailto:contacto@contratopublico.pt).
+
 ## Proteção de Dados Pessoais (RGPD)
 
 ### Dados dos Contratos
