@@ -29,6 +29,12 @@ const moneyFormatter = new Intl.NumberFormat("pt-PT", {
 
 const numberFormatter = new Intl.NumberFormat("pt-PT");
 
+const percentageFormatter = new Intl.NumberFormat("pt-PT", {
+  style: "percent",
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
+
 export function formatMoney(value: number | null | undefined) {
   if (value == null) return "—";
   return moneyFormatter.format(value / 100);
@@ -37,6 +43,10 @@ export function formatMoney(value: number | null | undefined) {
 export function formatNumber(value: number | null | undefined) {
   if (value == null) return "—";
   return numberFormatter.format(value);
+}
+
+export function formatPercentage(ratio: number) {
+  return percentageFormatter.format(ratio);
 }
 
 export const dateToString = (date: Date) =>

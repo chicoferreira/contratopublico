@@ -19,8 +19,9 @@
   import GridSubCardList from "./GridSubCardList.svelte";
   import ContractProcedureTypeBadge from "$lib/components/ContractProcedureTypeBadge.svelte";
   import GridCardTitleList from "./GridCardTitleList.svelte";
-  import { dateToString, formatDate, formatMoney } from "$lib/utils";
-  import { getBaseGovContractUrl, getBaseGovDocumentUrl } from "$lib";
+  import { dateToString, formatDate, formatMoney, formatPercentage } from "$lib/utils";
+  import { getBaseGovAnnouncementUrl, getBaseGovContractUrl, getBaseGovDocumentUrl } from "$lib";
+  import InfoBadge from "$lib/components/InfoBadge.svelte";
   import * as Collapsible from "$lib/components/ui/collapsible/index.js";
   import { blur, fade, slide } from "svelte/transition";
   import ErrorDisplay from "$lib/components/ErrorDisplay.svelte";
@@ -97,8 +98,27 @@
 {:else if contract}
   <div class="space-y-4">
     <div class="space-y-0.5 text-lg">
-      <div class="text-muted-foreground text-sm font-semibold tracking-wide uppercase">
-        Contrato #{contract.id}
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="text-muted-foreground text-sm font-semibold tracking-wide uppercase">
+          Contrato #{contract.id}
+        </span>
+        {#if contract.contractStatus}
+          <InfoBadge
+            title={contract.contractStatus}
+            class="bg-red-600 font-semibold text-white dark:bg-red-600/70">
+            <p>
+              A entidade está a corrigir ou a anular este contrato no Portal BASE, por isso os dados
+              podem vir a mudar.
+            </p>
+          </InfoBadge>
+        {/if}
+        {#if contract.ambientCriteria}
+          <InfoBadge
+            title="Contrato sustentável"
+            class="bg-green-600 font-semibold text-white dark:bg-green-600/70">
+            <p>A entidade indicou que o contrato inclui requisitos ambientais.</p>
+          </InfoBadge>
+        {/if}
       </div>
       <div class="-space-y-1">
         <h1 class="text-3xl leading-snug font-semibold">{contract.objectBriefDescription}</h1>
@@ -113,8 +133,17 @@
 
     <div class="grid grid-cols-1 items-start gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <GridCardTitle title="Valor contratual inicial" icon={BadgeEuro} compact={true}>
-        <p class="text-lg font-semibold">{formatMoney(contract.initialContractualPrice)}</p>
-        <p class="text-muted-foreground text-sm">Valor inicial estabelecido no contrato</p>
+        <p class="text-lg font-semibold">
+          {formatMoney(contract.initialContractualPrice)}
+        </p>
+        {#if contract.estimatedBasePrice}
+          <p class="text-muted-foreground text-sm">
+            {formatPercentage(contract.initialContractualPrice / contract.estimatedBasePrice)}
+            do preço base de {formatMoney(contract.estimatedBasePrice)}
+          </p>
+        {:else}
+          <p class="text-muted-foreground text-sm">Valor inicial estabelecido no contrato</p>
+        {/if}
       </GridCardTitle>
 
       <GridCardTitle title="Data de publicação" icon={CalendarDays} compact={true}>
@@ -234,6 +263,28 @@
               </span>
             </p>
           {/if}
+          {#if contract.awardDecisionDate}
+            <p class="text-muted-foreground">
+              Data da decisão de adjudicação:
+              <span class="text-foreground font-medium">
+                {formatDate(contract.awardDecisionDate)}
+              </span>
+            </p>
+          {/if}
+          {#if contract.frameworkAgreementDescription}
+            <p class="text-muted-foreground">
+              Acordo-quadro:
+              <span class="text-foreground font-medium">
+                {contract.frameworkAgreementDescription}
+              </span>
+            </p>
+          {/if}
+          {#if contract.specialMeasures}
+            <p class="text-muted-foreground">
+              Medida especial:
+              <span class="text-foreground font-medium">{contract.specialMeasures}</span>
+            </p>
+          {/if}
           {#if contract.nonWrittenContractJustificationTypes.length}
             <p class="text-muted-foreground">
               Justificação não escrita:
@@ -248,6 +299,14 @@
               <span class="text-foreground font-medium">
                 {contract.observations}
               </span>
+            </p>
+          {/if}
+          {#if contract.announcementId}
+            <p class="text-muted-foreground">
+              Anúncio:
+              <Link url={getBaseGovAnnouncementUrl(contract.announcementId)}>
+                #{contract.announcementId} no Portal BASE
+              </Link>
             </p>
           {/if}
           <p class="text-muted-foreground">

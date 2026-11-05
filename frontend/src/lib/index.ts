@@ -142,6 +142,10 @@ export function getBaseGovContractUrl(contractId: number) {
   return `https://www.base.gov.pt/Base4/pt/detalhe/?type=contratos&id=${contractId}`;
 }
 
+export function getBaseGovAnnouncementUrl(announcementId: number) {
+  return `https://www.base.gov.pt/Base4/pt/detalhe/?type=anuncios&id=${announcementId}`;
+}
+
 export function getBaseGovDocumentUrl(documentId: number) {
   return `https://www.base.gov.pt/Base4/pt/resultados/?type=doc_documentos&id=${documentId}`;
 }
