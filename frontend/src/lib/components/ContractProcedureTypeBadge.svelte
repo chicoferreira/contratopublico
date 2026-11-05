@@ -1,11 +1,9 @@
 <script lang="ts">
-  import { Badge } from "$lib/components/ui/badge";
-  import { Popover, PopoverContent, PopoverTrigger } from "$lib/components/ui/popover";
   import type { MatchingRange } from "$lib/types/api";
   import { cn } from "$lib/utils";
   import Highlighted from "./Highlighted.svelte";
+  import InfoBadge from "./InfoBadge.svelte";
   import Link from "./Link.svelte";
-  import InfoPopover from "./InfoPopover.svelte";
   import contractTypesData from "./procedure-types.json";
 
   function getBadgeStyle(contractType: string) {
@@ -51,45 +49,40 @@
   const badgeConfig = $derived(getBadgeStyle(type));
 </script>
 
-<Popover>
-  <PopoverTrigger class="max-w-full">
-    <Badge
-      class={cn(
-        colorVariants[badgeConfig.color as keyof typeof colorVariants],
-        "max-w-full font-semibold text-white",
-      )}>
-      <Highlighted class="truncate" content={badgeConfig.displayText} ranges={highlightRanges} />
-    </Badge>
-  </PopoverTrigger>
-  <PopoverContent>
-    <InfoPopover title={badgeConfig.displayText}>
+<InfoBadge
+  title={badgeConfig.displayText}
+  class={cn(
+    colorVariants[badgeConfig.color as keyof typeof colorVariants],
+    "font-semibold text-white",
+  )}>
+  {#snippet badge()}
+    <Highlighted class="truncate" content={badgeConfig.displayText} ranges={highlightRanges} />
+  {/snippet}
+  <div>
+    {#if badgeConfig.description}
       <div>
-        {#if badgeConfig.description}
-          <div>
-            {@html badgeConfig.description}
-          </div>
-        {:else}
-          <div>
-            <p>Descrição não disponível para este tipo de procedimento.</p>
-            <p>
-              Contribua com uma descrição no
-              <Link
-                showIcon={false}
-                url="https://github.com/chicoferreira/contratopublico/edit/main/frontend/src/lib/components/procedure-types.json">
-                GitHub
-              </Link>.
-            </p>
-          </div>
-        {/if}
+        {@html badgeConfig.description}
       </div>
+    {:else}
+      <div>
+        <p>Descrição não disponível para este tipo de procedimento.</p>
+        <p>
+          Contribua com uma descrição no
+          <Link
+            showIcon={false}
+            url="https://github.com/chicoferreira/contratopublico/edit/main/frontend/src/lib/components/procedure-types.json">
+            GitHub
+          </Link>.
+        </p>
+      </div>
+    {/if}
+  </div>
 
-      <div>
-        <Link
-          url="https://www.base.gov.pt/Base4/pt/documentacao/caracteristicas-dos-procedimentos/"
-          title="Saiba mais sobre as características dos procedimentos.">
-          Saiba mais sobre as características dos procedimentos.
-        </Link>
-      </div>
-    </InfoPopover>
-  </PopoverContent>
-</Popover>
+  <div>
+    <Link
+      url="https://www.base.gov.pt/Base4/pt/documentacao/caracteristicas-dos-procedimentos/"
+      title="Saiba mais sobre as características dos procedimentos.">
+      Saiba mais sobre as características dos procedimentos.
+    </Link>
+  </div>
+</InfoBadge>
