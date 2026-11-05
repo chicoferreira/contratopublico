@@ -11,7 +11,7 @@ _Última atualização: Novembro de 2026_
 
 ### Origem dos Dados
 
-Todos os dados de contratos públicos disponibilizados no **Contrato Público** são recolhidos exclusivamente do [Portal BASE](https://www.base.gov.pt/base4) e da respetiva [API](https://www.base.gov.pt/APIBase2).
+Todos os dados de contratos públicos disponibilizados no **Contrato Público** são recolhidos exclusivamente do [Portal BASE](https://www.base.gov.pt/base4) e da respetiva [API](https://www.base.gov.pt/APIBase2V2).
 
 O **Contrato Público** atua como um agregador e motor de pesquisa, facilitando o acesso e pesquisa destes dados públicos através de uma interface mais rápida, intuitiva e funcional. Não somos afiliados ao IMPIC nem ao Governo de Portugal.
 

@@ -6,7 +6,7 @@ use common::{Contract, Cpv, Currency, Document, Entity};
 use itertools::Itertools;
 
 use crate::sources::{
-    base_api::BaseApiContract,
+    base_api::{BaseApiContract, BaseApiCpv, BaseApiEntity},
     base_portal::{BasePortalContract, BasePortalDocument, BasePortalEntity},
 };
 
@@ -40,14 +40,14 @@ pub fn join_contract(sources: Sources) -> anyhow::Result<Contract> {
             .api_first_option(|c| non_empty(&c.description), |c| c.description.clone()),
         contracting: sources.portal_first(
             |c| portal_entities(c.contracting.as_deref().unwrap_or_default()),
-            |c| api_entities(&c.contracting, " - "),
+            |c| api_entities(&c.contracting),
         ),
         contracted: sources.portal_first(
             |c| portal_entities(c.contracted.as_deref().unwrap_or_default()),
-            |c| api_entities(&c.contracted, " - "),
+            |c| api_entities(&c.contracted),
         ),
         cpvs: sources.try_api_first(
-            |c| parse_api_cpvs(&c.cpvs),
+            |c| Ok(api_cpvs(&c.cpvs)),
             |c| parse_portal_cpvs(&c.cpvs, &c.cpvs_designation),
         )?,
         regime: sources.api_first_option(|c| non_empty(&c.regime), |c| c.regime.clone()),
@@ -74,7 +74,7 @@ pub fn join_contract(sources: Sources) -> anyhow::Result<Contract> {
         ),
         contestants: sources.portal_first(
             |c| portal_entities(&c.contestants),
-            |c| api_entities(&c.contestants, "-"),
+            |c| api_contestants(&c.contestants),
         ),
         invitees: sources.portal_or_default(|c| portal_entities(&c.invitees)),
         documents: sources.portal_or_default(|c| portal_documents(&c.documents)),
@@ -231,7 +231,7 @@ fn non_empty(value: &str) -> Option<String> {
 }
 
 fn parse_api_date(date: &str) -> anyhow::Result<NaiveDate> {
-    NaiveDate::parse_from_str(date, "%d/%m/%Y").with_context(|| format!("Invalid date: {date}"))
+    NaiveDate::parse_from_str(date, "%Y-%m-%d").with_context(|| format!("Invalid date: {date}"))
 }
 
 fn parse_optional_api_date(date: &str) -> anyhow::Result<Option<NaiveDate>> {
@@ -250,22 +250,15 @@ fn optional_currency(euros: f64) -> Option<Currency> {
     (euros != 0.0).then(|| euros_to_currency(euros))
 }
 
-fn parse_api_cpvs(cpvs: &Option<Vec<String>>) -> anyhow::Result<Vec<Cpv>> {
+fn api_cpvs(cpvs: &Option<Vec<BaseApiCpv>>) -> Vec<Cpv> {
     cpvs.iter()
         .flatten()
-        .map(|cpv| parse_api_cpv(cpv))
-        .process_results(|cpvs| cpvs.unique_by(|cpv| cpv.code.clone()).collect())
-}
-
-fn parse_api_cpv(cpv: &str) -> anyhow::Result<Cpv> {
-    let (code, designation) = cpv
-        .split_once(" - ")
-        .with_context(|| format!("Invalid CPV: {cpv}"))?;
-
-    Ok(Cpv {
-        code: code.trim().to_string(),
-        designation: designation.trim().to_string(),
-    })
+        .unique_by(|cpv| &cpv.code)
+        .map(|cpv| Cpv {
+            code: cpv.code.trim().to_string(),
+            designation: cpv.designation.trim().to_string(),
+        })
+        .collect()
 }
 
 fn api_list(list: &Option<Vec<String>>) -> Vec<String> {
@@ -277,16 +270,36 @@ fn api_list(list: &Option<Vec<String>>) -> Vec<String> {
         .collect()
 }
 
-fn api_entities(entities: &Option<Vec<String>>, separator: &str) -> Vec<Entity> {
+fn api_entities(entities: &Option<Vec<BaseApiEntity>>) -> Vec<Entity> {
     entities
         .iter()
         .flatten()
-        .map(|entity| api_entity(entity, separator))
+        .map(|entity| {
+            api_entity(
+                &entity.nif,
+                entity.description.as_deref().unwrap_or_default(),
+            )
+        })
         .collect()
 }
 
-fn api_entity(entity: &str, separator: &str) -> Entity {
-    let (nif, description) = entity.split_once(separator).unwrap_or(("", entity));
+fn api_contestants(contestants: &Option<Vec<String>>) -> Vec<Entity> {
+    contestants
+        .iter()
+        .flatten()
+        .map(|contestant| {
+            // contestants come as "NIF-Name", and a hidden NIF is "-", so they come as "--Name"
+            // splitting that on the first dash would leave "-Name" as the name, so it's handled first
+            let (nif, description) = match contestant.strip_prefix("--") {
+                Some(description) => ("", description),
+                None => contestant.split_once('-').unwrap_or(("", contestant)),
+            };
+            api_entity(nif, description)
+        })
+        .collect()
+}
+
+fn api_entity(nif: &str, description: &str) -> Entity {
     let nif = nif.trim().trim_matches('-').trim().to_string();
     let description = description.trim().to_string();
 

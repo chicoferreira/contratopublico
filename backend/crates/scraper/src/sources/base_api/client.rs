@@ -10,8 +10,8 @@ use tokio_util::io::{StreamReader, SyncIoBridge};
 
 use crate::sources::base_api::{BaseApiContract, BaseApiModification};
 
-const CONTRACTS_URL: &str = "https://www.base.gov.pt/APIBase2/GetInfoContrato";
-const MODIFICATIONS_URL: &str = "https://www.base.gov.pt/APIBase2/GetInfoModContrat";
+const CONTRACTS_URL: &str = "https://www.base.gov.pt/APIBase2V2/GetInfoContrato";
+const MODIFICATIONS_URL: &str = "https://www.base.gov.pt/APIBase2V2/GetInfoModContrat";
 const USER_AGENT: &str = "contratopublico.pt";
 const TIMEOUT: Duration = Duration::from_secs(600);
 

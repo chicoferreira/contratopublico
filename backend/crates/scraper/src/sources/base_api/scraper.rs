@@ -6,11 +6,7 @@ use cron::Schedule;
 use itertools::Itertools;
 use log::{error, info};
 
-use crate::sources::{
-    ContractSource,
-    base_api::{BaseApiContract, client::BaseApiClient},
-    db::RawContractDatabase,
-};
+use crate::sources::{ContractSource, base_api::client::BaseApiClient, db::RawContractDatabase};
 
 // Every hour, on the hour (UTC)
 const RECENT_SYNC_SCHEDULE: &str = "0 0 * * * *";
@@ -63,8 +59,9 @@ pub async fn sync_all(
             .with_context(|| format!("Failed to fetch contracts of {year}"))?;
 
         info!("Fetched {} BASE API contracts of {year}", contracts.len());
-        let contracts = dedup_contracts(contracts);
 
+        // the API repeats a contract once per contracting entity
+        // snapshot only keeps one copy of each
         for batch in contracts.chunks(BATCH_SIZE) {
             snapshot
                 .add(batch.iter().map(|contract| (contract.id, contract)))
@@ -104,8 +101,10 @@ async fn sync_recent(
 
     info!("Fetched {} recent BASE API contracts", contracts.len());
 
-    let contracts: Vec<_> = dedup_contracts(contracts)
+    // the API repeats a contract once per contracting entity, in identical copies
+    let contracts: Vec<_> = contracts
         .into_iter()
+        .unique_by(|contract| contract.id)
         .map(|contract| (contract.id, contract))
         .collect();
 
@@ -117,22 +116,4 @@ async fn sync_recent(
     }
 
     Ok(())
-}
-
-/// The API returns several entries for the same contract id, so this keeps only the one with the
-/// highest values of the fields that differ between them, in alphabetical order, which makes the
-/// pick stable between fetches.
-///
-/// This is not the most elegant solution, but it works for now.
-/// See https://github.com/chicoferreira/contratopublico/issues/72 for more details.
-fn dedup_contracts(contracts: Vec<BaseApiContract>) -> Vec<BaseApiContract> {
-    contracts
-        .into_iter()
-        .into_grouping_map_by(|contract| contract.id)
-        .max_by(|_, a, b| {
-            (&a.ambient_criteria, &a.award_criterion)
-                .cmp(&(&b.ambient_criteria, &b.award_criterion))
-        })
-        .into_values()
-        .collect()
 }

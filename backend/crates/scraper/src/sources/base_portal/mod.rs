@@ -15,7 +15,7 @@ pub struct BasePortalContract {
     /// Example: 9497676
     pub id: u64,
 
-    /// The description of the contract.
+    /// The detailed description of the contract.
     /// Example: "Formação em Contratação Pública NRO.2017/00732"
     pub description: Option<String>,
 
@@ -50,6 +50,9 @@ pub struct BasePortalContract {
     pub cpvs_value: String,
 
     /// The date when the contract was signed, as `dd-mm-yyyy`.
+    /// It is when the contract comes into existence, concluded by both the entity and the supplier.
+    /// It comes after the award decision, once the supplier submits its qualification documents.
+    /// Some procedures also have a waiting period before it, for challenges to the award decision.
     /// Example: "01-09-2022"
     pub signing_date: Option<String>,
 
@@ -70,7 +73,7 @@ pub struct BasePortalContract {
     /// Example: "7.000,00 €"
     pub estimated_base_price: Option<String>,
 
-    /// The price of the contract when it was closed.
+    /// The amount actually paid when the contract was closed.
     /// Example: "4.500,00 €"
     pub total_effective_price: Option<String>,
 
@@ -109,14 +112,14 @@ pub struct BasePortalContract {
     /// Example: "Portugal, Lisboa, Lisboa", "Portugal, Braga, Barcelos<BR/>Portugal, Braga, Barcelos"
     pub execution_place: String,
 
-    /// The legal basis of the contract.
+    /// The legal basis of the procedure.
     /// Example: "Artigo 20.º, n.º 1, alínea a) do Código dos Contratos Públicos"
     pub contract_fundamentation_type: String,
 
     /// The entities that competed for the contract.
     pub contestants: Vec<BasePortalEntity>,
 
-    /// The entities invited to compete for the contract.
+    /// The entities invited to submit a proposal.
     pub invitees: Vec<BasePortalEntity>,
 
     /// The documents related to the contract.
@@ -126,7 +129,7 @@ pub struct BasePortalContract {
     /// Example: "https://www.cm-valedecambra.pt/pages/727"
     pub contracting_procedure_url: Option<String>,
 
-    /// The Portal BASE id of the announcement. `-1` if there is none.
+    /// The announcement id, which is the same in the API and the portal. `-1` if there is none.
     /// Example: 324698, -1
     pub announcement_id: i64,
 
@@ -146,15 +149,15 @@ pub struct BasePortalContract {
     /// Example: "Cumprimento integral do contrato"
     pub end_of_contract_type: Option<String>,
 
-    /// What caused the deadline to change.
+    /// The reasons for changing the contract deadline.
     /// Example: "Não Houve"
     pub causes_deadline_change: Option<String>,
 
-    /// What caused the price to change.
+    /// The reasons for changing the contract price.
     /// Example: "Não Houve"
     pub causes_price_change: Option<String>,
 
-    /// The special measures that apply to the contract.
+    /// The special procurement measure the contract was made under.
     /// Example: "Plano de Recuperação e Resiliência (PRR) – artigo 6º da Lei n.º30/2021"
     pub special_measures: Option<String>,
 

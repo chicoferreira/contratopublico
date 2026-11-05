@@ -4,13 +4,13 @@ How contract data gets from its sources to the site: where it comes from and how
 
 ## Data sources
 
-The data comes from two sources, the [BASE API](https://www.base.gov.pt/APIBase2) and the [Portal BASE website](https://www.base.gov.pt/). Both have contracts, entities and modifications, but each has fields the other doesn't and they differ a lot in how fast they can be read, so we need both.
+The data comes from two sources, the [BASE API](https://www.base.gov.pt/APIBase2V2) and the [Portal BASE website](https://www.base.gov.pt/). Both have contracts, entities and modifications, but each has fields the other doesn't and they differ a lot in how fast they can be read, so we need both.
 
 The BASE API requires an access token. A full download takes about 8 minutes, so we can use it to refresh the whole database quickly. It can also return only the contracts whose last update was in the last few days.
 
 To get a token, you can open a ticket on the [IMPIC helpdesk](https://www.impic.pt/support/open.php) with the topic "Contratos Publicos / Pedido de acesso a API Portal Base". IMPIC sends the token once they approve the request.
 
-The Portal BASE website is public, and we scrape the API that feeds the frontend. Unlike the BASE API, which only goes back to 2012, it has every contract. It's also more up to date, and it's the only source of documents, invitees and entity ids. However, its rate limit is very restrictive, allowing only one request every 2 seconds, so a full scrape of about 2.5M contracts takes about 59 days.
+The Portal BASE website is public, and we scrape the API that feeds the frontend. Unlike the BASE API, which only goes back to 2012, it has every contract. It's also more up to date, and it's the only source of documents, the income flag and entity ids. However, its rate limit is very restrictive, allowing only one request every 2 seconds, so a full scrape of about 2.5M contracts takes about 59 days.
 
 [dados.gov](https://dados.gov.pt/) also has this data, but it's the same data as the BASE API and is only published weekly, so we don't use it.
 
@@ -34,7 +34,6 @@ The Portal BASE is scraped as new contracts appear, respecting the rate limit. T
 
 The BASE API is checked every hour. We download the contracts whose last update was in the last 2 days, adding the new ones and updating the ones we already have. To catch any changes that were missed, every contract is downloaded again every week. This is also run manually with the CLI when needed (e.g., when first setting up the database).
 
-The BASE API can return several rows for the same contract id. We keep only one, picked so it's consistent between fetches (see [#72](https://github.com/chicoferreira/contratopublico/issues/72)).
 
 The weekly download has every contract, so it replaces the saved BASE API contracts instead of only adding and updating them. Each year is added to a temporary `snapshot` table inside one transaction, and a single `MERGE` then adds the new contracts, updates the changed ones, and deletes the ones that are no longer in the API.
 ```sql
