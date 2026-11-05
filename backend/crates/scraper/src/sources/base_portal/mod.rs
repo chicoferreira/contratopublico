@@ -5,6 +5,7 @@ pub mod scraper;
 pub mod store;
 pub mod throttled_client;
 
+use crate::sources::text::Text;
 use serde::{Deserialize, Serialize};
 
 /// A contract from the Portal BASE website.
@@ -17,15 +18,15 @@ pub struct BasePortalContract {
 
     /// The detailed description of the contract.
     /// Example: "Formação em Contratação Pública NRO.2017/00732"
-    pub description: Option<String>,
+    pub description: Option<Text>,
 
     /// A brief description of the contract, used as its title.
     /// Example: "Aquisição de medicamentos corretivos de volémia e outras soluções estéreis"
-    pub object_brief_description: String,
+    pub object_brief_description: Text,
 
     /// The type of the procedure, which is the legal process used to choose the supplier.
     /// Example: "Concurso público", "Ajuste Direto Regime Geral"
-    pub contracting_procedure_type: String,
+    pub contracting_procedure_type: Text,
 
     /// The entities responsible for contracting.
     pub contracting: Option<Vec<BasePortalEntity>>,
@@ -35,47 +36,47 @@ pub struct BasePortalContract {
 
     /// The CPV codes, which identify what is being contracted, separated by `" | "`.
     /// Example: "33600000-6", "44512000-2 | 42715000-1"
-    pub cpvs: String,
+    pub cpvs: Text,
 
     /// The designations of the CPV codes, separated by `" | "` in the same order.
     /// Example: "Produtos farmacêuticos"
-    pub cpvs_designation: String,
+    pub cpvs_designation: Text,
 
     /// The type of each CPV code, separated by `" | "` in the same order.
     /// Example: "Principal", "Suplementar | Principal"
-    pub cpvs_type: String,
+    pub cpvs_type: Text,
 
     /// The value of each CPV code, separated by `" | "` in the same order.
     /// Example: "61428.54 € ", "4585.0 €  | 59790.0 € "
-    pub cpvs_value: String,
+    pub cpvs_value: Text,
 
     /// The date when the contract was signed, as `dd-mm-yyyy`.
     /// It is when the contract comes into existence, concluded by both the entity and the supplier.
     /// It comes after the award decision, once the supplier submits its qualification documents.
     /// Some procedures also have a waiting period before it, for challenges to the award decision.
     /// Example: "01-09-2022"
-    pub signing_date: Option<String>,
+    pub signing_date: Option<Text>,
 
     /// The date when the contract was published, as `dd-mm-yyyy`.
     /// Example: "13-10-2022"
-    pub publication_date: String,
+    pub publication_date: Text,
 
     /// The date when the contract was reported as finished, as `dd-mm-yyyy`.
     /// Example: "23-10-2017"
-    pub close_date: Option<String>,
+    pub close_date: Option<Text>,
 
     /// The initial contractual price.
     /// Example: "61.428,54 €"
-    pub initial_contractual_price: String,
+    pub initial_contractual_price: Text,
 
     /// The amount set for the procedure before a supplier is chosen.
     /// It is normally the most the entity will pay.
     /// Example: "7.000,00 €"
-    pub estimated_base_price: Option<String>,
+    pub estimated_base_price: Option<Text>,
 
     /// The amount actually paid when the contract was closed.
     /// Example: "4.500,00 €"
-    pub total_effective_price: Option<String>,
+    pub total_effective_price: Option<Text>,
 
     /// Whether the price is received by the public entity, instead of paid.
     /// Example: false
@@ -83,21 +84,21 @@ pub struct BasePortalContract {
 
     /// The legal regime of the contract.
     /// Example: "Código dos Contratos Públicos (DL 18/2008)"
-    pub regime: Option<String>,
+    pub regime: Option<Text>,
 
     /// Set while a published contract is under review, which the portal shows as a warning.
     /// "Em Rectificação" means it is being corrected, "Em Anulação" that it is being cancelled.
     /// Example: "Em Rectificação", "Em Anulação"
-    pub contract_status: Option<String>,
+    pub contract_status: Option<Text>,
 
     /// The legal reasons for not signing a formal contract document, which is required by default.
     /// For example a low price, urgency, or a purchase under a public supply contract.
     /// Example: "Artigo 95.º, n.º 1, b), locação ou de aquisição de bens móveis ou aquisição de serviços ao abrigo de um contrato público de aprovisionamento"
-    pub non_written_contract_justification_types: String,
+    pub non_written_contract_justification_types: Text,
 
     /// The types of the contract.
     /// Example: "Aquisição de serviços", "Empreitadas de obras públicas"
-    pub contract_types: String,
+    pub contract_types: Text,
 
     /// Whether it is a concession contract, between a grantor and a concessionaire.
     /// Example: false
@@ -106,15 +107,15 @@ pub struct BasePortalContract {
 
     /// The execution deadline.
     /// Example: "182 dias"
-    pub execution_deadline: String,
+    pub execution_deadline: Text,
 
     /// The places where the contract will be executed, separated by `"<BR/>"`.
     /// Example: "Portugal, Lisboa, Lisboa", "Portugal, Braga, Barcelos<BR/>Portugal, Braga, Barcelos"
-    pub execution_place: String,
+    pub execution_place: Text,
 
     /// The legal basis of the procedure.
     /// Example: "Artigo 20.º, n.º 1, alínea a) do Código dos Contratos Públicos"
-    pub contract_fundamentation_type: String,
+    pub contract_fundamentation_type: Text,
 
     /// The entities that competed for the contract.
     pub contestants: Vec<BasePortalEntity>,
@@ -127,7 +128,7 @@ pub struct BasePortalContract {
 
     /// The link to the procedure documents.
     /// Example: "https://www.cm-valedecambra.pt/pages/727"
-    pub contracting_procedure_url: Option<String>,
+    pub contracting_procedure_url: Option<Text>,
 
     /// The announcement id, which is the same in the API and the portal. `-1` if there is none.
     /// Example: 324698, -1
@@ -135,11 +136,11 @@ pub struct BasePortalContract {
 
     /// The reason for a direct award. `"Não aplicável"` when it doesn't apply.
     /// Example: "ausência de recursos próprios", "Não aplicável"
-    pub direct_award_fundamentation_type: String,
+    pub direct_award_fundamentation_type: Text,
 
     /// Free text notes about the contract.
     /// Example: "n/a"
-    pub observations: Option<String>,
+    pub observations: Option<Text>,
 
     /// Exact meaning unknown.
     /// Example: true
@@ -147,30 +148,30 @@ pub struct BasePortalContract {
 
     /// How the contract ended.
     /// Example: "Cumprimento integral do contrato"
-    pub end_of_contract_type: Option<String>,
+    pub end_of_contract_type: Option<Text>,
 
     /// The reasons for changing the contract deadline.
     /// Example: "Não Houve"
-    pub causes_deadline_change: Option<String>,
+    pub causes_deadline_change: Option<Text>,
 
     /// The reasons for changing the contract price.
     /// Example: "Não Houve"
-    pub causes_price_change: Option<String>,
+    pub causes_price_change: Option<Text>,
 
     /// The special procurement measure the contract was made under.
     /// Example: "Plano de Recuperação e Resiliência (PRR) – artigo 6º da Lei n.º30/2021"
-    pub special_measures: Option<String>,
+    pub special_measures: Option<Text>,
 
     /// The id of the procedure that created the framework agreement this contract was made under.
     /// A framework agreement sets the terms in advance for the contracts made under it later.
     /// `"Não aplicável."` when there is none.
     /// Example: "181482", "Não aplicável."
-    pub framework_agreement_procedure_id: String,
+    pub framework_agreement_procedure_id: Text,
 
     /// The description of the framework agreement this contract was made under.
     /// `"Não aplicável."` when there is none.
     /// Example: "CP 2015/6 - Acordo quadro para o fornecimento de Medicamentos do Foro Oncológico"
-    pub framework_agreement_procedure_description: String,
+    pub framework_agreement_procedure_description: Text,
 
     /// Whether one procedure covered the needs of several entities, instead of each running its own.
     /// Example: false
@@ -223,11 +224,11 @@ pub struct BasePortalEntity {
 
     /// The NIF of the entity. `"-"` if it has none.
     /// Example: "503156035", "-"
-    pub nif: String,
+    pub nif: Text,
 
     /// The name of the entity.
     /// Example: "MRG - Construction, SA."
-    pub description: String,
+    pub description: Text,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -238,5 +239,5 @@ pub struct BasePortalDocument {
 
     /// The file name of the document.
     /// Example: "contrato numerado e assinado.pdf"
-    pub description: String,
+    pub description: Text,
 }

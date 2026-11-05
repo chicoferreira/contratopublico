@@ -8,6 +8,7 @@ use itertools::Itertools;
 use crate::sources::{
     base_api::{BaseApiContract, BaseApiCpv, BaseApiEntity, BaseApiInvitee},
     base_portal::{BasePortalContract, BasePortalDocument, BasePortalEntity},
+    text::Text,
 };
 
 const DIRECT_AWARD_NOT_APPLICABLE: &str = "Não aplicável";
@@ -16,8 +17,8 @@ pub fn join_contract(sources: Sources) -> anyhow::Result<Contract> {
     Ok(Contract {
         id: sources.api_first(|c| c.id, |c| c.id),
         contracting_procedure_type: sources.api_first(
-            |c| c.procedure_type.clone(),
-            |c| c.contracting_procedure_type.clone(),
+            |c| c.procedure_type.to_string(),
+            |c| c.contracting_procedure_type.to_string(),
         ),
         publication_date: sources.try_api_first(
             |c| parse_api_date(&c.publication_date),
@@ -29,15 +30,17 @@ pub fn join_contract(sources: Sources) -> anyhow::Result<Contract> {
         )?,
         ccp: sources.portal_or_default(|c| c.ccp),
         object_brief_description: sources.api_first(
-            |c| c.object_brief_description.clone(),
-            |c| c.object_brief_description.clone(),
+            |c| c.object_brief_description.to_string(),
+            |c| c.object_brief_description.to_string(),
         ),
         initial_contractual_price: sources.try_api_first(
             |c| Ok(euros_to_currency(c.initial_contractual_price)),
             |c| parse_portal_euros(&c.initial_contractual_price),
         )?,
-        description: sources
-            .api_first_option(|c| non_empty(&c.description), |c| c.description.clone()),
+        description: sources.api_first_option(
+            |c| c.description.non_empty(),
+            |c| c.description.as_deref().map(String::from),
+        ),
         contracting: sources.portal_first(
             |c| portal_entities(c.contracting.as_deref().unwrap_or_default()),
             |c| api_entities(&c.contracting),
@@ -50,10 +53,13 @@ pub fn join_contract(sources: Sources) -> anyhow::Result<Contract> {
             |c| Ok(api_cpvs(&c.cpvs)),
             |c| parse_portal_cpvs(&c.cpvs, &c.cpvs_designation),
         )?,
-        regime: sources.api_first_option(|c| non_empty(&c.regime), |c| c.regime.clone()),
+        regime: sources.api_first_option(
+            |c| c.regime.non_empty(),
+            |c| c.regime.as_deref().map(String::from),
+        ),
         contract_status: sources.api_first_option(
-            |c| non_empty(&c.contract_status),
-            |c| c.contract_status.clone(),
+            |c| c.contract_status.non_empty(),
+            |c| c.contract_status.as_deref().map(String::from),
         ),
         non_written_contract_justification_types: sources.portal_first(
             |c| parse_portal_list(&c.non_written_contract_justification_types, "<br/>"),
@@ -72,8 +78,8 @@ pub fn join_contract(sources: Sources) -> anyhow::Result<Contract> {
             |c| parse_portal_list(&c.execution_place, "<BR/>"),
         ),
         contract_fundamentation_type: sources.api_first(
-            |c| c.contract_fundamentation_type.clone(),
-            |c| c.contract_fundamentation_type.clone(),
+            |c| c.contract_fundamentation_type.to_string(),
+            |c| c.contract_fundamentation_type.to_string(),
         ),
         contestants: sources.portal_first(
             |c| portal_entities(&c.contestants),
@@ -85,8 +91,8 @@ pub fn join_contract(sources: Sources) -> anyhow::Result<Contract> {
         ),
         documents: sources.portal_or_default(|c| portal_documents(&c.documents)),
         contracting_procedure_url: sources.api_first_option(
-            |c| non_empty(&c.contracting_procedure_url),
-            |c| c.contracting_procedure_url.clone(),
+            |c| c.contracting_procedure_url.non_empty(),
+            |c| c.contracting_procedure_url.as_deref().map(String::from),
         ),
         announcement_id: sources.try_api_first_option(
             |c| parse_optional_api_id(&c.announcement_id),
@@ -94,16 +100,18 @@ pub fn join_contract(sources: Sources) -> anyhow::Result<Contract> {
         )?,
         direct_award_fundamentation_type: sources.portal_first_option(
             |c| {
-                Some(c.direct_award_fundamentation_type.clone())
+                Some(c.direct_award_fundamentation_type.to_string())
                     .filter(|value| value != DIRECT_AWARD_NOT_APPLICABLE)
             },
-            |c| non_empty(&c.direct_award_fundamentation_type),
+            |c| c.direct_award_fundamentation_type.non_empty(),
         ),
-        observations: sources
-            .api_first_option(|c| non_empty(&c.observations), |c| c.observations.clone()),
+        observations: sources.api_first_option(
+            |c| c.observations.non_empty(),
+            |c| c.observations.as_deref().map(String::from),
+        ),
         end_of_contract_type: sources.portal_first_option(
-            |c| c.end_of_contract_type.clone(),
-            |c| non_empty(&c.end_of_contract_type),
+            |c| c.end_of_contract_type.as_deref().map(String::from),
+            |c| c.end_of_contract_type.non_empty(),
         ),
         close_date: sources.try_api_first_option(
             |c| parse_optional_api_date(&c.close_date),
@@ -119,12 +127,12 @@ pub fn join_contract(sources: Sources) -> anyhow::Result<Contract> {
             },
         )?,
         causes_deadline_change: sources.api_first_option(
-            |c| non_empty(&c.causes_deadline_change),
-            |c| c.causes_deadline_change.clone(),
+            |c| c.causes_deadline_change.non_empty(),
+            |c| c.causes_deadline_change.as_deref().map(String::from),
         ),
         causes_price_change: sources.api_first_option(
-            |c| non_empty(&c.causes_price_change),
-            |c| c.causes_price_change.clone(),
+            |c| c.causes_price_change.non_empty(),
+            |c| c.causes_price_change.as_deref().map(String::from),
         ),
     })
 }
@@ -241,10 +249,6 @@ impl<'a> Sources<'a> {
     }
 }
 
-fn non_empty(value: &str) -> Option<String> {
-    (!value.trim().is_empty()).then(|| value.to_string())
-}
-
 fn parse_api_date(date: &str) -> anyhow::Result<NaiveDate> {
     NaiveDate::parse_from_str(date, "%Y-%m-%d").with_context(|| format!("Invalid date: {date}"))
 }
@@ -282,7 +286,7 @@ fn api_cpvs(cpvs: &Option<Vec<BaseApiCpv>>) -> Vec<Cpv> {
         .collect()
 }
 
-fn api_list(list: &Option<Vec<String>>) -> Vec<String> {
+fn api_list(list: &Option<Vec<Text>>) -> Vec<String> {
     list.iter()
         .flatten()
         .map(|item| item.trim().to_string())
@@ -304,7 +308,7 @@ fn api_entities(entities: &Option<Vec<BaseApiEntity>>) -> Vec<Entity> {
         .collect()
 }
 
-fn api_contestants(contestants: &Option<Vec<String>>) -> Vec<Entity> {
+fn api_contestants(contestants: &Option<Vec<Text>>) -> Vec<Entity> {
     contestants
         .iter()
         .flatten()
@@ -353,8 +357,8 @@ fn portal_entities(entities: &[BasePortalEntity]) -> Vec<Entity> {
         .iter()
         .map(|entity| Entity {
             id: entity.id,
-            description: entity.description.clone(),
-            nif: entity.nif.clone(),
+            description: entity.description.to_string(),
+            nif: entity.nif.to_string(),
         })
         .collect()
 }
@@ -364,7 +368,7 @@ fn portal_documents(documents: &[BasePortalDocument]) -> Vec<Document> {
         .iter()
         .map(|document| Document {
             id: document.id,
-            description: document.description.clone(),
+            description: document.description.to_string(),
         })
         .collect()
 }

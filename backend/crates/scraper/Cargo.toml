@@ -22,3 +22,5 @@ itertools = { workspace = true }
 futures = { workspace = true }
 tokio-util = { workspace = true }
 cron = { workspace = true }
+encoding_rs = { workspace = true }
+regex = { workspace = true }
