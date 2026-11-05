@@ -12,6 +12,7 @@ use crate::sources::{
 };
 
 const DIRECT_AWARD_NOT_APPLICABLE: &str = "Não aplicável";
+const FRAMEWORK_AGREEMENT_NOT_APPLICABLE: &str = "Não aplicável.";
 
 pub fn join_contract(sources: Sources) -> anyhow::Result<Contract> {
     Ok(Contract {
@@ -28,7 +29,6 @@ pub fn join_contract(sources: Sources) -> anyhow::Result<Contract> {
             |c| parse_optional_api_date(&c.signing_date),
             |c| c.signing_date.as_deref().map(parse_portal_date).transpose(),
         )?,
-        ccp: sources.portal_or_default(|c| c.ccp),
         object_brief_description: sources.api_first(
             |c| c.object_brief_description.to_string(),
             |c| c.object_brief_description.to_string(),
@@ -134,6 +134,37 @@ pub fn join_contract(sources: Sources) -> anyhow::Result<Contract> {
             |c| c.causes_price_change.non_empty(),
             |c| c.causes_price_change.as_deref().map(String::from),
         ),
+        estimated_base_price: sources.try_api_first_option(
+            |c| {
+                Ok((c.estimated_base_price > 0.0)
+                    .then(|| euros_to_currency(c.estimated_base_price)))
+            },
+            |c| {
+                Ok(c.estimated_base_price
+                    .as_deref()
+                    .map(parse_portal_euros)
+                    .transpose()?
+                    .filter(|price| price.0 > 0))
+            },
+        )?,
+        award_decision_date: sources.try_api_first_option(
+            |c| parse_optional_api_date(&c.award_decision_date),
+            |_| Ok(None),
+        )?,
+        framework_agreement_description: sources.api_first_option(
+            |c| c.framework_agreement_description.non_empty(),
+            |c| {
+                c.framework_agreement_procedure_description
+                    .non_empty()
+                    .filter(|description| description != FRAMEWORK_AGREEMENT_NOT_APPLICABLE)
+            },
+        ),
+        special_measures: sources.api_first_option(
+            |c| c.special_measures.non_empty(),
+            |c| c.special_measures.as_ref().and_then(Text::non_empty),
+        ),
+        ambient_criteria: sources
+            .api_first(|c| &c.ambient_criteria == "Sim", |c| c.ambient_criteria),
     })
 }
 

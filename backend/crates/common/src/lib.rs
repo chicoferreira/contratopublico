@@ -12,7 +12,6 @@ pub struct Contract {
     pub contracting_procedure_type: String,
     pub publication_date: NaiveDate,
     pub signing_date: Option<NaiveDate>,
-    pub ccp: bool,
     pub object_brief_description: String,
     pub initial_contractual_price: Currency,
     pub description: Option<String>,
@@ -38,6 +37,11 @@ pub struct Contract {
     pub total_effective_price: Option<Currency>,
     pub causes_deadline_change: Option<String>,
     pub causes_price_change: Option<String>,
+    pub estimated_base_price: Option<Currency>,
+    pub award_decision_date: Option<NaiveDate>,
+    pub framework_agreement_description: Option<String>,
+    pub special_measures: Option<String>,
+    pub ambient_criteria: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]

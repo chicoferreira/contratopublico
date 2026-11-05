@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT\n                id, contracting_procedure_type, publication_date, signing_date,\n                ccp, object_brief_description, initial_contractual_price, description,\n                regime, contract_status, non_written_contract_justification_types,\n                contract_types, execution_deadline_days, execution_places,\n                contract_fundamentation_type, contracting_procedure_url, announcement_id,\n                direct_award_fundamentation_type, observations, end_of_contract_type,\n                close_date, total_effective_price, causes_deadline_change, causes_price_change\n            FROM contracts\n            WHERE id = $1\n            ",
+  "query": "\n            SELECT\n                id, contracting_procedure_type, publication_date, signing_date,\n                object_brief_description, initial_contractual_price, description,\n                regime, contract_status, non_written_contract_justification_types,\n                contract_types, execution_deadline_days, execution_places,\n                contract_fundamentation_type, contracting_procedure_url, announcement_id,\n                direct_award_fundamentation_type, observations, end_of_contract_type,\n                close_date, total_effective_price, causes_deadline_change, causes_price_change,\n                estimated_base_price, award_decision_date, framework_agreement_description,\n                special_measures, ambient_criteria\n            FROM contracts\n            WHERE id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -25,103 +25,123 @@
       },
       {
         "ordinal": 4,
-        "name": "ccp",
-        "type_info": "Bool"
-      },
-      {
-        "ordinal": 5,
         "name": "object_brief_description",
         "type_info": "Text"
       },
       {
-        "ordinal": 6,
+        "ordinal": 5,
         "name": "initial_contractual_price",
         "type_info": "Int8"
       },
       {
-        "ordinal": 7,
+        "ordinal": 6,
         "name": "description",
         "type_info": "Text"
       },
       {
-        "ordinal": 8,
+        "ordinal": 7,
         "name": "regime",
         "type_info": "Text"
       },
       {
-        "ordinal": 9,
+        "ordinal": 8,
         "name": "contract_status",
         "type_info": "Text"
       },
       {
-        "ordinal": 10,
+        "ordinal": 9,
         "name": "non_written_contract_justification_types",
         "type_info": "TextArray"
       },
       {
-        "ordinal": 11,
+        "ordinal": 10,
         "name": "contract_types",
         "type_info": "TextArray"
       },
       {
-        "ordinal": 12,
+        "ordinal": 11,
         "name": "execution_deadline_days",
         "type_info": "Int4"
       },
       {
-        "ordinal": 13,
+        "ordinal": 12,
         "name": "execution_places",
         "type_info": "TextArray"
       },
       {
-        "ordinal": 14,
+        "ordinal": 13,
         "name": "contract_fundamentation_type",
         "type_info": "Text"
       },
       {
-        "ordinal": 15,
+        "ordinal": 14,
         "name": "contracting_procedure_url",
         "type_info": "Text"
       },
       {
-        "ordinal": 16,
+        "ordinal": 15,
         "name": "announcement_id",
         "type_info": "Int8"
       },
       {
-        "ordinal": 17,
+        "ordinal": 16,
         "name": "direct_award_fundamentation_type",
         "type_info": "Text"
       },
       {
-        "ordinal": 18,
+        "ordinal": 17,
         "name": "observations",
         "type_info": "Text"
       },
       {
-        "ordinal": 19,
+        "ordinal": 18,
         "name": "end_of_contract_type",
         "type_info": "Text"
       },
       {
-        "ordinal": 20,
+        "ordinal": 19,
         "name": "close_date",
         "type_info": "Date"
       },
       {
-        "ordinal": 21,
+        "ordinal": 20,
         "name": "total_effective_price",
         "type_info": "Int8"
       },
       {
-        "ordinal": 22,
+        "ordinal": 21,
         "name": "causes_deadline_change",
         "type_info": "Text"
       },
       {
-        "ordinal": 23,
+        "ordinal": 22,
         "name": "causes_price_change",
         "type_info": "Text"
+      },
+      {
+        "ordinal": 23,
+        "name": "estimated_base_price",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 24,
+        "name": "award_decision_date",
+        "type_info": "Date"
+      },
+      {
+        "ordinal": 25,
+        "name": "framework_agreement_description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 26,
+        "name": "special_measures",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 27,
+        "name": "ambient_criteria",
+        "type_info": "Bool"
       }
     ],
     "parameters": {
@@ -136,7 +156,6 @@
       true,
       false,
       false,
-      false,
       true,
       true,
       true,
@@ -153,8 +172,13 @@
       true,
       true,
       true,
-      true
+      true,
+      true,
+      true,
+      true,
+      true,
+      false
     ]
   },
-  "hash": "1bd6fb96e747b293452732a71b406655e4b8dbd056f885e6c6ca16949a53e6dd"
+  "hash": "1b45636c55c544c3a97124ca5773a219129892b5aebaeb44e6f342abfe20533e"
 }

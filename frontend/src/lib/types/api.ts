@@ -19,7 +19,6 @@ export interface Contract {
   contestants: Entity[];
   invitees: Entity[];
   documents: Document[];
-  ccp: boolean;
   contractingProcedureUrl: string;
   announcementId: number | null;
   directAwardFundamentationType: string | null;
@@ -29,6 +28,11 @@ export interface Contract {
   totalEffectivePrice: number | null;
   causesDeadlineChange: string | null;
   causesPriceChange: string | null;
+  estimatedBasePrice: number | null;
+  awardDecisionDate: string | null;
+  frameworkAgreementDescription: string | null;
+  specialMeasures: string | null;
+  ambientCriteria: boolean;
 }
 
 export interface Entity {

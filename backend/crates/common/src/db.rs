@@ -9,7 +9,6 @@ struct ContractMainRow {
     contracting_procedure_type: String,
     publication_date: NaiveDate,
     signing_date: Option<NaiveDate>,
-    ccp: bool,
     object_brief_description: String,
     initial_contractual_price: i64,
     description: Option<String>,
@@ -29,6 +28,11 @@ struct ContractMainRow {
     total_effective_price: Option<i64>,
     causes_deadline_change: Option<String>,
     causes_price_change: Option<String>,
+    estimated_base_price: Option<i64>,
+    award_decision_date: Option<NaiveDate>,
+    framework_agreement_description: Option<String>,
+    special_measures: Option<String>,
+    ambient_criteria: bool,
 }
 
 struct EntityRow {
@@ -113,12 +117,14 @@ impl ContractDatabase {
             r#"
             SELECT
                 id, contracting_procedure_type, publication_date, signing_date,
-                ccp, object_brief_description, initial_contractual_price, description,
+                object_brief_description, initial_contractual_price, description,
                 regime, contract_status, non_written_contract_justification_types,
                 contract_types, execution_deadline_days, execution_places,
                 contract_fundamentation_type, contracting_procedure_url, announcement_id,
                 direct_award_fundamentation_type, observations, end_of_contract_type,
-                close_date, total_effective_price, causes_deadline_change, causes_price_change
+                close_date, total_effective_price, causes_deadline_change, causes_price_change,
+                estimated_base_price, award_decision_date, framework_agreement_description,
+                special_measures, ambient_criteria
             FROM contracts
             WHERE id = $1
             "#,
@@ -228,7 +234,6 @@ impl ContractDatabase {
             contracting_procedure_type: main.contracting_procedure_type,
             publication_date: main.publication_date,
             signing_date: main.signing_date,
-            ccp: main.ccp,
             object_brief_description: main.object_brief_description,
             initial_contractual_price: Currency(main.initial_contractual_price as isize),
             description: main.description,
@@ -254,6 +259,11 @@ impl ContractDatabase {
             total_effective_price: main.total_effective_price.map(|v| Currency(v as isize)),
             causes_deadline_change: main.causes_deadline_change,
             causes_price_change: main.causes_price_change,
+            estimated_base_price: main.estimated_base_price.map(|v| Currency(v as isize)),
+            award_decision_date: main.award_decision_date,
+            framework_agreement_description: main.framework_agreement_description,
+            special_measures: main.special_measures,
+            ambient_criteria: main.ambient_criteria,
         }))
     }
 
@@ -334,21 +344,23 @@ async fn insert_contract(tx: &mut PgConnection, contract: &Contract) -> Result<(
             r#"
             INSERT INTO contracts (
                 id, contracting_procedure_type, publication_date, signing_date,
-                ccp, object_brief_description, initial_contractual_price, description,
+                object_brief_description, initial_contractual_price, description,
                 regime, contract_status, non_written_contract_justification_types,
                 contract_types, execution_deadline_days, execution_places,
                 contract_fundamentation_type, contracting_procedure_url, announcement_id,
                 direct_award_fundamentation_type, observations, end_of_contract_type,
-                close_date, total_effective_price, causes_deadline_change, causes_price_change
+                close_date, total_effective_price, causes_deadline_change, causes_price_change,
+                estimated_base_price, award_decision_date, framework_agreement_description,
+                special_measures, ambient_criteria
             ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23,
+                $24, $25, $26, $27, $28
             ) ON CONFLICT (id) DO NOTHING
             "#,
             contract.id as i64,
             contract.contracting_procedure_type,
             contract.publication_date,
             contract.signing_date,
-            contract.ccp,
             contract.object_brief_description,
             contract.initial_contractual_price.0 as i64,
             contract.description,
@@ -367,7 +379,12 @@ async fn insert_contract(tx: &mut PgConnection, contract: &Contract) -> Result<(
             contract.close_date,
             contract.total_effective_price.as_ref().map(|price| price.0 as i64),
             contract.causes_deadline_change,
-            contract.causes_price_change
+            contract.causes_price_change,
+            contract.estimated_base_price.as_ref().map(|price| price.0 as i64),
+            contract.award_decision_date,
+            contract.framework_agreement_description,
+            contract.special_measures,
+            contract.ambient_criteria
         )
         .execute(&mut *tx)
         .await?;
@@ -454,7 +471,6 @@ mod tests {
             contracting_procedure_type: "Direct Award".to_string(),
             publication_date: chrono::NaiveDate::from_ymd_opt(2023, 1, 15).unwrap(),
             signing_date: Some(chrono::NaiveDate::from_ymd_opt(2023, 2, 1).unwrap()),
-            ccp: true,
             object_brief_description: "Test contract for software development".to_string(),
             initial_contractual_price: Currency(100000),
             description: Some("Detailed description of the contract".to_string()),
@@ -494,6 +510,11 @@ mod tests {
             total_effective_price: Some(Currency(95000)),
             causes_deadline_change: Some("Technical delays".to_string()),
             causes_price_change: Some("Scope reduction".to_string()),
+            estimated_base_price: Some(Currency(120000)),
+            award_decision_date: Some(chrono::NaiveDate::from_ymd_opt(2023, 1, 20).unwrap()),
+            framework_agreement_description: Some("Framework agreement".to_string()),
+            special_measures: Some("PRR".to_string()),
+            ambient_criteria: true,
         };
 
         let db = ContractDatabase::new(pg_pool);

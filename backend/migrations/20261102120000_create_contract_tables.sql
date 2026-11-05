@@ -18,7 +18,6 @@ CREATE TABLE contracts (
     contracting_procedure_type TEXT NOT NULL,
     publication_date DATE NOT NULL,
     signing_date DATE,
-    ccp BOOLEAN NOT NULL,
     object_brief_description TEXT NOT NULL,
     initial_contractual_price BIGINT NOT NULL, -- Currency in cents
     description TEXT,
@@ -37,7 +36,12 @@ CREATE TABLE contracts (
     close_date DATE,
     total_effective_price BIGINT, -- Currency in cents
     causes_deadline_change TEXT,
-    causes_price_change TEXT
+    causes_price_change TEXT,
+    estimated_base_price BIGINT, -- Currency in cents
+    award_decision_date DATE,
+    framework_agreement_description TEXT,
+    special_measures TEXT,
+    ambient_criteria BOOLEAN NOT NULL
 );
 
 CREATE INDEX idx_contracts_pubdate_cover

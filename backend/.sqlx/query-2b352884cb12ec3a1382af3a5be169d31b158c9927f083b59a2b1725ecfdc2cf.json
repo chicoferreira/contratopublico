@@ -1,0 +1,41 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO contracts (\n                id, contracting_procedure_type, publication_date, signing_date,\n                object_brief_description, initial_contractual_price, description,\n                regime, contract_status, non_written_contract_justification_types,\n                contract_types, execution_deadline_days, execution_places,\n                contract_fundamentation_type, contracting_procedure_url, announcement_id,\n                direct_award_fundamentation_type, observations, end_of_contract_type,\n                close_date, total_effective_price, causes_deadline_change, causes_price_change,\n                estimated_base_price, award_decision_date, framework_agreement_description,\n                special_measures, ambient_criteria\n            ) VALUES (\n                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23,\n                $24, $25, $26, $27, $28\n            ) ON CONFLICT (id) DO NOTHING\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Text",
+        "Date",
+        "Date",
+        "Text",
+        "Int8",
+        "Text",
+        "Text",
+        "Text",
+        "TextArray",
+        "TextArray",
+        "Int4",
+        "TextArray",
+        "Text",
+        "Text",
+        "Int8",
+        "Text",
+        "Text",
+        "Text",
+        "Date",
+        "Int8",
+        "Text",
+        "Text",
+        "Int8",
+        "Date",
+        "Text",
+        "Text",
+        "Bool"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "2b352884cb12ec3a1382af3a5be169d31b158c9927f083b59a2b1725ecfdc2cf"
+}
