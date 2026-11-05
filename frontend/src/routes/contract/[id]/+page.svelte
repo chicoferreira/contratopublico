@@ -136,7 +136,9 @@
         <p class="text-lg font-semibold">
           {formatMoney(contract.initialContractualPrice)}
         </p>
-        {#if contract.estimatedBasePrice}
+        {#if contract.initialContractualPrice < 0}
+          <p class="text-muted-foreground text-sm">A entidade contratante recebe este valor</p>
+        {:else if contract.estimatedBasePrice}
           <p class="text-muted-foreground text-sm">
             {formatPercentage(contract.initialContractualPrice / contract.estimatedBasePrice)}
             do preço base de {formatMoney(contract.estimatedBasePrice)}

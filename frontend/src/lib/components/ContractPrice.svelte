@@ -5,6 +5,7 @@
   import Link from "./Link.svelte";
 
   const { baseGovUrl, initialContractualPrice } = $props();
+  const income = $derived(initialContractualPrice < 0);
 </script>
 
 <Popover>
@@ -14,15 +15,17 @@
   </PopoverTrigger>
   <PopoverContent>
     <InfoPopover title="Valor Contratual Inicial">
-      <div>
-        <p>Valor inicial estabelecido no momento da contratação.</p>
-        <p>Este valor pode ser alterado durante a execução do contrato.</p>
-      </div>
-      <div>
+      <p>Valor inicial estabelecido no momento da contratação.</p>
+      {#if income}
         <p>
-          <Link url={baseGovUrl}>Consulte sempre o valor atual no BASE.</Link>
+          Como é um <strong>valor negativo</strong>, a entidade contratante recebe este valor em vez
+          de o pagar (por exemplo numa concessão).
         </p>
-      </div>
+      {/if}
+      <p>Este valor pode ser alterado durante a execução do contrato.</p>
+      <p>
+        <Link url={baseGovUrl}>Consulte sempre o valor atual no BASE.</Link>
+      </p>
     </InfoPopover>
   </PopoverContent>
 </Popover>

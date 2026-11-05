@@ -141,4 +141,20 @@ mod tests {
         assert_eq!(stats.total_spent_last_365_days, 1000);
         assert_eq!(stats.contracts_last_365_days, 1);
     }
+
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn test_compute_statistics_income_not_spent(pg_pool: PgPool) {
+        let today = chrono::Local::now().date_naive();
+
+        let db = ContractDatabase::new(pg_pool);
+
+        insert_test_contract(&db, 1, today - chrono::Duration::days(1), 1000).await;
+        insert_test_contract(&db, 2, today - chrono::Duration::days(1), -400).await;
+
+        db.refresh_statistics_view().await.unwrap();
+        let stats = db.get_statistics().await.unwrap();
+
+        assert_eq!(stats.total_spent_last_7_days, 1000);
+        assert_eq!(stats.contracts_last_7_days, 2);
+    }
 }

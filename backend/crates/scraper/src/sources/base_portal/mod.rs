@@ -78,7 +78,8 @@ pub struct BasePortalContract {
     /// Example: "4.500,00 €"
     pub total_effective_price: Option<Text>,
 
-    /// Whether the price is received by the public entity, instead of paid.
+    /// Exact meaning unknown.
+    /// Some contracts where the entity receives the money have a negative price instead and `false` here.
     /// Example: false
     pub income: bool,
 

@@ -100,7 +100,7 @@ CREATE MATERIALIZED VIEW contract_spent_daily AS
 SELECT
     publication_date::date AS date,
     COUNT(*)::BIGINT AS count,
-    SUM(initial_contractual_price)::BIGINT AS amount
+    COALESCE(SUM(initial_contractual_price) FILTER (WHERE initial_contractual_price > 0), 0)::BIGINT AS amount
 FROM contracts
 GROUP BY 1;
 
