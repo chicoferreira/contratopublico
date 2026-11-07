@@ -21,8 +21,8 @@
 </script>
 
 <Popover>
-  <PopoverTrigger class="max-w-full">
-    <Badge {variant} class={cn("max-w-full", className)}>
+  <PopoverTrigger class="inline-flex max-w-full align-middle">
+    <Badge {variant} class={cn("h-6 max-w-full", className)}>
       {#if badge}
         {@render badge()}
       {:else}
