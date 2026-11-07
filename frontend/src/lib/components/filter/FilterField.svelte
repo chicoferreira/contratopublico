@@ -1,18 +1,19 @@
 <script lang="ts">
   import { Button } from "$lib/components/ui/button";
-  import Input from "$lib/components/ui/input/input.svelte";
   import Label from "$lib/components/ui/label/label.svelte";
   import { X } from "@lucide/svelte";
+  import type { Snippet } from "svelte";
   import { fade } from "svelte/transition";
 
-  let {
-    value = $bindable(),
-    labelContent,
-    IconComponent,
-    descriptionContent,
-    onClear,
-    ...extraInputClasses
-  } = $props();
+  type Props = {
+    labelContent: string;
+    descriptionContent: string;
+    active: unknown;
+    onClear: () => void;
+    children: Snippet<[string]>;
+  };
+
+  let { labelContent, descriptionContent, active, onClear, children }: Props = $props();
 
   let id = $props.id();
 </script>
@@ -20,7 +21,7 @@
 <div class="space-y-2">
   <div class="flex h-6 items-center gap-1">
     <Label for={id} class="text-sm font-medium">{labelContent}</Label>
-    {#if value}
+    {#if active}
       <div transition:fade={{ duration: 100 }}>
         <Button
           variant="ghost"
@@ -32,10 +33,6 @@
       </div>
     {/if}
   </div>
-  <div class="relative">
-    <IconComponent
-      class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-    <Input bind:value {...extraInputClasses} {id} class="h-9 pl-10" />
-  </div>
+  {@render children(id)}
   <p class="text-muted-foreground text-xs">{descriptionContent}</p>
 </div>
