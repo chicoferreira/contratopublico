@@ -3,7 +3,6 @@
   import { Separator } from "$lib/components/ui/separator/index.js";
   import {
     Hash,
-    Calendar,
     Euro,
     Building,
     X as XIcon,
@@ -14,7 +13,8 @@
   } from "@lucide/svelte";
   import type { Filters } from "$lib/types/api";
   import { MAX_ENTITY_FILTER_LENGTH } from "$lib";
-  import FilterLabel from "./FilterLabel.svelte";
+  import FilterDate from "./FilterDate.svelte";
+  import FilterInput from "./FilterInput.svelte";
   import FilterSection from "./FilterSection.svelte";
   import { fade } from "svelte/transition";
 
@@ -156,7 +156,7 @@
       filter={filters}
       fields={["maxId", "minId"]}>
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <FilterLabel
+        <FilterInput
           labelContent="Número de Identificador Mínimo"
           IconComponent={Hash}
           descriptionContent="O número de identificador mínimo do contrato"
@@ -166,7 +166,7 @@
           type="number"
           min="0"
           max="10000000000" />
-        <FilterLabel
+        <FilterInput
           labelContent="Número de Identificador Máximo"
           IconComponent={Hash}
           descriptionContent="O número de identificador máximo do contrato"
@@ -187,21 +187,13 @@
       filter={filters}
       fields={["startPublicationDate", "endPublicationDate"]}>
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <FilterLabel
+        <FilterDate
           labelContent="Desde"
-          placeholder="Selecione uma data"
-          IconComponent={Calendar}
           bind:value={filters.startPublicationDate}
-          onClear={() => delete filters.startPublicationDate}
-          type="date"
           descriptionContent="Data inicial de publicação do contrato" />
-        <FilterLabel
+        <FilterDate
           labelContent="Até"
-          placeholder="Selecione uma data"
-          IconComponent={Calendar}
           bind:value={filters.endPublicationDate}
-          onClear={() => delete filters.endPublicationDate}
-          type="date"
           descriptionContent="Data final de publicação do contrato" />
       </div>
     </FilterSection>
@@ -214,21 +206,13 @@
       filter={filters}
       fields={["startSigningDate", "endSigningDate"]}>
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <FilterLabel
+        <FilterDate
           bind:value={filters.startSigningDate}
-          onClear={() => delete filters.startSigningDate}
           labelContent="Desde"
-          IconComponent={Calendar}
-          placeholder="Selecione uma data"
-          type="date"
           descriptionContent="Data inicial da assinatura do contrato" />
-        <FilterLabel
+        <FilterDate
           bind:value={filters.endSigningDate}
-          onClear={() => delete filters.endSigningDate}
           labelContent="Até"
-          IconComponent={Calendar}
-          placeholder="Selecione uma data"
-          type="date"
           descriptionContent="Data final da assinatura do contrato" />
       </div>
     </FilterSection>
@@ -241,7 +225,7 @@
       filter={filters}
       fields={["minPrice", "maxPrice"]}>
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <FilterLabel
+        <FilterInput
           bind:value={displayMinPrice}
           onClear={() => delete filters.minPrice}
           labelContent="Valor Contratual Mínimo"
@@ -251,7 +235,7 @@
           descriptionContent="Valor inicial mínimo do contrato"
           onfocus={handlePriceFocus}
           onblur={(e: Event) => handlePriceBlur(e, "minPrice")} />
-        <FilterLabel
+        <FilterInput
           bind:value={displayMaxPrice}
           onClear={() => delete filters.maxPrice}
           labelContent="Valor Contratual Máximo"
@@ -272,7 +256,7 @@
       filter={filters}
       fields={["contracting", "contracted"]}>
       <div class="space-y-4">
-        <FilterLabel
+        <FilterInput
           bind:value={filters.contracting}
           onClear={() => delete filters.contracting}
           labelContent="Entidade Contratante (Exata)"
@@ -281,7 +265,7 @@
           type="text"
           maxlength={MAX_ENTITY_FILTER_LENGTH}
           placeholder="Ex: Câmara Municipal de Lisboa ou 500051070" />
-        <FilterLabel
+        <FilterInput
           bind:value={filters.contracted}
           onClear={() => delete filters.contracted}
           labelContent="Entidade Contratada (Exata)"
