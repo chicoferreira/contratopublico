@@ -2,11 +2,11 @@ use anyhow::Context;
 use chrono::NaiveDate;
 use sqlx::{PgConnection, PgPool};
 
-use crate::{Contract, ContractType, Cpv, Currency, Document, Entity};
+use crate::{Contract, ContractType, Cpv, Currency, Document, Entity, ProcedureType};
 
 struct ContractMainRow {
     id: i64,
-    contracting_procedure_type: String,
+    procedure_type: Option<ProcedureType>,
     publication_date: NaiveDate,
     signing_date: Option<NaiveDate>,
     object_brief_description: String,
@@ -116,9 +116,9 @@ impl ContractDatabase {
             ContractMainRow,
             r#"
             SELECT
-                id, contracting_procedure_type, publication_date, signing_date,
-                object_brief_description, initial_contractual_price, description, regime,
-                contract_status, non_written_contract_justification_types,
+                id, procedure_type AS "procedure_type: ProcedureType", publication_date,
+                signing_date, object_brief_description, initial_contractual_price, description,
+                regime, contract_status, non_written_contract_justification_types,
                 contract_types AS "contract_types: Vec<ContractType>", execution_deadline_days,
                 execution_places, contract_fundamentation_type, contracting_procedure_url,
                 announcement_id, direct_award_fundamentation_type, observations,
@@ -231,7 +231,7 @@ impl ContractDatabase {
 
         Ok(Some(Contract {
             id: main.id as u64,
-            contracting_procedure_type: main.contracting_procedure_type,
+            procedure_type: main.procedure_type,
             publication_date: main.publication_date,
             signing_date: main.signing_date,
             object_brief_description: main.object_brief_description,
@@ -343,7 +343,7 @@ async fn insert_contract(tx: &mut PgConnection, contract: &Contract) -> Result<(
     sqlx::query!(
             r#"
             INSERT INTO contracts (
-                id, contracting_procedure_type, publication_date, signing_date,
+                id, procedure_type, publication_date, signing_date,
                 object_brief_description, initial_contractual_price, description, regime,
                 contract_status, non_written_contract_justification_types, contract_types,
                 execution_deadline_days, execution_places, contract_fundamentation_type,
@@ -358,7 +358,7 @@ async fn insert_contract(tx: &mut PgConnection, contract: &Contract) -> Result<(
             ) ON CONFLICT (id) DO NOTHING
             "#,
             contract.id as i64,
-            contract.contracting_procedure_type,
+            contract.procedure_type as Option<ProcedureType>,
             contract.publication_date,
             contract.signing_date,
             contract.object_brief_description,
@@ -462,13 +462,16 @@ async fn insert_contract(tx: &mut PgConnection, contract: &Contract) -> Result<(
 mod tests {
     use sqlx::PgPool;
 
-    use crate::{Contract, ContractType, Cpv, Currency, Document, Entity, db::ContractDatabase};
+    use crate::{
+        Contract, ContractType, Cpv, Currency, Document, Entity, ProcedureType,
+        db::ContractDatabase,
+    };
 
     #[sqlx::test(migrations = "../../migrations")]
     async fn test_db(pg_pool: PgPool) -> sqlx::Result<()> {
         let contract = Contract {
             id: 1,
-            contracting_procedure_type: "Direct Award".to_string(),
+            procedure_type: Some(ProcedureType::DirectAward),
             publication_date: chrono::NaiveDate::from_ymd_opt(2023, 1, 15).unwrap(),
             signing_date: Some(chrono::NaiveDate::from_ymd_opt(2023, 2, 1).unwrap()),
             object_brief_description: "Test contract for software development".to_string(),

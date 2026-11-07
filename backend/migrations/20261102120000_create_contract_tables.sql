@@ -9,6 +9,31 @@ CREATE TYPE contract_type AS ENUM (
     'other'
 );
 
+CREATE TYPE procedure_type AS ENUM (
+    'direct_award',
+    'direct_award_rural_fires',
+    'simplified_direct_award',
+    'simplified_direct_award_special_measures',
+    'prior_consultation',
+    'prior_consultation_rural_fires',
+    'simplified_prior_consultation',
+    'public_tender',
+    'simplified_public_tender',
+    'restricted_tender',
+    'simplified_restricted_tender',
+    'negotiated_procedure',
+    'competitive_dialogue',
+    'innovation_partnership',
+    'framework_agreement_art_258',
+    'framework_agreement_art_259',
+    'goods_provision',
+    'social_and_other_specific_services',
+    'simplified_design_contest',
+    'simplified_ideas_contest',
+    'special_sectors_exemption',
+    'excluded_contracting'
+);
+
 CREATE TABLE cpv (
     code TEXT PRIMARY KEY,
     designation TEXT NOT NULL
@@ -26,7 +51,7 @@ CREATE TABLE documents (
 
 CREATE TABLE contracts (
     id BIGINT PRIMARY KEY,
-    contracting_procedure_type TEXT NOT NULL,
+    procedure_type procedure_type,
     publication_date DATE NOT NULL,
     signing_date DATE,
     object_brief_description TEXT NOT NULL,

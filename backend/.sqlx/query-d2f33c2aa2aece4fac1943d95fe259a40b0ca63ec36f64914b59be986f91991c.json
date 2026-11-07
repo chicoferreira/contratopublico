@@ -1,0 +1,94 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO contracts (\n                id, procedure_type, publication_date, signing_date,\n                object_brief_description, initial_contractual_price, description, regime,\n                contract_status, non_written_contract_justification_types, contract_types,\n                execution_deadline_days, execution_places, contract_fundamentation_type,\n                contracting_procedure_url, announcement_id, direct_award_fundamentation_type,\n                observations, end_of_contract_type, close_date, total_effective_price,\n                causes_deadline_change, causes_price_change, estimated_base_price,\n                award_decision_date, framework_agreement_description, special_measures,\n                ambient_criteria\n            ) VALUES (\n                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23,\n                $24, $25, $26, $27, $28\n            ) ON CONFLICT (id) DO NOTHING\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8",
+        {
+          "Custom": {
+            "name": "procedure_type",
+            "kind": {
+              "Enum": [
+                "direct_award",
+                "direct_award_rural_fires",
+                "simplified_direct_award",
+                "simplified_direct_award_special_measures",
+                "prior_consultation",
+                "prior_consultation_rural_fires",
+                "simplified_prior_consultation",
+                "public_tender",
+                "simplified_public_tender",
+                "restricted_tender",
+                "simplified_restricted_tender",
+                "negotiated_procedure",
+                "competitive_dialogue",
+                "innovation_partnership",
+                "framework_agreement_art_258",
+                "framework_agreement_art_259",
+                "goods_provision",
+                "social_and_other_specific_services",
+                "simplified_design_contest",
+                "simplified_ideas_contest",
+                "special_sectors_exemption",
+                "excluded_contracting"
+              ]
+            }
+          }
+        },
+        "Date",
+        "Date",
+        "Text",
+        "Int8",
+        "Text",
+        "Text",
+        "Text",
+        "TextArray",
+        {
+          "Custom": {
+            "name": "contract_type[]",
+            "kind": {
+              "Array": {
+                "Custom": {
+                  "name": "contract_type",
+                  "kind": {
+                    "Enum": [
+                      "goods_acquisition",
+                      "services_acquisition",
+                      "public_works_concession",
+                      "public_services_concession",
+                      "public_works",
+                      "goods_lease",
+                      "partnership",
+                      "other"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "Int4",
+        "TextArray",
+        "Text",
+        "Text",
+        "Int8",
+        "Text",
+        "Text",
+        "Text",
+        "Date",
+        "Int8",
+        "Text",
+        "Text",
+        "Int8",
+        "Date",
+        "Text",
+        "Text",
+        "Bool"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "d2f33c2aa2aece4fac1943d95fe259a40b0ca63ec36f64914b59be986f91991c"
+}

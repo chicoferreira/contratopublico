@@ -2,7 +2,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 
 use anyhow::Context;
 use chrono::NaiveDate;
-use common::{Contract, ContractType, Cpv, Currency, Document, Entity};
+use common::{Contract, ContractType, Cpv, Currency, Document, Entity, ProcedureType};
 use itertools::Itertools;
 
 use crate::sources::{
@@ -17,10 +17,10 @@ const FRAMEWORK_AGREEMENT_NOT_APPLICABLE: &str = "Não aplicável.";
 pub fn join_contract(sources: Sources) -> anyhow::Result<Contract> {
     Ok(Contract {
         id: sources.api_first(|c| c.id, |c| c.id),
-        contracting_procedure_type: sources.api_first(
-            |c| c.procedure_type.to_string(),
-            |c| c.contracting_procedure_type.to_string(),
-        ),
+        procedure_type: sources.try_api_first(
+            |c| parse_procedure_type(&c.procedure_type),
+            |c| parse_procedure_type(&c.contracting_procedure_type),
+        )?,
         publication_date: sources.try_api_first(
             |c| parse_api_date(&c.publication_date),
             |c| parse_portal_date(&c.publication_date),
@@ -324,6 +324,42 @@ fn api_list(list: &Option<Vec<Text>>) -> Vec<String> {
         .filter(|item| !item.is_empty())
         .unique()
         .collect()
+}
+
+fn parse_procedure_type(value: &str) -> anyhow::Result<Option<ProcedureType>> {
+    use ProcedureType::*;
+    Ok(Some(match value.trim() {
+        "" => return Ok(None),
+        "Ajuste Direto Regime Geral" => DirectAward,
+        "Ajuste Direto Regime Geral ao abrigo do artigo 7º da Lei n.º 30/2021, de 21.05" => {
+            DirectAwardRuralFires
+        }
+        "Ajuste direto simplificado" => SimplifiedDirectAward,
+        "Ajuste direto simplificado ao abrigo da Lei n.º 30/2021, de 21.05" => {
+            SimplifiedDirectAwardSpecialMeasures
+        }
+        "Consulta Prévia" => PriorConsultation,
+        "Consulta prévia ao abrigo do artigo 7º da Lei n.º 30/2021, de 21.05" => {
+            PriorConsultationRuralFires
+        }
+        "Consulta Prévia Simplificada" => SimplifiedPriorConsultation,
+        "Concurso público" => PublicTender,
+        "Concurso público simplificado" => SimplifiedPublicTender,
+        "Concurso limitado por prévia qualificação" => RestrictedTender,
+        "Concurso limitado por prévia qualificação simplificado" => SimplifiedRestrictedTender,
+        "Procedimento de negociação" => NegotiatedProcedure,
+        "Diálogo concorrencial" => CompetitiveDialogue,
+        "Parceria para a inovação" => InnovationPartnership,
+        "Ao abrigo de acordo-quadro (art.º 258.º)" => FrameworkAgreementArt258,
+        "Ao abrigo de acordo-quadro (art.º 259.º)" => FrameworkAgreementArt259,
+        "Disponibilização de bens móveis" => GoodsProvision,
+        "Serviços sociais e outros serviços específicos" => SocialAndOtherSpecificServices,
+        "Concurso de conceção simplificado" => SimplifiedDesignContest,
+        "Concurso de ideias simplificado" => SimplifiedIdeasContest,
+        "Setores especiais – isenção parte II" => SpecialSectorsExemption,
+        "Contratação excluída II" => ExcludedContracting,
+        value => anyhow::bail!("Unknown procedure type: {value}"),
+    }))
 }
 
 fn parse_contract_types(values: Vec<String>) -> anyhow::Result<Vec<ContractType>> {
