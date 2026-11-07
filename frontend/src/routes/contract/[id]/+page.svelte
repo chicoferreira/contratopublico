@@ -242,11 +242,11 @@
       <GridCardTitle icon={FileText} title="Procedimento">
         <div class="space-y-2 text-sm">
           <p class="text-muted-foreground">
-            Tipo de procedimento:
+            Tipo de Procedimento:
             <ContractProcedureTypeBadge type={contract.contractingProcedureType} />
           </p>
           <p class="text-muted-foreground">
-            Tipo de contrato:
+            Tipo de Contrato:
             {#each contract.contractTypes as type (type)}
               <ContractTypeBadge {type} mixed={contract.contractTypes.length > 1} />
             {:else}
