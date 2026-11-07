@@ -2,7 +2,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 
 use anyhow::Context;
 use chrono::NaiveDate;
-use common::{Contract, Cpv, Currency, Document, Entity};
+use common::{Contract, ContractType, Cpv, Currency, Document, Entity};
 use itertools::Itertools;
 
 use crate::sources::{
@@ -65,10 +65,10 @@ pub fn join_contract(sources: Sources) -> anyhow::Result<Contract> {
             |c| parse_portal_list(&c.non_written_contract_justification_types, "<br/>"),
             |c| api_list(&c.non_written_contract_justification_types),
         ),
-        contract_types: sources.api_first(
-            |c| api_list(&c.contract_types),
-            |c| parse_portal_list(&c.contract_types, "<br/>"),
-        ),
+        contract_types: sources.try_api_first(
+            |c| parse_contract_types(api_list(&c.contract_types)),
+            |c| parse_contract_types(parse_portal_list(&c.contract_types, "<br/>")),
+        )?,
         execution_deadline_days: sources.try_api_first(
             |c| parse_api_execution_deadline(c.execution_deadline_days),
             |c| parse_portal_execution_deadline(&c.execution_deadline),
@@ -324,6 +324,27 @@ fn api_list(list: &Option<Vec<Text>>) -> Vec<String> {
         .filter(|item| !item.is_empty())
         .unique()
         .collect()
+}
+
+fn parse_contract_types(values: Vec<String>) -> anyhow::Result<Vec<ContractType>> {
+    values
+        .iter()
+        .map(|value| parse_contract_type(value))
+        .collect()
+}
+
+fn parse_contract_type(value: &str) -> anyhow::Result<ContractType> {
+    Ok(match value {
+        "Aquisição de bens móveis" => ContractType::GoodsAcquisition,
+        "Aquisição de serviços" => ContractType::ServicesAcquisition,
+        "Concessão de obras públicas" => ContractType::PublicWorksConcession,
+        "Concessão de serviços públicos" => ContractType::PublicServicesConcession,
+        "Empreitadas de obras públicas" => ContractType::PublicWorks,
+        "Locação de bens móveis" => ContractType::GoodsLease,
+        "Sociedade" => ContractType::Partnership,
+        "Outros" | "Outros Tipos (Não Preenchido)" => ContractType::Other,
+        _ => anyhow::bail!("Unknown contract type: {value}"),
+    })
 }
 
 fn api_entities(entities: &Option<Vec<BaseApiEntity>>) -> Vec<Entity> {

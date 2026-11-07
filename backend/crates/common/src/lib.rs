@@ -21,7 +21,7 @@ pub struct Contract {
     pub regime: Option<String>,
     pub contract_status: Option<String>,
     pub non_written_contract_justification_types: Vec<String>,
-    pub contract_types: Vec<String>,
+    pub contract_types: Vec<ContractType>,
     pub execution_deadline_days: usize,
     pub execution_places: Vec<String>,
     pub contract_fundamentation_type: String,
@@ -42,6 +42,35 @@ pub struct Contract {
     pub framework_agreement_description: Option<String>,
     pub special_measures: Option<String>,
     pub ambient_criteria: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq, sqlx::Type)]
+#[serde(rename_all = "camelCase")]
+#[sqlx(type_name = "contract_type", rename_all = "snake_case")]
+pub enum ContractType {
+    GoodsAcquisition,
+    ServicesAcquisition,
+    PublicWorksConcession,
+    PublicServicesConcession,
+    PublicWorks,
+    GoodsLease,
+    Partnership,
+    Other,
+}
+
+impl ContractType {
+    pub fn label(self) -> &'static str {
+        match self {
+            ContractType::GoodsAcquisition => "Aquisição de bens móveis",
+            ContractType::ServicesAcquisition => "Aquisição de serviços",
+            ContractType::PublicWorksConcession => "Concessão de obras públicas",
+            ContractType::PublicServicesConcession => "Concessão de serviços públicos",
+            ContractType::PublicWorks => "Empreitadas de obras públicas",
+            ContractType::GoodsLease => "Locação de bens móveis",
+            ContractType::Partnership => "Sociedade",
+            ContractType::Other => "Outros",
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -83,7 +112,8 @@ pub struct SearchableContract {
     pub contracted: Vec<Entity>,
     pub cpvs: Vec<Cpv>,
     pub regime: Option<String>,
-    pub contract_types: Vec<String>,
+    // The labels are stored as strings so they are still searchable
+    pub contract_type_labels: Vec<String>,
     pub execution_places: Vec<String>,
     pub contract_fundamentation_type: String,
     pub contestants: Vec<Entity>,
@@ -106,7 +136,11 @@ impl From<Contract> for SearchableContract {
             contracted: contract.contracted,
             cpvs: contract.cpvs,
             regime: contract.regime,
-            contract_types: contract.contract_types,
+            contract_type_labels: contract
+                .contract_types
+                .iter()
+                .map(|contract_type| contract_type.label().to_string())
+                .collect(),
             execution_places: contract.execution_places,
             contract_fundamentation_type: contract.contract_fundamentation_type,
             contestants: contract.contestants,

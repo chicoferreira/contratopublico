@@ -12,14 +12,14 @@ export interface Contract {
   regime: string | null;
   contractStatus: string | null;
   nonWrittenContractJustificationTypes: string[];
-  contractTypes: string[];
+  contractTypes: ContractType[];
   executionDeadlineDays: number;
   executionPlaces: string[];
   contractFundamentationType: string;
   contestants: Entity[];
   invitees: Entity[];
   documents: Document[];
-  contractingProcedureUrl: string;
+  contractingProcedureUrl: string | null;
   announcementId: number | null;
   directAwardFundamentationType: string | null;
   observations: string | null;
@@ -34,6 +34,25 @@ export interface Contract {
   specialMeasures: string | null;
   ambientCriteria: boolean;
 }
+
+export const CONTRACT_TYPE_LABELS = {
+  goodsAcquisition: "Aquisição de bens móveis",
+  servicesAcquisition: "Aquisição de serviços",
+  publicWorksConcession: "Concessão de obras públicas",
+  publicServicesConcession: "Concessão de serviços públicos",
+  publicWorks: "Empreitadas de obras públicas",
+  goodsLease: "Locação de bens móveis",
+  partnership: "Sociedade",
+  other: "Outros",
+} as const;
+
+export type ContractType = keyof typeof CONTRACT_TYPE_LABELS;
+
+export type ContractTypeLabel = (typeof CONTRACT_TYPE_LABELS)[ContractType];
+
+export const CONTRACT_TYPE_BY_LABEL = new Map<ContractTypeLabel, ContractType>(
+  Object.entries(CONTRACT_TYPE_LABELS).map(([type, label]) => [label, type as ContractType]),
+);
 
 export interface Entity {
   id: number;
@@ -59,13 +78,36 @@ export interface SearchContractsRequest {
 }
 
 export interface SearchContractsResponse {
-  contracts: (Contract & MatchingRanges)[];
+  contracts: SearchedContract[];
   total: number;
   page: number;
   totalPages: number;
   elapsedMillis: number;
   hitsPerPage: number;
 }
+
+export interface SearchableContract {
+  id: number;
+  contractingProcedureType: string;
+  publicationDate: string;
+  signingDate: string | null;
+  objectBriefDescription: string;
+  initialContractualPrice: number;
+  contracting: Entity[];
+  contracted: Entity[];
+  cpvs: Cpv[];
+  regime: string | null;
+  contractTypeLabels: ContractTypeLabel[];
+  executionPlaces: string[];
+  contractFundamentationType: string;
+  contestants: Entity[];
+  invitees: Entity[];
+  documents: Document[];
+  contractingProcedureUrl: string | null;
+  announcementId: number | null;
+}
+
+export type SearchedContract = SearchableContract & MatchingRanges;
 
 export type GetContractResponse = Contract | null;
 

@@ -2,7 +2,7 @@ use anyhow::Context;
 use chrono::NaiveDate;
 use sqlx::{PgConnection, PgPool};
 
-use crate::{Contract, Cpv, Currency, Document, Entity};
+use crate::{Contract, ContractType, Cpv, Currency, Document, Entity};
 
 struct ContractMainRow {
     id: i64,
@@ -15,7 +15,7 @@ struct ContractMainRow {
     regime: Option<String>,
     contract_status: Option<String>,
     non_written_contract_justification_types: Vec<String>,
-    contract_types: Vec<String>,
+    contract_types: Vec<ContractType>,
     execution_deadline_days: i32,
     execution_places: Vec<String>,
     contract_fundamentation_type: String,
@@ -117,14 +117,14 @@ impl ContractDatabase {
             r#"
             SELECT
                 id, contracting_procedure_type, publication_date, signing_date,
-                object_brief_description, initial_contractual_price, description,
-                regime, contract_status, non_written_contract_justification_types,
-                contract_types, execution_deadline_days, execution_places,
-                contract_fundamentation_type, contracting_procedure_url, announcement_id,
-                direct_award_fundamentation_type, observations, end_of_contract_type,
-                close_date, total_effective_price, causes_deadline_change, causes_price_change,
-                estimated_base_price, award_decision_date, framework_agreement_description,
-                special_measures, ambient_criteria
+                object_brief_description, initial_contractual_price, description, regime,
+                contract_status, non_written_contract_justification_types,
+                contract_types AS "contract_types: Vec<ContractType>", execution_deadline_days,
+                execution_places, contract_fundamentation_type, contracting_procedure_url,
+                announcement_id, direct_award_fundamentation_type, observations,
+                end_of_contract_type, close_date, total_effective_price, causes_deadline_change,
+                causes_price_change, estimated_base_price, award_decision_date,
+                framework_agreement_description, special_measures, ambient_criteria
             FROM contracts
             WHERE id = $1
             "#,
@@ -344,14 +344,14 @@ async fn insert_contract(tx: &mut PgConnection, contract: &Contract) -> Result<(
             r#"
             INSERT INTO contracts (
                 id, contracting_procedure_type, publication_date, signing_date,
-                object_brief_description, initial_contractual_price, description,
-                regime, contract_status, non_written_contract_justification_types,
-                contract_types, execution_deadline_days, execution_places,
-                contract_fundamentation_type, contracting_procedure_url, announcement_id,
-                direct_award_fundamentation_type, observations, end_of_contract_type,
-                close_date, total_effective_price, causes_deadline_change, causes_price_change,
-                estimated_base_price, award_decision_date, framework_agreement_description,
-                special_measures, ambient_criteria
+                object_brief_description, initial_contractual_price, description, regime,
+                contract_status, non_written_contract_justification_types, contract_types,
+                execution_deadline_days, execution_places, contract_fundamentation_type,
+                contracting_procedure_url, announcement_id, direct_award_fundamentation_type,
+                observations, end_of_contract_type, close_date, total_effective_price,
+                causes_deadline_change, causes_price_change, estimated_base_price,
+                award_decision_date, framework_agreement_description, special_measures,
+                ambient_criteria
             ) VALUES (
                 $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23,
                 $24, $25, $26, $27, $28
@@ -367,7 +367,7 @@ async fn insert_contract(tx: &mut PgConnection, contract: &Contract) -> Result<(
             contract.regime,
             contract.contract_status,
             &contract.non_written_contract_justification_types,
-            &contract.contract_types,
+            &contract.contract_types as &[ContractType],
             contract.execution_deadline_days as i32,
             &contract.execution_places,
             contract.contract_fundamentation_type,
@@ -462,7 +462,7 @@ async fn insert_contract(tx: &mut PgConnection, contract: &Contract) -> Result<(
 mod tests {
     use sqlx::PgPool;
 
-    use crate::{Contract, Cpv, Currency, Document, Entity, db::ContractDatabase};
+    use crate::{Contract, ContractType, Cpv, Currency, Document, Entity, db::ContractDatabase};
 
     #[sqlx::test(migrations = "../../migrations")]
     async fn test_db(pg_pool: PgPool) -> sqlx::Result<()> {
@@ -491,7 +491,7 @@ mod tests {
             regime: Some("Public".to_string()),
             contract_status: Some("Active".to_string()),
             non_written_contract_justification_types: vec!["Emergency".to_string()],
-            contract_types: vec!["Service".to_string(), "Supply".to_string()],
+            contract_types: vec![ContractType::GoodsAcquisition, ContractType::Other],
             execution_deadline_days: 90,
             execution_places: vec!["Lisbon, Portugal".to_string()],
             contract_fundamentation_type: "Legal basis".to_string(),

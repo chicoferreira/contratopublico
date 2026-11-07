@@ -1,3 +1,14 @@
+CREATE TYPE contract_type AS ENUM (
+    'goods_acquisition',
+    'services_acquisition',
+    'public_works_concession',
+    'public_services_concession',
+    'public_works',
+    'goods_lease',
+    'partnership',
+    'other'
+);
+
 CREATE TABLE cpv (
     code TEXT PRIMARY KEY,
     designation TEXT NOT NULL
@@ -24,7 +35,7 @@ CREATE TABLE contracts (
     regime TEXT,
     contract_status TEXT,
     non_written_contract_justification_types TEXT[] NOT NULL,
-    contract_types TEXT[] NOT NULL,
+    contract_types contract_type[] NOT NULL,
     execution_deadline_days INTEGER NOT NULL,
     execution_places TEXT[] NOT NULL,
     contract_fundamentation_type TEXT NOT NULL,
