@@ -15,10 +15,11 @@ Este changelog documenta todas as alterações, melhorias e atualizações mais 
 
 ## Novembro de 2026 <MonthCommits startDate="2026-11-01" endDate="2026-11-30" />
 
-- Os contratos passaram a ser recolhidos também da [API BASE](https://www.base.gov.pt/APIBase2), além do Portal BASE, permitindo atualizar toda a base de dados muito mais rapidamente. <GithubBadge commit="b4ddc75d061174b9474b0aee47e8f5492dd3a7a9"/> <Muted>(02/11/2026)</Muted>
-- Os contratos que deixam de existir no Portal BASE e na API BASE passaram a ser removidos automaticamente da plataforma. <GithubBadge commit="adc316d7481fc8a6484adcf8d834a4e561af94a8"/> <Muted>(03/11/2026)</Muted>
-- A página de cada contrato passou a mostrar mais informação, como o preço base e o estado do contrato. <GithubBadge commit="0a0e15526a9dcce57605d63fd816b48f5c7d4938"/> <Muted>(05/11/2026)</Muted>
+- Os tipos de contrato agora aparecem como etiquetas na página de pesquisa e é possível filtrar por eles. <GithubBadge issue="32"/> <GithubBadge pr="80"/> <Muted>(07/11/2026)</Muted>
 - Os contratos com valor negativo passaram a ser tratados corretamente como um valor recebido pela entidade contratante. <GithubBadge commit="e780e4a10543571a3ea58b85d49428207d47c670"/> <Muted>(05/11/2026)</Muted>
+- A página de cada contrato passou a mostrar mais informação, como o preço base e o estado do contrato. <GithubBadge commit="0a0e15526a9dcce57605d63fd816b48f5c7d4938"/> <Muted>(05/11/2026)</Muted>
+- Os contratos que deixam de existir no Portal BASE e na API BASE passaram a ser removidos automaticamente da plataforma. <GithubBadge commit="adc316d7481fc8a6484adcf8d834a4e561af94a8"/> <Muted>(03/11/2026)</Muted>
+- Os contratos passaram a ser recolhidos também da [API BASE](https://www.base.gov.pt/APIBase2), além do Portal BASE, permitindo atualizar toda a base de dados muito mais rapidamente. <GithubBadge commit="b4ddc75d061174b9474b0aee47e8f5492dd3a7a9"/> <Muted>(02/11/2026)</Muted>
 
 ## Julho de 2026 <MonthCommits startDate="2026-07-01" endDate="2026-07-31" />
 
