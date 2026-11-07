@@ -18,6 +18,7 @@
   import GridSubCard from "./GridSubCard.svelte";
   import GridSubCardList from "./GridSubCardList.svelte";
   import ContractProcedureTypeBadge from "$lib/components/ContractProcedureTypeBadge.svelte";
+  import ContractTypeBadge from "$lib/components/ContractTypeBadge.svelte";
   import GridCardTitleList from "./GridCardTitleList.svelte";
   import { dateToString, formatDate, formatMoney, formatPercentage } from "$lib/utils";
   import { getBaseGovAnnouncementUrl, getBaseGovContractUrl, getBaseGovDocumentUrl } from "$lib";
@@ -246,8 +247,11 @@
           </p>
           <p class="text-muted-foreground">
             Tipo de contrato:
-            <span class="text-foreground font-medium"
-              >{contract.contractTypes.join(", ") || "—"}</span>
+            {#each contract.contractTypes as type (type)}
+              <ContractTypeBadge {type} mixed={contract.contractTypes.length > 1} />
+            {:else}
+              <span class="text-foreground font-medium">—</span>
+            {/each}
           </p>
           <p class="text-muted-foreground">
             Regime:
