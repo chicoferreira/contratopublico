@@ -1,9 +1,14 @@
 <script lang="ts">
-  import type { Contract, MatchingRanges } from "$lib/types/api";
+  import {
+    CONTRACT_TYPE_BY_LABEL,
+    type SearchableContract,
+    type SearchedContract,
+  } from "$lib/types/api";
   import { Building, CalendarDays, Signature, FileText, ExternalLink } from "@lucide/svelte";
   import ContractCardInfoRow from "./ContractCardInfoRow.svelte";
   import Highlighted from "./Highlighted.svelte";
-  import ContractTypeBadge from "./ContractProcedureTypeBadge.svelte";
+  import ContractProcedureTypeBadge from "./ContractProcedureTypeBadge.svelte";
+  import ContractTypeBadge from "./ContractTypeBadge.svelte";
   import ContractPrice from "./ContractPrice.svelte";
   import ContractNifDescriptionPopover from "./ContractNifDescriptionPopover.svelte";
   import ContractCpvPopover from "./ContractCpvPopover.svelte";
@@ -11,9 +16,9 @@
   import { getBaseGovContractUrl } from "$lib";
   import { formatDate } from "$lib/utils";
 
-  let { contract }: { contract: Contract & MatchingRanges } = $props();
+  let { contract }: { contract: SearchedContract } = $props();
 
-  function renderHighlightedField(field: keyof Contract & keyof MatchingRanges["matchingRanges"]) {
+  function renderHighlightedField(field: keyof SearchableContract) {
     return {
       content: contract[field]?.toString(),
       ranges: contract.matchingRanges[field],
@@ -39,9 +44,20 @@
             class="text-muted-foreground/80 group-hover:text-primary mt-0.75 h-4 w-4 shrink-0 transition-colors" />
         </a>
         <div class="flex flex-wrap items-start gap-x-2 gap-y-1">
-          <ContractTypeBadge
+          <ContractProcedureTypeBadge
             type={contract.contractingProcedureType}
             ranges={renderHighlightedField("contractingProcedureType").ranges} />
+
+          {#each contract.contractTypeLabels as label, index (label)}
+            {@const type = CONTRACT_TYPE_BY_LABEL.get(label)}
+            {#if type}
+              <ContractTypeBadge
+                {type}
+                {index}
+                mixed={contract.contractTypeLabels.length > 1}
+                ranges={contract.matchingRanges["contractTypeLabels"]} />
+            {/if}
+          {/each}
 
           {#each contract.executionPlaces as place, index (`${place}-${index}`)}
             <ContractPlacePopover {place} ranges={contract.matchingRanges["executionPlaces"]} />
