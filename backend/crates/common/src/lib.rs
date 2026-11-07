@@ -1,5 +1,6 @@
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
+use sqlx::Type;
 
 pub mod db;
 pub mod searchdb;
@@ -9,7 +10,7 @@ pub mod statistics;
 #[serde(rename_all = "camelCase")]
 pub struct Contract {
     pub id: u64,
-    pub contracting_procedure_type: String,
+    pub procedure_type: Option<ProcedureType>,
     pub publication_date: NaiveDate,
     pub signing_date: Option<NaiveDate>,
     pub object_brief_description: String,
@@ -73,6 +74,73 @@ impl ContractType {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Type)]
+#[serde(rename_all = "camelCase")]
+#[sqlx(type_name = "procedure_type", rename_all = "snake_case")]
+pub enum ProcedureType {
+    DirectAward,
+    DirectAwardRuralFires,
+    SimplifiedDirectAward,
+    SimplifiedDirectAwardSpecialMeasures,
+    PriorConsultation,
+    PriorConsultationRuralFires,
+    SimplifiedPriorConsultation,
+    PublicTender,
+    SimplifiedPublicTender,
+    RestrictedTender,
+    SimplifiedRestrictedTender,
+    NegotiatedProcedure,
+    CompetitiveDialogue,
+    InnovationPartnership,
+    FrameworkAgreementArt258,
+    FrameworkAgreementArt259,
+    GoodsProvision,
+    SocialAndOtherSpecificServices,
+    SimplifiedDesignContest,
+    SimplifiedIdeasContest,
+    SpecialSectorsExemption,
+    ExcludedContracting,
+}
+
+impl ProcedureType {
+    pub fn label(self) -> &'static str {
+        match self {
+            ProcedureType::DirectAward => "Ajuste Direto Regime Geral",
+            ProcedureType::DirectAwardRuralFires => {
+                "Ajuste Direto Regime Geral ao abrigo do artigo 7º da Lei n.º 30/2021, de 21.05"
+            }
+            ProcedureType::SimplifiedDirectAward => "Ajuste direto simplificado",
+            ProcedureType::SimplifiedDirectAwardSpecialMeasures => {
+                "Ajuste direto simplificado ao abrigo da Lei n.º 30/2021, de 21.05"
+            }
+            ProcedureType::PriorConsultation => "Consulta Prévia",
+            ProcedureType::PriorConsultationRuralFires => {
+                "Consulta prévia ao abrigo do artigo 7º da Lei n.º 30/2021, de 21.05"
+            }
+            ProcedureType::SimplifiedPriorConsultation => "Consulta Prévia Simplificada",
+            ProcedureType::PublicTender => "Concurso público",
+            ProcedureType::SimplifiedPublicTender => "Concurso público simplificado",
+            ProcedureType::RestrictedTender => "Concurso limitado por prévia qualificação",
+            ProcedureType::SimplifiedRestrictedTender => {
+                "Concurso limitado por prévia qualificação simplificado"
+            }
+            ProcedureType::NegotiatedProcedure => "Procedimento de negociação",
+            ProcedureType::CompetitiveDialogue => "Diálogo concorrencial",
+            ProcedureType::InnovationPartnership => "Parceria para a inovação",
+            ProcedureType::FrameworkAgreementArt258 => "Ao abrigo de acordo-quadro (art.º 258.º)",
+            ProcedureType::FrameworkAgreementArt259 => "Ao abrigo de acordo-quadro (art.º 259.º)",
+            ProcedureType::GoodsProvision => "Disponibilização de bens móveis",
+            ProcedureType::SocialAndOtherSpecificServices => {
+                "Serviços sociais e outros serviços específicos"
+            }
+            ProcedureType::SimplifiedDesignContest => "Concurso de conceção simplificado",
+            ProcedureType::SimplifiedIdeasContest => "Concurso de ideias simplificado",
+            ProcedureType::SpecialSectorsExemption => "Setores especiais – isenção parte II",
+            ProcedureType::ExcludedContracting => "Contratação excluída II",
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 pub struct Cpv {
     pub code: String,
@@ -103,7 +171,7 @@ pub struct Currency(pub isize);
 #[serde(rename_all = "camelCase")]
 pub struct SearchableContract {
     pub id: u64,
-    pub contracting_procedure_type: String,
+    pub procedure_type_label: Option<String>,
     pub publication_date: NaiveDate,
     pub signing_date: Option<NaiveDate>,
     pub object_brief_description: String,
@@ -127,7 +195,9 @@ impl From<Contract> for SearchableContract {
     fn from(contract: Contract) -> Self {
         SearchableContract {
             id: contract.id,
-            contracting_procedure_type: contract.contracting_procedure_type,
+            procedure_type_label: contract
+                .procedure_type
+                .map(|procedure_type| procedure_type.label().to_string()),
             publication_date: contract.publication_date,
             signing_date: contract.signing_date,
             object_brief_description: contract.object_brief_description,

@@ -2,7 +2,7 @@ export interface Contract {
   id: number;
   description: string | null;
   objectBriefDescription: string;
-  contractingProcedureType: string;
+  procedureType: ProcedureType | null;
   contracting: Entity[];
   contracted: Entity[];
   cpvs: Cpv[];
@@ -34,6 +34,38 @@ export interface Contract {
   specialMeasures: string | null;
   ambientCriteria: boolean;
 }
+
+export const PROCEDURE_TYPE_LABELS = {
+  directAward: "Ajuste Direto Regime Geral",
+  directAwardRuralFires:
+    "Ajuste Direto Regime Geral ao abrigo do artigo 7º da Lei n.º 30/2021, de 21.05",
+  simplifiedDirectAward: "Ajuste direto simplificado",
+  simplifiedDirectAwardSpecialMeasures:
+    "Ajuste direto simplificado ao abrigo da Lei n.º 30/2021, de 21.05",
+  priorConsultation: "Consulta Prévia",
+  priorConsultationRuralFires:
+    "Consulta prévia ao abrigo do artigo 7º da Lei n.º 30/2021, de 21.05",
+  simplifiedPriorConsultation: "Consulta Prévia Simplificada",
+  publicTender: "Concurso público",
+  simplifiedPublicTender: "Concurso público simplificado",
+  restrictedTender: "Concurso limitado por prévia qualificação",
+  simplifiedRestrictedTender: "Concurso limitado por prévia qualificação simplificado",
+  negotiatedProcedure: "Procedimento de negociação",
+  competitiveDialogue: "Diálogo concorrencial",
+  innovationPartnership: "Parceria para a inovação",
+  frameworkAgreementArt258: "Ao abrigo de acordo-quadro (art.º 258.º)",
+  frameworkAgreementArt259: "Ao abrigo de acordo-quadro (art.º 259.º)",
+  goodsProvision: "Disponibilização de bens móveis",
+  socialAndOtherSpecificServices: "Serviços sociais e outros serviços específicos",
+  simplifiedDesignContest: "Concurso de conceção simplificado",
+  simplifiedIdeasContest: "Concurso de ideias simplificado",
+  specialSectorsExemption: "Setores especiais – isenção parte II",
+  excludedContracting: "Contratação excluída II",
+} as const;
+
+export type ProcedureType = keyof typeof PROCEDURE_TYPE_LABELS;
+
+export type ProcedureTypeLabel = (typeof PROCEDURE_TYPE_LABELS)[ProcedureType];
 
 export const CONTRACT_TYPE_LABELS = {
   goodsAcquisition: "Aquisição de Bens Móveis",
@@ -90,7 +122,7 @@ export interface SearchContractsResponse {
 
 export interface SearchableContract {
   id: number;
-  contractingProcedureType: string;
+  procedureTypeLabel: ProcedureTypeLabel | null;
   publicationDate: string;
   signingDate: string | null;
   objectBriefDescription: string;
