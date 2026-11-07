@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT\n                id, contracting_procedure_type, publication_date, signing_date,\n                object_brief_description, initial_contractual_price, description,\n                regime, contract_status, non_written_contract_justification_types,\n                contract_types, execution_deadline_days, execution_places,\n                contract_fundamentation_type, contracting_procedure_url, announcement_id,\n                direct_award_fundamentation_type, observations, end_of_contract_type,\n                close_date, total_effective_price, causes_deadline_change, causes_price_change,\n                estimated_base_price, award_decision_date, framework_agreement_description,\n                special_measures, ambient_criteria\n            FROM contracts\n            WHERE id = $1\n            ",
+  "query": "\n            SELECT\n                id, contracting_procedure_type, publication_date, signing_date,\n                object_brief_description, initial_contractual_price, description, regime,\n                contract_status, non_written_contract_justification_types,\n                contract_types AS \"contract_types: Vec<ContractType>\", execution_deadline_days,\n                execution_places, contract_fundamentation_type, contracting_procedure_url,\n                announcement_id, direct_award_fundamentation_type, observations,\n                end_of_contract_type, close_date, total_effective_price, causes_deadline_change,\n                causes_price_change, estimated_base_price, award_decision_date,\n                framework_agreement_description, special_measures, ambient_criteria\n            FROM contracts\n            WHERE id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -55,8 +55,31 @@
       },
       {
         "ordinal": 10,
-        "name": "contract_types",
-        "type_info": "TextArray"
+        "name": "contract_types: Vec<ContractType>",
+        "type_info": {
+          "Custom": {
+            "name": "contract_type[]",
+            "kind": {
+              "Array": {
+                "Custom": {
+                  "name": "contract_type",
+                  "kind": {
+                    "Enum": [
+                      "goods_acquisition",
+                      "services_acquisition",
+                      "public_works_concession",
+                      "public_services_concession",
+                      "public_works",
+                      "goods_lease",
+                      "partnership",
+                      "other"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
       },
       {
         "ordinal": 11,
@@ -180,5 +203,5 @@
       false
     ]
   },
-  "hash": "1b45636c55c544c3a97124ca5773a219129892b5aebaeb44e6f342abfe20533e"
+  "hash": "e4105a762574f5a4a82f036a67d1513dfd19a7b63734d4f46aab4f2eac1d163f"
 }
