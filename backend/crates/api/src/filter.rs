@@ -1,5 +1,7 @@
 use chrono::NaiveDate;
+use common::ContractType;
 use garde::Validate;
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Default, Validate)]
@@ -28,6 +30,9 @@ pub struct Filters {
     pub min_price: Option<i64>,
     #[serde(default)]
     pub max_price: Option<i64>,
+    #[serde(default)]
+    #[garde(length(max = 8))]
+    pub contract_types: Option<Vec<ContractType>>,
 }
 
 impl Filters {
@@ -39,6 +44,7 @@ impl Filters {
             "contracted",
             "contracting",
             "initialContractualPrice",
+            "contractTypeLabels",
         ]
     }
 
@@ -84,6 +90,16 @@ impl Filters {
         }
         if let Some(price) = self.max_price {
             filters.push(format!("initialContractualPrice <= {price}"));
+        }
+        if let Some(contract_types) = &self.contract_types
+            && !contract_types.is_empty()
+        {
+            let labels = contract_types
+                .iter()
+                .map(|t| format!("'{}'", Self::escape_string_value(t.label())))
+                .join(", ");
+
+            filters.push(format!("contractTypeLabels IN [{labels}]"));
         }
 
         filters

@@ -130,6 +130,7 @@
     filters.contracting;
     filters.minPrice;
     filters.maxPrice;
+    filters.contractTypes;
 
     const nextSearch = buildSearchParams(snapshotRequest()).toString();
     const currentSearch = untrack(() => sveltePage.url.searchParams.toString());
