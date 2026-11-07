@@ -10,11 +10,14 @@
     Lightbulb,
     Signature,
     CalendarDays,
+    BriefcaseBusiness,
   } from "@lucide/svelte";
-  import type { Filters } from "$lib/types/api";
+  import { CONTRACT_TYPE_LABELS, type Filters } from "$lib/types/api";
   import { MAX_ENTITY_FILTER_LENGTH } from "$lib";
+  import { CONTRACT_TYPE_DESCRIPTIONS } from "$lib/contract-types";
   import FilterDate from "./FilterDate.svelte";
   import FilterInput from "./FilterInput.svelte";
+  import FilterMultiSelect from "./FilterMultiSelect.svelte";
   import FilterSection from "./FilterSection.svelte";
   import { fade } from "svelte/transition";
 
@@ -275,6 +278,23 @@
           maxlength={MAX_ENTITY_FILTER_LENGTH}
           placeholder="Ex: Empresa XPTO, Lda. ou 123456789" />
       </div>
+    </FilterSection>
+
+    <Separator />
+
+    <FilterSection
+      title="Tipo de Contrato"
+      IconComponent={BriefcaseBusiness}
+      filter={filters}
+      fields={["contractTypes"]}>
+      <FilterMultiSelect
+        bind:value={filters.contractTypes}
+        labels={CONTRACT_TYPE_LABELS}
+        descriptions={CONTRACT_TYPE_DESCRIPTIONS}
+        labelContent="Tipos de Contrato"
+        descriptionContent="Mostra contratos que tenham pelo menos um dos tipos selecionados"
+        placeholder="Todos os tipos"
+        IconComponent={BriefcaseBusiness} />
     </FilterSection>
   </div>
 </div>

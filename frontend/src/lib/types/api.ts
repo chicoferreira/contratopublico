@@ -48,6 +48,8 @@ export const CONTRACT_TYPE_LABELS = {
 
 export type ContractType = keyof typeof CONTRACT_TYPE_LABELS;
 
+export const CONTRACT_TYPES = Object.keys(CONTRACT_TYPE_LABELS) as ContractType[];
+
 export type ContractTypeLabel = (typeof CONTRACT_TYPE_LABELS)[ContractType];
 
 export const CONTRACT_TYPE_BY_LABEL = new Map<ContractTypeLabel, ContractType>(
@@ -135,6 +137,7 @@ export interface Filters {
   contracting?: string;
   minPrice?: number;
   maxPrice?: number;
+  contractTypes?: ContractType[];
 }
 
 export interface MatchingRanges {

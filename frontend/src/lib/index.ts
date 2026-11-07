@@ -1,4 +1,5 @@
 import {
+  CONTRACT_TYPES,
   Sort,
   type Filters,
   type GetContractResponse,
@@ -103,6 +104,10 @@ export function parseSearchRequestFromParams(
   addParam("endSigningDate");
   addParam("minPrice", (v) => parseInt(v, 10));
   addParam("maxPrice", (v) => parseInt(v, 10));
+
+  const selectedContractTypes = params.get("contractTypes")?.split(",") ?? [];
+  const contractTypes = CONTRACT_TYPES.filter((type) => selectedContractTypes.includes(type));
+  if (contractTypes.length) filters.contractTypes = contractTypes;
 
   return { query, sort, filters, page };
 }
