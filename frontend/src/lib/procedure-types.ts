@@ -62,15 +62,6 @@ export const PROCEDURE_TYPES: Record<
       "Permitido abaixo de 75 000 € em bens e serviços ou de 150 000 € em obras. Acima disso, só nos casos previstos na lei, como urgência imperiosa, um único fornecedor possível ou um concurso anterior sem propostas válidas.",
     legalBasis: ccp("112.º"),
   },
-  directAwardRuralFires: {
-    title: "Ajuste Direto",
-    subtitle: "Fogos Rurais",
-    baseName: "Ajuste Direto Regime Geral ao abrigo do artigo 7º da Lei n.º 30/2021, de 21.05",
-    competition: "direct",
-    description: `Ajuste direto ${RURAL_FIRES}`,
-    usage: "Permitido abaixo dos limiares europeus e de 750 000 €.",
-    legalBasis: specialMeasures("7.º"),
-  },
   simplifiedDirectAward: {
     title: "Ajuste Direto",
     subtitle: "Simplificado",
@@ -89,6 +80,15 @@ export const PROCEDURE_TYPES: Record<
     usage: "Permitido até 15 000 €.",
     legalBasis: specialMeasures("2.º"),
   },
+  directAwardRuralFires: {
+    title: "Ajuste Direto",
+    subtitle: "Fogos Rurais",
+    baseName: "Ajuste Direto Regime Geral ao abrigo do artigo 7º da Lei n.º 30/2021, de 21.05",
+    competition: "direct",
+    description: `Ajuste direto ${RURAL_FIRES}`,
+    usage: "Permitido abaixo dos limiares europeus e de 750 000 €.",
+    legalBasis: specialMeasures("7.º"),
+  },
   priorConsultation: {
     title: "Consulta Prévia",
     competition: "invited",
@@ -96,6 +96,14 @@ export const PROCEDURE_TYPES: Record<
       "A entidade pública convida diretamente pelo menos três entidades à sua escolha a apresentar proposta, podendo negociar com elas se o convite o previr.",
     usage: "Permitido abaixo de 130 000 € em bens e serviços ou de 1 000 000 € em obras.",
     legalBasis: ccp("112.º"),
+  },
+  simplifiedPriorConsultation: {
+    title: "Consulta Prévia",
+    subtitle: "Simplificada",
+    competition: "invited",
+    description: `Consulta prévia com convite a pelo menos cinco entidades e prazos mais curtos, ${SPECIAL_MEASURES}.`,
+    usage: "Permitido abaixo dos limiares europeus e de 750 000 €.",
+    legalBasis: specialMeasures("2.º"),
   },
   priorConsultationRuralFires: {
     title: "Consulta Prévia",
@@ -106,13 +114,23 @@ export const PROCEDURE_TYPES: Record<
     usage: "Permitido abaixo dos limiares europeus e de 750 000 €.",
     legalBasis: specialMeasures("7.º"),
   },
-  simplifiedPriorConsultation: {
-    title: "Consulta Prévia",
-    subtitle: "Simplificada",
+  frameworkAgreementArt259: {
+    title: "Acordo-Quadro",
+    subtitle: "Com Nova Concorrência",
+    baseName: "Ao abrigo de acordo-quadro (art.º 259.º)",
     competition: "invited",
-    description: `Consulta prévia com convite a pelo menos cinco entidades e prazos mais curtos, ${SPECIAL_MEASURES}.`,
-    usage: "Permitido abaixo dos limiares europeus e de 750 000 €.",
-    legalBasis: specialMeasures("2.º"),
+    description:
+      "Compra feita ao abrigo de um contrato anterior, celebrado com vários fornecedores, que deixou condições por fixar. A entidade pública pede propostas a esses fornecedores e escolhe a melhor.",
+    legalBasis: ccp("259.º"),
+  },
+  frameworkAgreementArt258: {
+    title: "Acordo-Quadro",
+    subtitle: "Sem Nova Concorrência",
+    baseName: "Ao abrigo de acordo-quadro (art.º 258.º)",
+    competition: "direct",
+    description:
+      "Compra feita ao abrigo de um contrato anterior, celebrado com um ou mais fornecedores, que já fixou todas as condições (preços, prazos, especificações). A entidade pública encomenda diretamente, sem pedir novas propostas.",
+    legalBasis: ccp("258.º"),
   },
   publicTender: {
     title: "Concurso Público",
@@ -130,6 +148,14 @@ export const PROCEDURE_TYPES: Record<
     usage: "Permitido abaixo dos limiares europeus.",
     legalBasis: specialMeasures("2.º"),
   },
+  excludedContracting: {
+    title: "Contratação Excluída",
+    baseName: "Contratação excluída II",
+    competition: "none",
+    description:
+      "Contrato isento das regras de formação de contratos do Código dos Contratos Públicos, por exemplo por não estar sujeito à concorrência de mercado.",
+    legalBasis: ccp("5.º"),
+  },
   restrictedTender: {
     title: "Concurso Limitado por Prévia Qualificação",
     competition: "open",
@@ -146,6 +172,14 @@ export const PROCEDURE_TYPES: Record<
     usage: "Permitido abaixo dos limiares europeus.",
     legalBasis: specialMeasures("2.º"),
   },
+  specialSectorsExemption: {
+    title: "Setores Especiais",
+    subtitle: "Isenção",
+    baseName: "Setores especiais – isenção parte II",
+    competition: "none",
+    description:
+      "Contrato de uma entidade dos setores especiais (água, energia, transportes e serviços postais) isento das regras de formação de contratos do Código dos Contratos Públicos.",
+  },
   negotiatedProcedure: {
     title: "Procedimento de Negociação",
     competition: "open",
@@ -154,46 +188,6 @@ export const PROCEDURE_TYPES: Record<
     usage:
       "Só quando as necessidades não se satisfazem com soluções disponíveis no mercado, incluem soluções inovadoras, não é possível adjudicar sem negociar ou um concurso anterior não teve propostas aceitáveis.",
     legalBasis: ccp("193.º"),
-  },
-  competitiveDialogue: {
-    title: "Diálogo Concorrencial",
-    competition: "open",
-    description:
-      "Usado quando a entidade pública sabe o que precisa mas não como o obter: discute soluções com os candidatos qualificados antes de estes apresentarem propostas.",
-    usage:
-      "Só quando as necessidades não se satisfazem com soluções disponíveis no mercado, incluem soluções inovadoras, não é possível adjudicar sem negociar ou um concurso anterior não teve propostas aceitáveis.",
-    legalBasis: ccp("204.º"),
-  },
-  innovationPartnership: {
-    title: "Parceria para a Inovação",
-    competition: "open",
-    description:
-      "Para investigar e desenvolver bens, serviços ou obras inovadores, que a entidade pública depois adquire se cumprirem os níveis de desempenho e os preços acordados.",
-    legalBasis: ccp("218.º-A"),
-  },
-  frameworkAgreementArt258: {
-    title: "Acordo-Quadro",
-    subtitle: "Sem Nova Concorrência",
-    baseName: "Ao abrigo de acordo-quadro (art.º 258.º)",
-    competition: "direct",
-    description:
-      "Compra feita ao abrigo de um contrato anterior, celebrado com um ou mais fornecedores, que já fixou todas as condições (preços, prazos, especificações). A entidade pública encomenda diretamente, sem pedir novas propostas.",
-    legalBasis: ccp("258.º"),
-  },
-  frameworkAgreementArt259: {
-    title: "Acordo-Quadro",
-    subtitle: "Com Nova Concorrência",
-    baseName: "Ao abrigo de acordo-quadro (art.º 259.º)",
-    competition: "invited",
-    description:
-      "Compra feita ao abrigo de um contrato anterior, celebrado com vários fornecedores, que deixou condições por fixar. A entidade pública pede propostas a esses fornecedores e escolhe a melhor.",
-    legalBasis: ccp("259.º"),
-  },
-  goodsProvision: {
-    title: "Disponibilização de Bens Móveis",
-    competition: "none",
-    description:
-      "Disponibilização de bens móveis de uma entidade pública, comunicada ao Portal BASE.",
   },
   socialAndOtherSpecificServices: {
     title: "Serviços Sociais e Outros Serviços Específicos",
@@ -221,20 +215,26 @@ export const PROCEDURE_TYPES: Record<
       "Concurso para adquirir propostas de ideias, remuneradas com um prémio, segundo as regras do concurso de conceção simplificado.",
     legalBasis: ccp("219.º-J"),
   },
-  specialSectorsExemption: {
-    title: "Setores Especiais",
-    subtitle: "Isenção",
-    baseName: "Setores especiais – isenção parte II",
-    competition: "none",
+  innovationPartnership: {
+    title: "Parceria para a Inovação",
+    competition: "open",
     description:
-      "Contrato de uma entidade dos setores especiais (água, energia, transportes e serviços postais) isento das regras de formação de contratos do Código dos Contratos Públicos.",
+      "Para investigar e desenvolver bens, serviços ou obras inovadores, que a entidade pública depois adquire se cumprirem os níveis de desempenho e os preços acordados.",
+    legalBasis: ccp("218.º-A"),
   },
-  excludedContracting: {
-    title: "Contratação Excluída",
-    baseName: "Contratação excluída II",
+  competitiveDialogue: {
+    title: "Diálogo Concorrencial",
+    competition: "open",
+    description:
+      "Usado quando a entidade pública sabe o que precisa mas não como o obter: discute soluções com os candidatos qualificados antes de estes apresentarem propostas.",
+    usage:
+      "Só quando as necessidades não se satisfazem com soluções disponíveis no mercado, incluem soluções inovadoras, não é possível adjudicar sem negociar ou um concurso anterior não teve propostas aceitáveis.",
+    legalBasis: ccp("204.º"),
+  },
+  goodsProvision: {
+    title: "Disponibilização de Bens Móveis",
     competition: "none",
     description:
-      "Contrato isento das regras de formação de contratos do Código dos Contratos Públicos, por exemplo por não estar sujeito à concorrência de mercado.",
-    legalBasis: ccp("5.º"),
+      "Disponibilização de bens móveis de uma entidade pública, comunicada ao Portal BASE.",
   },
 };
