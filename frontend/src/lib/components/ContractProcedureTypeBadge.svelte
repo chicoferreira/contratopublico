@@ -1,88 +1,76 @@
 <script lang="ts">
-  import type { MatchingRange } from "$lib/types/api";
+  import type { MatchingRange, ProcedureType } from "$lib/types/api";
   import { cn } from "$lib/utils";
   import Highlighted from "./Highlighted.svelte";
   import InfoBadge from "./InfoBadge.svelte";
+  import InfoPopoverItem from "./InfoPopoverItem.svelte";
   import Link from "./Link.svelte";
-  import contractTypesData from "./procedure-types.json";
-
-  function getBadgeStyle(contractType: string) {
-    return (
-      contractTypesData[contractType as keyof typeof contractTypesData] || {
-        displayText: contractType,
-        className: "bg-gray-700",
-        description: null,
-      }
-    );
-  }
+  import { COMPETITION, PROCEDURE_TYPES } from "$lib/procedure-types";
 
   let {
     type,
-    ranges: highlightRanges = [],
-  }: { type: string; ranges?: MatchingRange[] | undefined } = $props();
+    titleRanges,
+    subtitleRanges,
+  }: { type: ProcedureType; titleRanges?: MatchingRange[]; subtitleRanges?: MatchingRange[] } =
+    $props();
 
-  const colorVariants = {
-    blue: "bg-blue-600 dark:bg-blue-600/70",
-    sky: "bg-sky-600 dark:bg-sky-600/70",
-    cyan: "bg-cyan-600 dark:bg-cyan-600/70",
-    green: "bg-green-600 dark:bg-green-600/70",
-    emerald: "bg-emerald-600 dark:bg-emerald-600/70",
-    lime: "bg-lime-600 dark:bg-lime-600/70",
-    teal: "bg-teal-600 dark:bg-teal-600/70",
-    purple: "bg-purple-600 dark:bg-purple-600/70",
-    violet: "bg-violet-600 dark:bg-violet-600/70",
-    indigo: "bg-indigo-600 dark:bg-indigo-600/70",
-    slate: "bg-slate-600 dark:bg-slate-600/70",
-    pink: "bg-pink-600 dark:bg-pink-600/70",
-    rose: "bg-rose-600 dark:bg-rose-600/70",
-    orange: "bg-orange-600 dark:bg-orange-600/70",
-    amber: "bg-amber-600 dark:bg-amber-600/70",
-    yellow: "bg-yellow-600 dark:bg-yellow-600/70",
-    stone: "bg-stone-600 dark:bg-stone-600/70",
-    fuchsia: "bg-fuchsia-600 dark:bg-fuchsia-600/70",
-    neutral: "bg-neutral-600 dark:bg-neutral-600/70",
-    zinc: "bg-zinc-600 dark:bg-zinc-600/70",
-    red: "bg-red-600 dark:bg-red-600/70",
-    gray: "bg-gray-600 dark:bg-gray-600/70",
-  };
-
-  const badgeConfig = $derived(getBadgeStyle(type));
+  const procedureType = $derived(PROCEDURE_TYPES[type]);
 </script>
 
-<InfoBadge
-  title={badgeConfig.displayText}
-  class={cn(
-    colorVariants[badgeConfig.color as keyof typeof colorVariants],
-    "font-semibold text-white",
-  )}>
-  {#snippet badge()}
-    <Highlighted class="truncate" content={badgeConfig.displayText} ranges={highlightRanges} />
-  {/snippet}
-  <div>
-    {#if badgeConfig.description}
-      <div>
-        {@html badgeConfig.description}
-      </div>
-    {:else}
-      <div>
-        <p>Descrição não disponível para este tipo de procedimento.</p>
-        <p>
-          Contribua com uma descrição no
-          <Link
-            showIcon={false}
-            url="https://github.com/chicoferreira/contratopublico/edit/main/frontend/src/lib/components/procedure-types.json">
-            GitHub
-          </Link>.
-        </p>
-      </div>
-    {/if}
-  </div>
+{#snippet dot(color: string)}
+  <span class={cn("size-2 shrink-0 rounded-full", color)} aria-hidden="true"></span>
+{/snippet}
 
-  <div>
+{#snippet name(subtitleClass: string)}
+  {@render dot(COMPETITION[procedureType.competition].dot)}
+  <Highlighted class="truncate" content={procedureType.title} ranges={titleRanges} />
+  {#if procedureType.subtitle}
+    <span class={cn("truncate font-normal", subtitleClass)}>
+      · <Highlighted content={procedureType.subtitle} ranges={subtitleRanges} />
+    </span>
+  {/if}
+{/snippet}
+
+<InfoBadge title="Tipo de Procedimento">
+  {#snippet badge()}
+    {@render name("text-primary-foreground/70")}
+  {/snippet}
+  <p>Forma como a entidade pública escolheu com quem celebrar o contrato.</p>
+  <InfoPopoverItem>
+    {#snippet title()}
+      {@render name("text-muted-foreground")}
+    {/snippet}
+    {#if procedureType.baseName}
+      <p class="text-muted-foreground/60 text-[11px]" title="Nome original no Portal BASE">
+        Nome no Portal BASE: «{procedureType.baseName}»
+      </p>
+    {/if}
+    <p>{procedureType.description}</p>
+    {#if procedureType.usage}
+      <p>{procedureType.usage}</p>
+    {/if}
+    {#if procedureType.legalBasis}
+      <Link url={procedureType.legalBasis.url} title="Consultar o {procedureType.legalBasis.text}">
+        Definido no {procedureType.legalBasis.text}
+      </Link>
+    {/if}
+  </InfoPopoverItem>
+  <ul class="flex flex-wrap gap-x-3 gap-y-1 text-xs">
+    {#each Object.entries(COMPETITION) as [level, { label, dot: color }] (level)}
+      {@const current = level === procedureType.competition}
+      <li
+        class={cn("flex items-center gap-1.5", current && "text-foreground font-semibold")}
+        aria-current={current}>
+        {@render dot(color)}
+        {label}
+      </li>
+    {/each}
+  </ul>
+  {#if !procedureType.legalBasis}
     <Link
       url="https://www.base.gov.pt/Base4/pt/documentacao/caracteristicas-dos-procedimentos/"
-      title="Saiba mais sobre as características dos procedimentos.">
-      Saiba mais sobre as características dos procedimentos.
+      title="Saiba mais sobre as características dos procedimentos">
+      Saiba mais sobre as características dos procedimentos
     </Link>
-  </div>
+  {/if}
 </InfoBadge>

@@ -19,7 +19,6 @@
   import GridSubCardList from "./GridSubCardList.svelte";
   import ContractProcedureTypeBadge from "$lib/components/ContractProcedureTypeBadge.svelte";
   import ContractTypeBadge from "$lib/components/ContractTypeBadge.svelte";
-  import { PROCEDURE_TYPE_LABELS } from "$lib/types/api";
   import GridCardTitleList from "./GridCardTitleList.svelte";
   import { dateToString, formatDate, formatMoney, formatPercentage } from "$lib/utils";
   import { getBaseGovAnnouncementUrl, getBaseGovContractUrl, getBaseGovDocumentUrl } from "$lib";
@@ -245,7 +244,7 @@
           <p class="text-muted-foreground">
             Tipo de Procedimento:
             {#if contract.procedureType}
-              <ContractProcedureTypeBadge type={PROCEDURE_TYPE_LABELS[contract.procedureType]} />
+              <ContractProcedureTypeBadge type={contract.procedureType} />
             {:else}
               <span class="text-foreground font-medium">—</span>
             {/if}

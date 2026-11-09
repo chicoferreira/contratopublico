@@ -103,40 +103,38 @@ pub enum ProcedureType {
 }
 
 impl ProcedureType {
-    pub fn label(self) -> &'static str {
+    pub fn title_and_subtitle(self) -> (&'static str, Option<&'static str>) {
+        use ProcedureType::*;
         match self {
-            ProcedureType::DirectAward => "Ajuste Direto Regime Geral",
-            ProcedureType::DirectAwardRuralFires => {
-                "Ajuste Direto Regime Geral ao abrigo do artigo 7º da Lei n.º 30/2021, de 21.05"
+            DirectAward => ("Ajuste Direto", None),
+            DirectAwardRuralFires => ("Ajuste Direto", Some("Fogos Rurais")),
+            SimplifiedDirectAward => ("Ajuste Direto", Some("Simplificado")),
+            SimplifiedDirectAwardSpecialMeasures => {
+                ("Ajuste Direto", Some("Simplificado Especial"))
             }
-            ProcedureType::SimplifiedDirectAward => "Ajuste direto simplificado",
-            ProcedureType::SimplifiedDirectAwardSpecialMeasures => {
-                "Ajuste direto simplificado ao abrigo da Lei n.º 30/2021, de 21.05"
+            PriorConsultation => ("Consulta Prévia", None),
+            PriorConsultationRuralFires => ("Consulta Prévia", Some("Fogos Rurais")),
+            SimplifiedPriorConsultation => ("Consulta Prévia", Some("Simplificada")),
+            PublicTender => ("Concurso Público", None),
+            SimplifiedPublicTender => ("Concurso Público", Some("Simplificado")),
+            RestrictedTender => ("Concurso Limitado por Prévia Qualificação", None),
+            SimplifiedRestrictedTender => (
+                "Concurso Limitado por Prévia Qualificação",
+                Some("Simplificado"),
+            ),
+            NegotiatedProcedure => ("Procedimento de Negociação", None),
+            CompetitiveDialogue => ("Diálogo Concorrencial", None),
+            InnovationPartnership => ("Parceria para a Inovação", None),
+            FrameworkAgreementArt258 => ("Acordo-Quadro", Some("Sem Nova Concorrência")),
+            FrameworkAgreementArt259 => ("Acordo-Quadro", Some("Com Nova Concorrência")),
+            GoodsProvision => ("Disponibilização de Bens Móveis", None),
+            SocialAndOtherSpecificServices => {
+                ("Serviços Sociais e Outros Serviços Específicos", None)
             }
-            ProcedureType::PriorConsultation => "Consulta Prévia",
-            ProcedureType::PriorConsultationRuralFires => {
-                "Consulta prévia ao abrigo do artigo 7º da Lei n.º 30/2021, de 21.05"
-            }
-            ProcedureType::SimplifiedPriorConsultation => "Consulta Prévia Simplificada",
-            ProcedureType::PublicTender => "Concurso público",
-            ProcedureType::SimplifiedPublicTender => "Concurso público simplificado",
-            ProcedureType::RestrictedTender => "Concurso limitado por prévia qualificação",
-            ProcedureType::SimplifiedRestrictedTender => {
-                "Concurso limitado por prévia qualificação simplificado"
-            }
-            ProcedureType::NegotiatedProcedure => "Procedimento de negociação",
-            ProcedureType::CompetitiveDialogue => "Diálogo concorrencial",
-            ProcedureType::InnovationPartnership => "Parceria para a inovação",
-            ProcedureType::FrameworkAgreementArt258 => "Ao abrigo de acordo-quadro (art.º 258.º)",
-            ProcedureType::FrameworkAgreementArt259 => "Ao abrigo de acordo-quadro (art.º 259.º)",
-            ProcedureType::GoodsProvision => "Disponibilização de bens móveis",
-            ProcedureType::SocialAndOtherSpecificServices => {
-                "Serviços sociais e outros serviços específicos"
-            }
-            ProcedureType::SimplifiedDesignContest => "Concurso de conceção simplificado",
-            ProcedureType::SimplifiedIdeasContest => "Concurso de ideias simplificado",
-            ProcedureType::SpecialSectorsExemption => "Setores especiais – isenção parte II",
-            ProcedureType::ExcludedContracting => "Contratação excluída II",
+            SimplifiedDesignContest => ("Concurso de Conceção", Some("Simplificado")),
+            SimplifiedIdeasContest => ("Concurso de Ideias", Some("Simplificado")),
+            SpecialSectorsExemption => ("Setores Especiais", Some("Isenção")),
+            ExcludedContracting => ("Contratação Excluída", None),
         }
     }
 }
@@ -171,7 +169,10 @@ pub struct Currency(pub isize);
 #[serde(rename_all = "camelCase")]
 pub struct SearchableContract {
     pub id: u64,
-    pub procedure_type_label: Option<String>,
+    pub procedure_type: Option<ProcedureType>,
+    // The title and subtitle are stored as strings so they are still searchable
+    pub procedure_type_title: Option<String>,
+    pub procedure_type_subtitle: Option<String>,
     pub publication_date: NaiveDate,
     pub signing_date: Option<NaiveDate>,
     pub object_brief_description: String,
@@ -193,11 +194,16 @@ pub struct SearchableContract {
 
 impl From<Contract> for SearchableContract {
     fn from(contract: Contract) -> Self {
+        let (title, subtitle) = contract
+            .procedure_type
+            .map(ProcedureType::title_and_subtitle)
+            .unzip();
+
         SearchableContract {
             id: contract.id,
-            procedure_type_label: contract
-                .procedure_type
-                .map(|procedure_type| procedure_type.label().to_string()),
+            procedure_type: contract.procedure_type,
+            procedure_type_title: title.map(str::to_string),
+            procedure_type_subtitle: subtitle.flatten().map(str::to_string),
             publication_date: contract.publication_date,
             signing_date: contract.signing_date,
             object_brief_description: contract.object_brief_description,
