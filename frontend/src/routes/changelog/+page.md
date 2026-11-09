@@ -15,6 +15,8 @@ Este changelog documenta todas as alterações, melhorias e atualizações mais 
 
 ## Novembro de 2026 <MonthCommits startDate="2026-11-01" endDate="2026-11-30" />
 
+- É agora possível filtrar os contratos por tipo de procedimento ou por nível de concorrência. <GithubBadge pr="81"/> <Muted>(09/11/2026)</Muted>
+- A etiqueta do tipo de procedimento foi redesenhada para mostrar o nível de concorrência e agora todos os tipos de procedimento têm uma explicação. <GithubBadge pr="81"/> <Muted>(09/11/2026)</Muted>
 - Os tipos de contrato agora aparecem como etiquetas na página de pesquisa e é possível filtrar por eles. <GithubBadge issue="32"/> <GithubBadge pr="80"/> <Muted>(07/11/2026)</Muted>
 - Os contratos com valor negativo passaram a ser tratados corretamente como um valor recebido pela entidade contratante. <GithubBadge commit="e780e4a10543571a3ea58b85d49428207d47c670"/> <Muted>(05/11/2026)</Muted>
 - A página de cada contrato passou a mostrar mais informação, como o preço base e o estado do contrato. <GithubBadge commit="0a0e15526a9dcce57605d63fd816b48f5c7d4938"/> <Muted>(05/11/2026)</Muted>
