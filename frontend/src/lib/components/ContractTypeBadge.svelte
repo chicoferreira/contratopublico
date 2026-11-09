@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { ContractType, MatchingRange } from "$lib/types/api";
-  import { BriefcaseBusiness } from "@lucide/svelte";
   import Highlighted from "./Highlighted.svelte";
   import InfoBadge from "./InfoBadge.svelte";
   import InfoPopoverItem from "./InfoPopoverItem.svelte";
@@ -22,14 +21,14 @@
 
 <InfoBadge title="Tipo de Contrato" variant="secondary">
   {#snippet badge()}
-    <BriefcaseBusiness aria-hidden="true" />
+    <contractType.icon aria-hidden="true" />
     <Highlighted content={contractType.label} {ranges} {index} />
   {/snippet}
   <p>
     Classificação do contrato segundo o Código dos Contratos Públicos, consoante o que a entidade
     pública contrata.
   </p>
-  <InfoPopoverItem icon={BriefcaseBusiness}>
+  <InfoPopoverItem icon={contractType.icon}>
     {#snippet title()}
       <Highlighted content={contractType.label} {ranges} {index} />
     {/snippet}
