@@ -84,7 +84,7 @@ pub async fn search(
     const HITS_PER_PAGE: usize = 20;
 
     let response = state
-        .search(&query, filters.as_ref(), &sort, page, HITS_PER_PAGE)
+        .search(&query, filters.as_ref(), sort, page, HITS_PER_PAGE)
         .await?;
 
     Ok(Json(response))

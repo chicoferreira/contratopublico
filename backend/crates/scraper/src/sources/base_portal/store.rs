@@ -84,7 +84,7 @@ impl Store {
             || scrape_progress
                 .pending_pages
                 .get(&page)
-                .map_or(false, |entry| entry.contains(&id))
+                .is_some_and(|entry| entry.contains(&id))
     }
 
     pub fn mark_saved(

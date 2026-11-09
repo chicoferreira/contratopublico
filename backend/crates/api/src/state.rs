@@ -109,7 +109,7 @@ impl AppState {
                 // this is not recommended by meilisearch docs but it is having good performance for now and it is essential for UX
                 max_total_hits: 3000000,
             })
-            .with_ranking_rules(&[
+            .with_ranking_rules([
                 "words",
                 "typo",
                 "proximity",
