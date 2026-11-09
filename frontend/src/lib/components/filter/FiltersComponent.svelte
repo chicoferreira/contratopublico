@@ -10,14 +10,14 @@
     Lightbulb,
     Signature,
     CalendarDays,
-    BriefcaseBusiness,
+    Shapes,
   } from "@lucide/svelte";
   import type { Filters } from "$lib/types/api";
   import { MAX_ENTITY_FILTER_LENGTH } from "$lib";
-  import { CONTRACT_TYPES } from "$lib/contract-types";
+  import FilterContractTypes from "./FilterContractTypes.svelte";
   import FilterDate from "./FilterDate.svelte";
   import FilterInput from "./FilterInput.svelte";
-  import FilterMultiSelect from "./FilterMultiSelect.svelte";
+  import FilterProcedureTypes from "./FilterProcedureTypes.svelte";
   import FilterSection from "./FilterSection.svelte";
   import { fade } from "svelte/transition";
 
@@ -283,17 +283,14 @@
     <Separator />
 
     <FilterSection
-      title="Tipo de Contrato"
-      IconComponent={BriefcaseBusiness}
+      title="Classificação"
+      IconComponent={Shapes}
       filter={filters}
-      fields={["contractTypes"]}>
-      <FilterMultiSelect
-        bind:value={filters.contractTypes}
-        options={CONTRACT_TYPES}
-        labelContent="Tipos de Contrato"
-        descriptionContent="Mostra contratos que tenham pelo menos um dos tipos selecionados"
-        placeholder="Todos os tipos"
-        IconComponent={BriefcaseBusiness} />
+      fields={["contractTypes", "procedureTypes"]}>
+      <div class="space-y-4">
+        <FilterContractTypes bind:value={filters.contractTypes} />
+        <FilterProcedureTypes bind:value={filters.procedureTypes} />
+      </div>
     </FilterSection>
   </div>
 </div>

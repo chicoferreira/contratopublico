@@ -154,6 +154,7 @@ export interface Filters {
   minPrice?: number;
   maxPrice?: number;
   contractTypes?: ContractType[];
+  procedureTypes?: ProcedureType[];
 }
 
 export interface MatchingRanges {

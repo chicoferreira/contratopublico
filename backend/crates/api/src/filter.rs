@@ -1,5 +1,5 @@
 use chrono::NaiveDate;
-use common::ContractType;
+use common::{ContractType, ProcedureType};
 use garde::Validate;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -34,6 +34,9 @@ pub struct Filters {
     #[serde(default)]
     #[garde(length(max = 8))]
     pub contract_types: Option<Vec<ContractType>>,
+    #[serde(default)]
+    #[garde(length(max = 22))]
+    pub procedure_types: Option<Vec<ProcedureType>>,
 }
 
 impl Filters {
@@ -46,11 +49,18 @@ impl Filters {
             "contracting",
             "initialContractualPrice",
             "contractTypes",
+            "procedureType",
         ]
     }
 
     fn escape_string_value(value: &str) -> String {
         value.replace('\'', "\\'")
+    }
+
+    fn in_filter<T: Serialize>(field: &str, values: &Option<Vec<T>>) -> Option<String> {
+        let values = values.as_ref().filter(|v| !v.is_empty())?;
+        let values = values.iter().map(|v| json!(v)).join(", ");
+        Some(format!("{field} IN [{values}]"))
     }
 
     pub fn to_meilisearch(&self) -> Vec<String> {
@@ -74,17 +84,16 @@ impl Filters {
         if let Some(end_date) = self.end_signing_date {
             filters.push(format!("signingDate <= '{end_date}'"));
         }
-        if let Some(entity) = &self.contracted {
-            let escaped = Self::escape_string_value(entity);
-            filters.push(format!(
-                "contracted.description = '{escaped}' OR contracted.nif = '{escaped}'"
-            ));
-        }
-        if let Some(entity) = &self.contracting {
-            let escaped = Self::escape_string_value(entity);
-            filters.push(format!(
-                "contracting.description = '{escaped}' OR contracting.nif = '{escaped}'"
-            ));
+        for (field, entity) in [
+            ("contracted", &self.contracted),
+            ("contracting", &self.contracting),
+        ] {
+            if let Some(entity) = entity {
+                let escaped = Self::escape_string_value(entity);
+                filters.push(format!(
+                    "{field}.description = '{escaped}' OR {field}.nif = '{escaped}'"
+                ));
+            }
         }
         if let Some(price) = self.min_price {
             filters.push(format!("initialContractualPrice >= {price}"));
@@ -92,12 +101,8 @@ impl Filters {
         if let Some(price) = self.max_price {
             filters.push(format!("initialContractualPrice <= {price}"));
         }
-        if let Some(contract_types) = &self.contract_types
-            && !contract_types.is_empty()
-        {
-            let types = contract_types.iter().map(|t| json!(t)).join(", ");
-            filters.push(format!("contractTypes IN [{types}]"));
-        }
+        filters.extend(Self::in_filter("contractTypes", &self.contract_types));
+        filters.extend(Self::in_filter("procedureType", &self.procedure_types));
 
         filters
     }

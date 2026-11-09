@@ -1,6 +1,5 @@
 import {
   Sort,
-  type ContractType,
   type Filters,
   type GetContractResponse,
   type SearchContractsRequest,
@@ -9,6 +8,7 @@ import {
 } from "$lib/types/api";
 import { validateEnumOrDefault } from "./utils";
 import { CONTRACT_TYPES } from "./contract-types";
+import { PROCEDURE_TYPES } from "./procedure-types";
 
 export type ApiResult<T> = { ok: true; data: T } | { ok: false; status: number; message: string };
 
@@ -106,10 +106,16 @@ export function parseSearchRequestFromParams(
   addParam("minPrice", (v) => parseInt(v, 10));
   addParam("maxPrice", (v) => parseInt(v, 10));
 
-  const selectedContractTypes = params.get("contractTypes")?.split(",") ?? [];
-  const allContractTypes = Object.keys(CONTRACT_TYPES) as ContractType[];
-  const contractTypes = allContractTypes.filter((type) => selectedContractTypes.includes(type));
-  if (contractTypes.length) filters.contractTypes = contractTypes;
+  const parseList = <T extends string>(key: keyof Filters, options: Record<T, unknown>) => {
+    const selected = params.get(key)?.split(",") ?? [];
+    const values = (Object.keys(options) as T[]).filter((option) => selected.includes(option));
+    return values.length ? values : undefined;
+  };
+
+  const contractTypes = parseList("contractTypes", CONTRACT_TYPES);
+  if (contractTypes) filters.contractTypes = contractTypes;
+  const procedureTypes = parseList("procedureTypes", PROCEDURE_TYPES);
+  if (procedureTypes) filters.procedureTypes = procedureTypes;
 
   return { query, sort, filters, page };
 }
