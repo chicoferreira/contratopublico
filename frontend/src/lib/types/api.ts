@@ -59,26 +59,15 @@ export type ProcedureType =
   | "specialSectorsExemption"
   | "excludedContracting";
 
-export const CONTRACT_TYPE_LABELS = {
-  goodsAcquisition: "Aquisição de Bens Móveis",
-  servicesAcquisition: "Aquisição de Serviços",
-  publicWorksConcession: "Concessão de Obras Públicas",
-  publicServicesConcession: "Concessão de Serviços Públicos",
-  publicWorks: "Empreitadas de Obras Públicas",
-  goodsLease: "Locação de Bens Móveis",
-  partnership: "Sociedade",
-  other: "Outros",
-} as const;
-
-export type ContractType = keyof typeof CONTRACT_TYPE_LABELS;
-
-export const CONTRACT_TYPES = Object.keys(CONTRACT_TYPE_LABELS) as ContractType[];
-
-export type ContractTypeLabel = (typeof CONTRACT_TYPE_LABELS)[ContractType];
-
-export const CONTRACT_TYPE_BY_LABEL = new Map<ContractTypeLabel, ContractType>(
-  Object.entries(CONTRACT_TYPE_LABELS).map(([type, label]) => [label, type as ContractType]),
-);
+export type ContractType =
+  | "goodsAcquisition"
+  | "servicesAcquisition"
+  | "publicWorksConcession"
+  | "publicServicesConcession"
+  | "publicWorks"
+  | "goodsLease"
+  | "partnership"
+  | "other";
 
 export interface Entity {
   id: number;
@@ -125,7 +114,8 @@ export interface SearchableContract {
   contracted: Entity[];
   cpvs: Cpv[];
   regime: string | null;
-  contractTypeLabels: ContractTypeLabel[];
+  contractTypes: ContractType[];
+  contractTypeLabels: string[];
   executionPlaces: string[];
   contractFundamentationType: string;
   contestants: Entity[];

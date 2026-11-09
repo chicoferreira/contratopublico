@@ -1,6 +1,6 @@
 import {
-  CONTRACT_TYPES,
   Sort,
+  type ContractType,
   type Filters,
   type GetContractResponse,
   type SearchContractsRequest,
@@ -8,6 +8,7 @@ import {
   type Statistics,
 } from "$lib/types/api";
 import { validateEnumOrDefault } from "./utils";
+import { CONTRACT_TYPES } from "./contract-types";
 
 export type ApiResult<T> = { ok: true; data: T } | { ok: false; status: number; message: string };
 
@@ -106,7 +107,8 @@ export function parseSearchRequestFromParams(
   addParam("maxPrice", (v) => parseInt(v, 10));
 
   const selectedContractTypes = params.get("contractTypes")?.split(",") ?? [];
-  const contractTypes = CONTRACT_TYPES.filter((type) => selectedContractTypes.includes(type));
+  const allContractTypes = Object.keys(CONTRACT_TYPES) as ContractType[];
+  const contractTypes = allContractTypes.filter((type) => selectedContractTypes.includes(type));
   if (contractTypes.length) filters.contractTypes = contractTypes;
 
   return { query, sort, filters, page };
