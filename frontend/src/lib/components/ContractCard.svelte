@@ -44,10 +44,11 @@
             class="text-muted-foreground/80 group-hover:text-primary mt-0.75 h-4 w-4 shrink-0 transition-colors" />
         </a>
         <div class="flex flex-wrap items-start gap-x-2 gap-y-1">
-          {#if contract.procedureTypeLabel}
+          {#if contract.procedureType}
             <ContractProcedureTypeBadge
-              type={contract.procedureTypeLabel}
-              ranges={contract.matchingRanges["procedureTypeLabel"]} />
+              type={contract.procedureType}
+              titleRanges={contract.matchingRanges["procedureTypeTitle"]}
+              subtitleRanges={contract.matchingRanges["procedureTypeSubtitle"]} />
           {/if}
 
           {#each contract.contractTypeLabels as label, index (label)}
