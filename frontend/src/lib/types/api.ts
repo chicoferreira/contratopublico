@@ -36,12 +36,12 @@ export interface Contract {
 }
 
 export const CONTRACT_TYPE_LABELS = {
-  goodsAcquisition: "Aquisição de bens móveis",
-  servicesAcquisition: "Aquisição de serviços",
-  publicWorksConcession: "Concessão de obras públicas",
-  publicServicesConcession: "Concessão de serviços públicos",
-  publicWorks: "Empreitadas de obras públicas",
-  goodsLease: "Locação de bens móveis",
+  goodsAcquisition: "Aquisição de Bens Móveis",
+  servicesAcquisition: "Aquisição de Serviços",
+  publicWorksConcession: "Concessão de Obras Públicas",
+  publicServicesConcession: "Concessão de Serviços Públicos",
+  publicWorks: "Empreitadas de Obras Públicas",
+  goodsLease: "Locação de Bens Móveis",
   partnership: "Sociedade",
   other: "Outros",
 } as const;

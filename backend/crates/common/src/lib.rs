@@ -61,12 +61,12 @@ pub enum ContractType {
 impl ContractType {
     pub fn label(self) -> &'static str {
         match self {
-            ContractType::GoodsAcquisition => "Aquisição de bens móveis",
-            ContractType::ServicesAcquisition => "Aquisição de serviços",
-            ContractType::PublicWorksConcession => "Concessão de obras públicas",
-            ContractType::PublicServicesConcession => "Concessão de serviços públicos",
-            ContractType::PublicWorks => "Empreitadas de obras públicas",
-            ContractType::GoodsLease => "Locação de bens móveis",
+            ContractType::GoodsAcquisition => "Aquisição de Bens Móveis",
+            ContractType::ServicesAcquisition => "Aquisição de Serviços",
+            ContractType::PublicWorksConcession => "Concessão de Obras Públicas",
+            ContractType::PublicServicesConcession => "Concessão de Serviços Públicos",
+            ContractType::PublicWorks => "Empreitadas de Obras Públicas",
+            ContractType::GoodsLease => "Locação de Bens Móveis",
             ContractType::Partnership => "Sociedade",
             ContractType::Other => "Outros",
         }
