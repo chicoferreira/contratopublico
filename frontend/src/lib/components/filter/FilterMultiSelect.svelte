@@ -44,7 +44,7 @@
         <DropdownMenu.Trigger {id} class="absolute inset-0 cursor-pointer rounded-md" />
         <IconComponent class="text-muted-foreground" />
         {#each value ?? [] as v}
-          <Badge class="h-6 pr-1">
+          <Badge variant="secondary" class="h-6 pr-1">
             {options[v].label}
             <button
               type="button"

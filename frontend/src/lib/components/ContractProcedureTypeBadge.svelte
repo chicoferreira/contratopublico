@@ -21,24 +21,24 @@
   <span class={cn("size-2 shrink-0 rounded-full", color)} aria-hidden="true"></span>
 {/snippet}
 
-{#snippet name(subtitleClass: string)}
+{#snippet name()}
   {@render dot(COMPETITION[procedureType.competition].dot)}
   <Highlighted class="truncate" content={procedureType.title} ranges={titleRanges} />
   {#if procedureType.subtitle}
-    <span class={cn("truncate font-normal", subtitleClass)}>
+    <span class="text-muted-foreground truncate font-normal">
       · <Highlighted content={procedureType.subtitle} ranges={subtitleRanges} />
     </span>
   {/if}
 {/snippet}
 
-<InfoBadge title="Tipo de Procedimento">
+<InfoBadge title="Tipo de Procedimento" variant="secondary">
   {#snippet badge()}
-    {@render name("text-primary-foreground/70")}
+    {@render name()}
   {/snippet}
   <p>Forma como a entidade pública escolheu com quem celebrar o contrato.</p>
   <InfoPopoverItem>
     {#snippet title()}
-      {@render name("text-muted-foreground")}
+      {@render name()}
     {/snippet}
     {#if procedureType.baseName}
       <p class="text-muted-foreground/60 text-[11px]" title="Nome original no Portal BASE">
