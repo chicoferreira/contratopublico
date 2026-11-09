@@ -92,7 +92,9 @@ pub enum ProcedureType {
     NegotiatedProcedure,
     CompetitiveDialogue,
     InnovationPartnership,
+    #[sqlx(rename = "framework_agreement_art_258")]
     FrameworkAgreementArt258,
+    #[sqlx(rename = "framework_agreement_art_259")]
     FrameworkAgreementArt259,
     GoodsProvision,
     SocialAndOtherSpecificServices,
