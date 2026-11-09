@@ -20,7 +20,7 @@
     "https://www.base.gov.pt/Base4/pt/documentacao/codigo-dos-contratos-publicos-consolidado/";
 </script>
 
-<InfoBadge title="Tipo de Contrato">
+<InfoBadge title="Tipo de Contrato" variant="secondary">
   {#snippet badge()}
     <BriefcaseBusiness aria-hidden="true" />
     <Highlighted content={contractType.label} {ranges} {index} />
