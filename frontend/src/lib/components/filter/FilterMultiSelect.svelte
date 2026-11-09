@@ -9,8 +9,7 @@
 
   type Props = {
     value: T[] | undefined;
-    labels: Record<T, string>;
-    descriptions?: Record<T, string>;
+    options: Record<T, { label: string; description?: string }>;
     labelContent: string;
     descriptionContent: string;
     placeholder: string;
@@ -19,18 +18,17 @@
 
   let {
     value = $bindable(),
-    labels,
-    descriptions,
+    options,
     labelContent,
     descriptionContent,
     placeholder,
     IconComponent,
   }: Props = $props();
 
-  const options = $derived(Object.keys(labels) as T[]);
+  const keys = $derived(Object.keys(options) as T[]);
 
   function toggle(option: T, checked: boolean) {
-    const selected = options.filter((o) => (o === option ? checked : value?.includes(o)));
+    const selected = keys.filter((o) => (o === option ? checked : value?.includes(o)));
     value = selected.length ? selected : undefined;
   }
 </script>
@@ -47,10 +45,10 @@
         <IconComponent class="text-muted-foreground" />
         {#each value ?? [] as v}
           <Badge class="h-6 pr-1">
-            {labels[v]}
+            {options[v].label}
             <button
               type="button"
-              aria-label="Remover {labels[v]}"
+              aria-label="Remover {options[v].label}"
               class="relative cursor-pointer opacity-60 hover:opacity-100"
               onclick={() => toggle(v, false)}>
               <X class="size-3" />
@@ -63,7 +61,7 @@
         <ChevronDown class="ml-auto opacity-50" />
       </div>
       <DropdownMenu.Content align="start">
-        {#each options as option}
+        {#each keys as option}
           <DropdownMenu.CheckboxItem
             class="cursor-pointer"
             closeOnSelect={false}
@@ -72,10 +70,10 @@
             <div class="max-w-md space-y-0.5">
               <div class="flex items-center gap-1.5 font-semibold">
                 <IconComponent class="size-4" />
-                {labels[option]}
+                {options[option].label}
               </div>
-              {#if descriptions}
-                <p class="text-muted-foreground">{descriptions[option]}</p>
+              {#if options[option].description}
+                <p class="text-muted-foreground">{options[option].description}</p>
               {/if}
             </div>
           </DropdownMenu.CheckboxItem>

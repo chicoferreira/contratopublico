@@ -12,9 +12,9 @@
     CalendarDays,
     BriefcaseBusiness,
   } from "@lucide/svelte";
-  import { CONTRACT_TYPE_LABELS, type Filters } from "$lib/types/api";
+  import type { Filters } from "$lib/types/api";
   import { MAX_ENTITY_FILTER_LENGTH } from "$lib";
-  import { CONTRACT_TYPE_DESCRIPTIONS } from "$lib/contract-types";
+  import { CONTRACT_TYPES } from "$lib/contract-types";
   import FilterDate from "./FilterDate.svelte";
   import FilterInput from "./FilterInput.svelte";
   import FilterMultiSelect from "./FilterMultiSelect.svelte";
@@ -289,8 +289,7 @@
       fields={["contractTypes"]}>
       <FilterMultiSelect
         bind:value={filters.contractTypes}
-        labels={CONTRACT_TYPE_LABELS}
-        descriptions={CONTRACT_TYPE_DESCRIPTIONS}
+        options={CONTRACT_TYPES}
         labelContent="Tipos de Contrato"
         descriptionContent="Mostra contratos que tenham pelo menos um dos tipos selecionados"
         placeholder="Todos os tipos"

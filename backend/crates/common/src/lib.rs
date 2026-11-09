@@ -181,6 +181,7 @@ pub struct SearchableContract {
     pub contracted: Vec<Entity>,
     pub cpvs: Vec<Cpv>,
     pub regime: Option<String>,
+    pub contract_types: Vec<ContractType>,
     // The labels are stored as strings so they are still searchable
     pub contract_type_labels: Vec<String>,
     pub execution_places: Vec<String>,
@@ -217,6 +218,7 @@ impl From<Contract> for SearchableContract {
                 .iter()
                 .map(|contract_type| contract_type.label().to_string())
                 .collect(),
+            contract_types: contract.contract_types,
             execution_places: contract.execution_places,
             contract_fundamentation_type: contract.contract_fundamentation_type,
             contestants: contract.contestants,

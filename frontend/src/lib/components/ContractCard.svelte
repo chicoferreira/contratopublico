@@ -1,9 +1,5 @@
 <script lang="ts">
-  import {
-    CONTRACT_TYPE_BY_LABEL,
-    type SearchableContract,
-    type SearchedContract,
-  } from "$lib/types/api";
+  import { type SearchableContract, type SearchedContract } from "$lib/types/api";
   import { Building, CalendarDays, Signature, FileText, ExternalLink } from "@lucide/svelte";
   import ContractCardInfoRow from "./ContractCardInfoRow.svelte";
   import Highlighted from "./Highlighted.svelte";
@@ -51,15 +47,12 @@
               subtitleRanges={contract.matchingRanges["procedureTypeSubtitle"]} />
           {/if}
 
-          {#each contract.contractTypeLabels as label, index (label)}
-            {@const type = CONTRACT_TYPE_BY_LABEL.get(label)}
-            {#if type}
-              <ContractTypeBadge
-                {type}
-                {index}
-                mixed={contract.contractTypeLabels.length > 1}
-                ranges={contract.matchingRanges["contractTypeLabels"]} />
-            {/if}
+          {#each contract.contractTypes as type, index (type)}
+            <ContractTypeBadge
+              {type}
+              {index}
+              mixed={contract.contractTypes.length > 1}
+              ranges={contract.matchingRanges["contractTypeLabels"]} />
           {/each}
 
           {#each contract.executionPlaces as place, index (`${place}-${index}`)}

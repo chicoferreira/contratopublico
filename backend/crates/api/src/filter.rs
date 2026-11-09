@@ -3,6 +3,7 @@ use common::ContractType;
 use garde::Validate;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 
 #[derive(Debug, Deserialize, Serialize, Default, Validate)]
 #[serde(rename_all = "camelCase")]
@@ -44,7 +45,7 @@ impl Filters {
             "contracted",
             "contracting",
             "initialContractualPrice",
-            "contractTypeLabels",
+            "contractTypes",
         ]
     }
 
@@ -94,12 +95,8 @@ impl Filters {
         if let Some(contract_types) = &self.contract_types
             && !contract_types.is_empty()
         {
-            let labels = contract_types
-                .iter()
-                .map(|t| format!("'{}'", Self::escape_string_value(t.label())))
-                .join(", ");
-
-            filters.push(format!("contractTypeLabels IN [{labels}]"));
+            let types = contract_types.iter().map(|t| json!(t)).join(", ");
+            filters.push(format!("contractTypes IN [{types}]"));
         }
 
         filters
