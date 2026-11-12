@@ -11,7 +11,6 @@
   import { buildSearchParams } from "$lib";
   import ContractPagination from "$lib/components/ContractPagination.svelte";
   import { afterNavigate, goto } from "$app/navigation";
-  import { page as sveltePage } from "$app/state";
   import { type SearchContractsRequest } from "$lib/types/api";
   import { untrack } from "svelte";
   import FiltersComponent from "$lib/components/filter/FiltersComponent.svelte";
@@ -133,18 +132,14 @@
     filters.contractTypes;
     filters.procedureTypes;
 
-    const nextSearch = buildSearchParams(snapshotRequest()).toString();
-    const currentSearch = untrack(() => sveltePage.url.searchParams.toString());
-
-    if (nextSearch === currentSearch || nextSearch === lastNavigatedSearch) {
+    if (buildSearchParams(snapshotRequest()).toString() === lastNavigatedSearch) {
       return;
     }
 
     navigationTimeout = setTimeout(async () => {
       const latestSearch = buildSearchParams(snapshotRequest()).toString();
-      const latestCurrent = sveltePage.url.searchParams.toString();
 
-      if (latestSearch === latestCurrent) return;
+      if (latestSearch === lastNavigatedSearch) return;
 
       loading = true;
       lastNavigatedSearch = latestSearch;
@@ -155,7 +150,11 @@
           keepFocus: true,
           noScroll: true,
         });
+        loading =
+          buildSearchParams(snapshotRequest()).toString() !==
+          buildSearchParams(data.searchRequest).toString();
       } catch (navigationError) {
+        if (lastNavigatedSearch !== latestSearch) return;
         loading = false;
         // Back to the params still in the URL, otherwise retrying the same search is a no-op.
         lastNavigatedSearch = buildSearchParams(data.searchRequest).toString();
