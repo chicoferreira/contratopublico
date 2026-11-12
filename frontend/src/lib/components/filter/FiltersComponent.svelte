@@ -8,7 +8,6 @@
     X as XIcon,
     Funnel,
     Lightbulb,
-    Signature,
     CalendarDays,
     Shapes,
   } from "@lucide/svelte";
@@ -185,38 +184,27 @@
     <Separator />
 
     <FilterSection
-      title="Data de Publicação"
+      title="Datas"
       IconComponent={CalendarDays}
       filter={filters}
-      fields={["startPublicationDate", "endPublicationDate"]}>
+      fields={["startPublicationDate", "endPublicationDate", "startSigningDate", "endSigningDate"]}>
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
         <FilterDate
-          labelContent="Desde"
+          labelContent="Publicado desde"
           bind:value={filters.startPublicationDate}
-          descriptionContent="Data inicial de publicação do contrato" />
+          descriptionContent="Data inicial de publicação no Portal BASE" />
         <FilterDate
-          labelContent="Até"
+          labelContent="Publicado até"
           bind:value={filters.endPublicationDate}
-          descriptionContent="Data final de publicação do contrato" />
-      </div>
-    </FilterSection>
-
-    <Separator />
-
-    <FilterSection
-      title="Data do Contrato"
-      IconComponent={Signature}
-      filter={filters}
-      fields={["startSigningDate", "endSigningDate"]}>
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          descriptionContent="Data final de publicação no Portal BASE" />
         <FilterDate
+          labelContent="Assinado desde"
           bind:value={filters.startSigningDate}
-          labelContent="Desde"
-          descriptionContent="Data inicial da assinatura do contrato" />
+          descriptionContent="Data inicial de assinatura do contrato" />
         <FilterDate
+          labelContent="Assinado até"
           bind:value={filters.endSigningDate}
-          labelContent="Até"
-          descriptionContent="Data final da assinatura do contrato" />
+          descriptionContent="Data final de assinatura do contrato" />
       </div>
     </FilterSection>
 
