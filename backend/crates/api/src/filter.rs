@@ -1,11 +1,11 @@
 use chrono::NaiveDate;
-use common::{ContractType, ProcedureType};
+use common::{ContractType, Cpv, ProcedureType};
 use garde::Validate;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-#[derive(Debug, Deserialize, Serialize, Default, Validate)]
+#[derive(Debug, Deserialize, Default, Validate)]
 #[serde(rename_all = "camelCase")]
 #[garde(allow_unvalidated)]
 pub struct Filters {
@@ -33,10 +33,13 @@ pub struct Filters {
     pub max_price: Option<i64>,
     #[serde(default)]
     #[garde(length(max = 8))]
-    pub contract_types: Option<Vec<ContractType>>,
+    pub contract_types: Vec<ContractType>,
     #[serde(default)]
     #[garde(length(max = 22))]
-    pub procedure_types: Option<Vec<ProcedureType>>,
+    pub procedure_types: Vec<ProcedureType>,
+    #[serde(default)]
+    #[garde(length(max = 50))]
+    pub cpvs: Vec<String>,
 }
 
 impl Filters {
@@ -50,6 +53,7 @@ impl Filters {
             "initialContractualPrice",
             "contractTypes",
             "procedureType",
+            "cpvs.code",
         ]
     }
 
@@ -57,10 +61,9 @@ impl Filters {
         value.replace('\'', "\\'")
     }
 
-    fn in_filter<T: Serialize>(field: &str, values: &Option<Vec<T>>) -> Option<String> {
-        let values = values.as_ref().filter(|v| !v.is_empty())?;
+    fn in_filter<T: Serialize>(field: &str, values: &[T]) -> String {
         let values = values.iter().map(|v| json!(v)).join(", ");
-        Some(format!("{field} IN [{values}]"))
+        format!("{field} IN [{values}]")
     }
 
     pub fn to_meilisearch(&self) -> Vec<String> {
@@ -101,8 +104,23 @@ impl Filters {
         if let Some(price) = self.max_price {
             filters.push(format!("initialContractualPrice <= {price}"));
         }
-        filters.extend(Self::in_filter("contractTypes", &self.contract_types));
-        filters.extend(Self::in_filter("procedureType", &self.procedure_types));
+        if !self.contract_types.is_empty() {
+            filters.push(Self::in_filter("contractTypes", &self.contract_types));
+        }
+        if !self.procedure_types.is_empty() {
+            filters.push(Self::in_filter("procedureType", &self.procedure_types));
+        }
+        // Unknown codes are skipped. Users can edit the filters in the URL,
+        // and rejecting them would force the frontend to handle that error, which we don't.
+        let cpv_filter = self
+            .cpvs
+            .iter()
+            .filter_map(|code| Cpv::from_code(code))
+            .map(|cpv| format!("cpvs.code STARTS WITH '{}'", cpv.stem()))
+            .join(" OR ");
+        if !cpv_filter.is_empty() {
+            filters.push(cpv_filter);
+        }
 
         filters
     }

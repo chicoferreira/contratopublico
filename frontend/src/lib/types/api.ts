@@ -75,6 +75,8 @@ export interface Entity {
   description: string;
 }
 
+export type CpvList = Record<string, string>;
+
 export interface Cpv {
   code: string;
   designation: string;
@@ -155,6 +157,7 @@ export interface Filters {
   maxPrice?: number;
   contractTypes?: ContractType[];
   procedureTypes?: ProcedureType[];
+  cpvs?: string[];
 }
 
 export interface MatchingRanges {
