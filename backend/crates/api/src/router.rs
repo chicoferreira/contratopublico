@@ -1,10 +1,19 @@
-use std::{num::NonZero, sync::Arc, time::Duration};
+use std::{
+    num::NonZero,
+    sync::{Arc, LazyLock},
+    time::Duration,
+};
 
 use axum::{
     Router,
     extract::{DefaultBodyLimit, Path, State},
     middleware,
+    response::IntoResponse,
     routing::{get, post},
+};
+use axum_extra::{
+    TypedHeader,
+    headers::{CacheControl, ContentType},
 };
 use common::{Contract, statistics::Statistics};
 use garde::Validate;
@@ -41,6 +50,7 @@ pub fn router(app_state: AppState, blocklist: Arc<Blocklist>) -> Router {
                 .route_layer(RateLimitLayer::new(contract_rate_limit)),
         )
         .route("/api/statistics", get(statistics))
+        .route("/api/cpvs", get(cpvs))
         .layer(DefaultBodyLimit::max(MAX_BODY_SIZE))
         .route_layer(middleware::from_fn_with_state(blocklist, blocklist_layer))
         .route_layer(middleware::from_fn(metrics::track_metrics_layer))
@@ -51,6 +61,22 @@ pub fn router(app_state: AppState, blocklist: Arc<Blocklist>) -> Router {
 #[axum::debug_handler]
 pub async fn statistics(State(state): State<AppState>) -> Result<Json<Statistics>, AppError> {
     Ok(Json(state.get_statistics()))
+}
+
+#[axum::debug_handler]
+pub async fn cpvs() -> impl IntoResponse {
+    static CPVS_JSON: LazyLock<String> =
+        LazyLock::new(|| serde_json::to_string(&common::CPV_DESIGNATIONS).unwrap());
+
+    let cache_control = CacheControl::new()
+        .with_public()
+        .with_max_age(Duration::from_hours(30 * 24));
+
+    (
+        TypedHeader(ContentType::json()),
+        TypedHeader(cache_control),
+        CPVS_JSON.as_str(),
+    )
 }
 
 #[derive(Debug, Deserialize, Validate)]
