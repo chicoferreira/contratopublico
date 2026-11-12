@@ -2,6 +2,9 @@ use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 use sqlx::Type;
 
+pub use cpv::CPV_DESIGNATIONS;
+
+mod cpv;
 pub mod db;
 pub mod searchdb;
 pub mod statistics;
@@ -145,6 +148,28 @@ impl ProcedureType {
 pub struct Cpv {
     pub code: String,
     pub designation: String,
+}
+
+impl Cpv {
+    pub fn from_code(code: &str) -> Option<Self> {
+        CPV_DESIGNATIONS.get(code).map(|designation| Cpv {
+            code: code.to_string(),
+            designation: designation.to_string(),
+        })
+    }
+
+    /// Returns the prefix matching this code and its descendants.
+    /// - `30000000-9` -> `30`
+    /// - `33600000-6` -> `336`
+    /// - `30192121-5` -> `30192121`
+    /// - `50000000-5` -> `50`
+    ///
+    /// See <https://ted.europa.eu/en/simap/cpv> for the CPV code structure.
+    pub fn stem(&self) -> &str {
+        let digits = &self.code[..8];
+        let stem_len = digits.trim_end_matches('0').len();
+        &digits[..stem_len.max(2)]
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
