@@ -88,11 +88,18 @@ export function parseSearchRequestFromParams(
 
   let filters: Filters = {};
 
-  const addParam = (key: keyof Filters, mapper: (value: string) => string | number = (v) => v) => {
+  const addParam = (key: keyof Filters, mapper = (v: string): Filters[keyof Filters] => v) => {
     const value = params.get(key);
-    if (value) {
-      filters[key as keyof typeof filters] = mapper(value) as any;
+    const mapped = value ? mapper(value) : undefined;
+    if (mapped !== undefined) {
+      filters[key as keyof typeof filters] = mapped as any;
     }
+  };
+
+  const knownValues = <T extends string>(value: string, options: Record<T, unknown>) => {
+    const selected = value.split(",");
+    const values = (Object.keys(options) as T[]).filter((option) => selected.includes(option));
+    return values.length ? values : undefined;
   };
 
   addParam("minId", (v) => parseInt(v, 10));
@@ -105,17 +112,8 @@ export function parseSearchRequestFromParams(
   addParam("endSigningDate");
   addParam("minPrice", (v) => parseInt(v, 10));
   addParam("maxPrice", (v) => parseInt(v, 10));
-
-  const parseList = <T extends string>(key: keyof Filters, options: Record<T, unknown>) => {
-    const selected = params.get(key)?.split(",") ?? [];
-    const values = (Object.keys(options) as T[]).filter((option) => selected.includes(option));
-    return values.length ? values : undefined;
-  };
-
-  const contractTypes = parseList("contractTypes", CONTRACT_TYPES);
-  if (contractTypes) filters.contractTypes = contractTypes;
-  const procedureTypes = parseList("procedureTypes", PROCEDURE_TYPES);
-  if (procedureTypes) filters.procedureTypes = procedureTypes;
+  addParam("contractTypes", (v) => knownValues(v, CONTRACT_TYPES));
+  addParam("procedureTypes", (v) => knownValues(v, PROCEDURE_TYPES));
 
   return { query, sort, filters, page };
 }
