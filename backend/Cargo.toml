@@ -33,3 +33,4 @@ tokio-util = { version = "0.7.15", features = ["io-util"] }
 cron = "0.17.0"
 encoding_rs = "0.8.35"
 regex = "1.11.1"
+phf = { version = "0.13", features = ["macros", "serde"] }

@@ -11,3 +11,4 @@ chrono = { workspace = true }
 sqlx = { workspace = true }
 tokio = { workspace = true }
 meilisearch-sdk = { workspace = true }
+phf = { workspace = true }
