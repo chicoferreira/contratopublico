@@ -49,10 +49,7 @@ pub fn join_contract(sources: Sources) -> anyhow::Result<Contract> {
             |c| portal_entities(c.contracted.as_deref().unwrap_or_default()),
             |c| api_entities(&c.contracted),
         ),
-        cpvs: sources.try_api_first(
-            |c| Ok(api_cpvs(&c.cpvs)),
-            |c| parse_portal_cpvs(&c.cpvs, &c.cpvs_designation),
-        )?,
+        cpvs: sources.try_api_first(|c| api_cpvs(&c.cpvs), |c| parse_portal_cpvs(&c.cpvs))?,
         regime: sources.api_first_option(
             |c| c.regime.non_empty(),
             |c| c.regime.as_deref().map(String::from),
@@ -306,15 +303,17 @@ fn optional_currency(euros: f64) -> Option<Currency> {
     (euros != 0.0).then(|| euros_to_currency(euros))
 }
 
-fn api_cpvs(cpvs: &Option<Vec<BaseApiCpv>>) -> Vec<Cpv> {
+fn api_cpvs(cpvs: &Option<Vec<BaseApiCpv>>) -> anyhow::Result<Vec<Cpv>> {
     cpvs.iter()
         .flatten()
         .unique_by(|cpv| &cpv.code)
-        .map(|cpv| Cpv {
-            code: cpv.code.trim().to_string(),
-            designation: cpv.designation.trim().to_string(),
-        })
+        .map(|cpv| parse_cpv(&cpv.code))
         .collect()
+}
+
+fn parse_cpv(code: &str) -> anyhow::Result<Cpv> {
+    let code = code.trim();
+    Cpv::from_code(code).ok_or_else(|| anyhow::anyhow!("Unknown CPV code: {code}"))
 }
 
 fn api_list(list: &Option<Vec<Text>>) -> Vec<String> {
@@ -493,25 +492,9 @@ fn parse_portal_list(list: &str, separator: &str) -> Vec<String> {
         .collect()
 }
 
-fn parse_portal_cpvs(codes: &str, designations: &str) -> anyhow::Result<Vec<Cpv>> {
-    if codes.is_empty() && designations.is_empty() {
-        return Ok(vec![]);
-    }
-
-    let code_split: Vec<_> = codes.split(" | ").collect();
-    let designation_split: Vec<_> = designations.split(" | ").collect();
-
-    anyhow::ensure!(
-        code_split.len() == designation_split.len(),
-        "Mismatched number of codes and designations"
-    );
-
-    Ok(code_split
-        .into_iter()
-        .zip(designation_split)
-        .map(|(code, designation)| Cpv {
-            code: code.trim().to_string(),
-            designation: designation.trim().to_string(),
-        })
-        .collect())
+fn parse_portal_cpvs(codes: &str) -> anyhow::Result<Vec<Cpv>> {
+    parse_portal_list(codes, " | ")
+        .iter()
+        .map(|code| parse_cpv(code))
+        .collect()
 }

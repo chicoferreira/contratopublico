@@ -34,11 +34,6 @@ CREATE TYPE procedure_type AS ENUM (
     'excluded_contracting'
 );
 
-CREATE TABLE cpv (
-    code TEXT PRIMARY KEY,
-    designation TEXT NOT NULL
-);
-
 CREATE TABLE entities (
     id BIGINT PRIMARY KEY,
     nif TEXT NOT NULL
@@ -57,6 +52,7 @@ CREATE TABLE contracts (
     object_brief_description TEXT NOT NULL,
     initial_contractual_price BIGINT NOT NULL, -- Currency in cents
     description TEXT,
+    cpvs TEXT[] NOT NULL,
     regime TEXT,
     contract_status TEXT,
     non_written_contract_justification_types TEXT[] NOT NULL,
@@ -123,14 +119,6 @@ CREATE TABLE contract_documents (
     PRIMARY KEY (contract_id, document_id)
 );
 CREATE INDEX idx_contract_documents_document ON contract_documents(document_id);
-
-CREATE TABLE contract_cpvs (
-    contract_id BIGINT NOT NULL REFERENCES contracts(id) ON DELETE CASCADE,
-    cpv_code TEXT NOT NULL REFERENCES cpv(code),
-    PRIMARY KEY (contract_id, cpv_code)
-);
-CREATE INDEX idx_contract_cpvs_contract ON contract_cpvs(contract_id);
-CREATE INDEX idx_contract_cpvs_cpv ON contract_cpvs(cpv_code);
 
 CREATE MATERIALIZED VIEW contract_spent_daily AS
 SELECT
