@@ -131,6 +131,7 @@
     filters.maxPrice;
     filters.contractTypes;
     filters.procedureTypes;
+    filters.cpvs;
 
     if (buildSearchParams(snapshotRequest()).toString() === lastNavigatedSearch) {
       return;

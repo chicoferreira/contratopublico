@@ -1,5 +1,6 @@
 import {
   Sort,
+  type CpvList,
   type Filters,
   type GetContractResponse,
   type SearchContractsRequest,
@@ -40,6 +41,7 @@ async function apiFetch<T>(
 
 export const MAX_QUERY_LENGTH = 512;
 export const MAX_ENTITY_FILTER_LENGTH = 256;
+export const MAX_CPV_FILTERS = 50;
 
 export const DEFAULT_SEARCH_REQUEST = {
   query: "",
@@ -114,6 +116,7 @@ export function parseSearchRequestFromParams(
   addParam("maxPrice", (v) => parseInt(v, 10));
   addParam("contractTypes", (v) => knownValues(v, CONTRACT_TYPES));
   addParam("procedureTypes", (v) => knownValues(v, PROCEDURE_TYPES));
+  addParam("cpvs", (v) => v.split(",").slice(0, MAX_CPV_FILTERS));
 
   return { query, sort, filters, page };
 }
@@ -147,6 +150,10 @@ export function buildSearchParams(request: Required<SearchContractsRequest>): UR
 
 export function fetchStatistics(fetchFn = fetch): Promise<ApiResult<Statistics>> {
   return apiFetch(fetchFn, `/api/statistics`);
+}
+
+export function fetchCpvs(fetchFn = fetch): Promise<ApiResult<CpvList>> {
+  return apiFetch(fetchFn, `/api/cpvs`);
 }
 
 export function getBaseGovContractUrl(contractId: number) {
