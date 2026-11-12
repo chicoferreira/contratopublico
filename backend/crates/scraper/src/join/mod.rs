@@ -13,6 +13,7 @@ use crate::{
 
 const RETRY_INTERVAL: Duration = Duration::from_mins(1);
 const BATCH_SIZE: i64 = 1000;
+const JOIN_INTERVAL: Duration = Duration::from_mins(2);
 
 pub async fn run_join_task(
     raw_contract_db: RawContractDatabase,
@@ -37,7 +38,13 @@ pub async fn run_join_task(
         if let Err(e) = listener.try_recv().await {
             error!("Failed to wait for the join queue:\n{e:?}");
             tokio::time::sleep(RETRY_INTERVAL).await;
+            continue;
         }
+
+        // Wait before the next join so new contracts pile up in the queue and reach Meilisearch
+        // as one update. The portal scraper queues contracts one by one, and each Meilisearch
+        // update reindexes the whole index, so this avoids wasting a lot of CPU on reindexing.
+        tokio::time::sleep(JOIN_INTERVAL).await;
     }
 }
 
