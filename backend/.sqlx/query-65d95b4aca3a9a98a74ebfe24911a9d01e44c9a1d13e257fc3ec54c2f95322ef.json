@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            INSERT INTO contracts (\n                id, procedure_type, publication_date, signing_date,\n                object_brief_description, initial_contractual_price, description, regime,\n                contract_status, non_written_contract_justification_types, contract_types,\n                execution_deadline_days, execution_places, contract_fundamentation_type,\n                contracting_procedure_url, announcement_id, direct_award_fundamentation_type,\n                observations, end_of_contract_type, close_date, total_effective_price,\n                causes_deadline_change, causes_price_change, estimated_base_price,\n                award_decision_date, framework_agreement_description, special_measures,\n                ambient_criteria\n            ) VALUES (\n                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23,\n                $24, $25, $26, $27, $28\n            ) ON CONFLICT (id) DO NOTHING\n            ",
+  "query": "\n            INSERT INTO contracts (\n                id, procedure_type, publication_date, signing_date,\n                object_brief_description, initial_contractual_price, description, cpvs, regime,\n                contract_status, non_written_contract_justification_types, contract_types,\n                execution_deadline_days, execution_places, contract_fundamentation_type,\n                contracting_procedure_url, announcement_id, direct_award_fundamentation_type,\n                observations, end_of_contract_type, close_date, total_effective_price,\n                causes_deadline_change, causes_price_change, estimated_base_price,\n                award_decision_date, framework_agreement_description, special_measures,\n                ambient_criteria\n            ) VALUES (\n                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23,\n                $24, $25, $26, $27, $28, $29\n            ) ON CONFLICT (id) DO NOTHING\n            ",
   "describe": {
     "columns": [],
     "parameters": {
@@ -42,6 +42,7 @@
         "Text",
         "Int8",
         "Text",
+        "TextArray",
         "Text",
         "Text",
         "TextArray",
@@ -90,5 +91,5 @@
     },
     "nullable": []
   },
-  "hash": "d2f33c2aa2aece4fac1943d95fe259a40b0ca63ec36f64914b59be986f91991c"
+  "hash": "65d95b4aca3a9a98a74ebfe24911a9d01e44c9a1d13e257fc3ec54c2f95322ef"
 }

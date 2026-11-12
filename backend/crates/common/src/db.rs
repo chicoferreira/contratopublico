@@ -12,6 +12,7 @@ struct ContractMainRow {
     object_brief_description: String,
     initial_contractual_price: i64,
     description: Option<String>,
+    cpvs: Vec<String>,
     regime: Option<String>,
     contract_status: Option<String>,
     non_written_contract_justification_types: Vec<String>,
@@ -118,7 +119,7 @@ impl ContractDatabase {
             SELECT
                 id, procedure_type AS "procedure_type: ProcedureType", publication_date,
                 signing_date, object_brief_description, initial_contractual_price, description,
-                regime, contract_status, non_written_contract_justification_types,
+                cpvs, regime, contract_status, non_written_contract_justification_types,
                 contract_types AS "contract_types: Vec<ContractType>", execution_deadline_days,
                 execution_places, contract_fundamentation_type, contracting_procedure_url,
                 announcement_id, direct_award_fundamentation_type, observations,
@@ -195,39 +196,28 @@ impl ContractDatabase {
         )
         .fetch_all(&self.pool);
 
-        let cpvs_fut = sqlx::query_as!(
-            Cpv,
-            r#"
-            SELECT c.code, c.designation
-            FROM contract_cpvs cc
-            JOIN cpv c ON c.code = cc.cpv_code
-            WHERE cc.contract_id = $1
-            "#,
-            main.id
-        )
-        .fetch_all(&self.pool);
-
-        let (
-            contracting_rows,
-            contracted_rows,
-            contestants_rows,
-            invitees_rows,
-            documents_rows,
-            cpvs,
-        ) = tokio::try_join!(
-            contracting_fut,
-            contracted_fut,
-            contestants_fut,
-            invitees_fut,
-            documents_fut,
-            cpvs_fut
-        )?;
+        let (contracting_rows, contracted_rows, contestants_rows, invitees_rows, documents_rows) =
+            tokio::try_join!(
+                contracting_fut,
+                contracted_fut,
+                contestants_fut,
+                invitees_fut,
+                documents_fut
+            )?;
 
         let contracting: Vec<Entity> = contracting_rows.into_iter().map(Into::into).collect();
         let contracted: Vec<Entity> = contracted_rows.into_iter().map(Into::into).collect();
         let contestants: Vec<Entity> = contestants_rows.into_iter().map(Into::into).collect();
         let invitees: Vec<Entity> = invitees_rows.into_iter().map(Into::into).collect();
         let documents: Vec<Document> = documents_rows.into_iter().map(Into::into).collect();
+        let cpvs = main
+            .cpvs
+            .iter()
+            .map(|code| {
+                Cpv::from_code(code)
+                    .ok_or_else(|| sqlx::Error::Decode(format!("Unknown CPV code: {code}").into()))
+            })
+            .collect::<Result<_, _>>()?;
 
         Ok(Some(Contract {
             id: main.id as u64,
@@ -277,9 +267,9 @@ impl ContractDatabase {
         Ok(())
     }
 
-    /// Deletes every contract, along with the entities, CPVs and documents.
+    /// Deletes every contract, along with the entities and documents.
     pub async fn delete_all_contracts(&self) -> Result<(), sqlx::Error> {
-        sqlx::query("TRUNCATE contracts, entities, cpv, documents CASCADE")
+        sqlx::query("TRUNCATE contracts, entities, documents CASCADE")
             .execute(&self.pool)
             .await?;
 
@@ -303,16 +293,6 @@ async fn insert_contract(tx: &mut PgConnection, contract: &Contract) -> Result<(
         .bind(contract.id as i64)
         .execute(&mut *tx)
         .await?;
-
-    for cpv in &contract.cpvs {
-        sqlx::query!(
-            "INSERT INTO cpv (code, designation) VALUES ($1, $2) ON CONFLICT (code) DO NOTHING",
-            cpv.code,
-            cpv.designation
-        )
-        .execute(&mut *tx)
-        .await?;
-    }
 
     for entity in contract
         .contracting
@@ -340,11 +320,13 @@ async fn insert_contract(tx: &mut PgConnection, contract: &Contract) -> Result<(
         .await?;
     }
 
+    let cpvs: Vec<&str> = contract.cpvs.iter().map(|cpv| cpv.code.as_str()).collect();
+
     sqlx::query!(
             r#"
             INSERT INTO contracts (
                 id, procedure_type, publication_date, signing_date,
-                object_brief_description, initial_contractual_price, description, regime,
+                object_brief_description, initial_contractual_price, description, cpvs, regime,
                 contract_status, non_written_contract_justification_types, contract_types,
                 execution_deadline_days, execution_places, contract_fundamentation_type,
                 contracting_procedure_url, announcement_id, direct_award_fundamentation_type,
@@ -354,7 +336,7 @@ async fn insert_contract(tx: &mut PgConnection, contract: &Contract) -> Result<(
                 ambient_criteria
             ) VALUES (
                 $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23,
-                $24, $25, $26, $27, $28
+                $24, $25, $26, $27, $28, $29
             ) ON CONFLICT (id) DO NOTHING
             "#,
             contract.id as i64,
@@ -364,6 +346,7 @@ async fn insert_contract(tx: &mut PgConnection, contract: &Contract) -> Result<(
             contract.object_brief_description,
             contract.initial_contractual_price.0 as i64,
             contract.description,
+            &cpvs as &[&str],
             contract.regime,
             contract.contract_status,
             &contract.non_written_contract_justification_types,
@@ -445,16 +428,6 @@ async fn insert_contract(tx: &mut PgConnection, contract: &Contract) -> Result<(
             .await?;
     }
 
-    for cpv in &contract.cpvs {
-        sqlx::query!(
-                "INSERT INTO contract_cpvs (contract_id, cpv_code) VALUES ($1, $2) ON CONFLICT DO NOTHING",
-                contract_id,
-                cpv.code
-            )
-            .execute(&mut *tx)
-            .await?;
-    }
-
     Ok(())
 }
 
@@ -487,10 +460,7 @@ mod tests {
                 nif: "987654321".to_string(),
                 description: "Test Contracted Entity".to_string(),
             }],
-            cpvs: vec![Cpv {
-                code: "72000000".to_string(),
-                designation: "IT services".to_string(),
-            }],
+            cpvs: vec![Cpv::from_code("72000000-5").unwrap()],
             regime: Some("Public".to_string()),
             contract_status: Some("Active".to_string()),
             non_written_contract_justification_types: vec!["Emergency".to_string()],
