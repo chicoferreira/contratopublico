@@ -5,8 +5,8 @@
 ## Repository rules
 
 - Keep [`frontend/src/lib/types/api.ts`](frontend/src/lib/types/api.ts) in sync with backend API types.
-- Update the [privacy policy](frontend/src/routes/privacy/+page.md) when changing user data collection or logging.
-- Document notable user-facing changes in the [changelog](frontend/src/routes/changelog/+page.md) in a separate commit that references the implementation SHA.
+- Update the [privacy policy](frontend/src/routes/privacy/+page.svelte) when changing user data collection or logging.
+- Document notable user-facing changes in the [changelog](frontend/src/lib/changelog.ts) in a separate commit that references the implementation SHA.
 - Write code, identifiers, and commit messages in English. Write site text in Portuguese (pt-PT). Avoid explanatory code comments.
 - Use a short imperative commit message without a prefix.
 
