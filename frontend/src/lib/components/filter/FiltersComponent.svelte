@@ -14,6 +14,7 @@
   import type { Filters } from "$lib/types/api";
   import { MAX_ENTITY_FILTER_LENGTH } from "$lib";
   import FilterContractTypes from "./FilterContractTypes.svelte";
+  import FilterCpvs from "./FilterCpvs.svelte";
   import FilterDate from "./FilterDate.svelte";
   import FilterInput from "./FilterInput.svelte";
   import FilterProcedureTypes from "./FilterProcedureTypes.svelte";
@@ -274,10 +275,11 @@
       title="Classificação"
       IconComponent={Shapes}
       filter={filters}
-      fields={["contractTypes", "procedureTypes"]}>
+      fields={["contractTypes", "procedureTypes", "cpvs"]}>
       <div class="space-y-4">
         <FilterContractTypes bind:value={filters.contractTypes} />
         <FilterProcedureTypes bind:value={filters.procedureTypes} />
+        <FilterCpvs bind:value={filters.cpvs} />
       </div>
     </FilterSection>
   </div>
