@@ -275,7 +275,8 @@
       title="Classificação"
       IconComponent={Shapes}
       filter={filters}
-      fields={["contractTypes", "procedureTypes", "cpvs"]}>
+      fields={["contractTypes", "procedureTypes", "cpvs"]}
+      addedDate="2026-11-13">
       <div class="space-y-4">
         <FilterContractTypes bind:value={filters.contractTypes} />
         <FilterProcedureTypes bind:value={filters.procedureTypes} />

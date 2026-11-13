@@ -18,6 +18,7 @@
 
 <FilterMenu
   labelContent="Tipo de Contrato"
+  addedDate="2026-11-07"
   descriptionContent="Mostra contratos com pelo menos um dos tipos de contrato selecionados"
   IconComponent={Gavel}
   active={!!value}

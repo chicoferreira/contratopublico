@@ -218,6 +218,7 @@
 
 <FilterField
   labelContent="CPV (Vocabulário Comum para os Contratos Públicos)"
+  addedDate="2026-11-13"
   descriptionContent="Mostra contratos com pelo menos um dos códigos selecionados ou das suas subcategorias"
   active={!!value}
   onClear={() => (value = undefined)}>

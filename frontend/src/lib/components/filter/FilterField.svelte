@@ -4,16 +4,18 @@
   import { X } from "@lucide/svelte";
   import type { Snippet } from "svelte";
   import { fade } from "svelte/transition";
+  import NewBadge from "$lib/components/NewBadge.svelte";
 
   type Props = {
     labelContent: string;
+    addedDate?: string;
     descriptionContent: string;
     active: unknown;
     onClear: () => void;
     children: Snippet<[string]>;
   };
 
-  let { labelContent, descriptionContent, active, onClear, children }: Props = $props();
+  let { labelContent, addedDate, descriptionContent, active, onClear, children }: Props = $props();
 
   let id = $props.id();
 </script>
@@ -21,6 +23,7 @@
 <div class="space-y-2">
   <div class="flex h-6 items-center gap-1">
     <Label for={id} class="text-sm font-medium">{labelContent}</Label>
+    <NewBadge {addedDate} />
     {#if active}
       <div transition:fade={{ duration: 100 }}>
         <Button
