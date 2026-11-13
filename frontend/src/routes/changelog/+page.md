@@ -15,6 +15,8 @@ Este changelog documenta todas as alterações, melhorias e atualizações mais 
 
 ## Novembro de 2026 <MonthCommits startDate="2026-11-01" endDate="2026-11-30" />
 
+- É agora possível filtrar os contratos por código CPV, pesquisando pela designação ou pelo código numa árvore com todos os CPVs. <GithubBadge issue="47"/> <GithubBadge pr="83"/> <Muted>(13/11/2026)</Muted>
+- A explicação do CPV na página de pesquisa passou a mostrar a hierarquia completa do código. <GithubBadge pr="83"/> <Muted>(13/11/2026)</Muted>
 - É agora possível filtrar os contratos por tipo de procedimento ou por nível de concorrência. <GithubBadge pr="81"/> <Muted>(09/11/2026)</Muted>
 - A etiqueta do tipo de procedimento foi redesenhada para mostrar o nível de concorrência e agora todos os tipos de procedimento têm uma explicação. <GithubBadge pr="81"/> <Muted>(09/11/2026)</Muted>
 - Os tipos de contrato agora aparecem como etiquetas na página de pesquisa e é possível filtrar por eles. <GithubBadge issue="32"/> <GithubBadge pr="80"/> <Muted>(07/11/2026)</Muted>
