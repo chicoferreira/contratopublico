@@ -73,6 +73,7 @@
 
 <FilterMenu
   labelContent="Tipo de Procedimento"
+  addedDate="2026-11-09"
   descriptionContent="Mostra contratos com um dos tipos de procedimento selecionados"
   IconComponent={Scale}
   active={!!value}

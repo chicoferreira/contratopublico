@@ -8,6 +8,7 @@
 
   let {
     labelContent,
+    addedDate,
     descriptionContent,
     IconComponent,
     active,
@@ -16,6 +17,7 @@
     children: menu,
   }: {
     labelContent: string;
+    addedDate?: string;
     descriptionContent: string;
     IconComponent: Component;
     active: boolean;
@@ -25,7 +27,7 @@
   } = $props();
 </script>
 
-<FilterField {labelContent} {descriptionContent} {active} {onClear}>
+<FilterField {labelContent} {addedDate} {descriptionContent} {active} {onClear}>
   {#snippet children(id)}
     <DropdownMenu.Root>
       <div
