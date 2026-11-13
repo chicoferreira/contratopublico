@@ -1,9 +1,14 @@
 <script lang="ts">
   import { ArrowLeft } from "@lucide/svelte";
+  import type { Snippet } from "svelte";
   import HeadMeta from "$lib/components/HeadMeta.svelte";
   import { DEFAULT_DESCRIPTION, SITE_NAME } from "$lib/meta";
 
-  const { title, description = DEFAULT_DESCRIPTION, children } = $props();
+  const {
+    title,
+    description = DEFAULT_DESCRIPTION,
+    children,
+  }: { title?: string; description?: string; children?: Snippet } = $props();
   const pageTitle = $derived(title ? `${SITE_NAME} - ${title}` : SITE_NAME);
 </script>
 
