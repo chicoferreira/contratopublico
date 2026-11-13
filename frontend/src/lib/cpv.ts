@@ -159,3 +159,9 @@ export function codeMatchRanges(code: string, query: string): MatchingRange[] {
   if (!digits || !isCodeQuery(query.trim()) || !code.replace("-", "").startsWith(digits)) return [];
   return [{ start: 0, end: digits.length + (digits.length > 8 ? 1 : 0) }];
 }
+
+export function cpvPath(tree: CpvTree, code: string) {
+  const path: string[] = [];
+  for (let c = code; c; c = tree.parent.get(c) ?? "") path.unshift(c);
+  return path;
+}
