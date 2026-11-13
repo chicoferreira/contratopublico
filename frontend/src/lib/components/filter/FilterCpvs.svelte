@@ -2,12 +2,12 @@
   import * as Popover from "$lib/components/ui/popover/index.js";
   import { buttonVariants } from "$lib/components/ui/button/index.js";
   import Highlighted from "$lib/components/Highlighted.svelte";
-  import { fetchCpvs, MAX_CPV_FILTERS } from "$lib";
+  import { MAX_CPV_FILTERS } from "$lib";
   import {
-    buildCpvTree,
     codeMatchRanges,
     cpvState,
     cpvView,
+    loadCpvTree,
     nameMatchRanges,
     searchCpvs,
     toggleCpv,
@@ -38,9 +38,8 @@
   const searchToggled = new SvelteSet<string>();
 
   onMount(async () => {
-    const result = await fetchCpvs();
-    if (result.ok) tree = buildCpvTree(result.data);
-    else loadError = true;
+    tree = await loadCpvTree();
+    loadError = !tree;
   });
 
   const selected = $derived(value ?? []);

@@ -1,3 +1,4 @@
+import { fetchCpvs } from "$lib";
 import type { CpvList, MatchingRange } from "$lib/types/api";
 
 export type CpvTree = {
@@ -6,6 +7,17 @@ export type CpvTree = {
   parent: Map<string, string>;
   searchNames: Map<string, string>;
 };
+
+let cpvTree: Promise<CpvTree | undefined> | undefined;
+
+export function loadCpvTree() {
+  cpvTree ??= fetchCpvs().then((result) => {
+    if (result.ok) return buildCpvTree(result.data);
+    console.error("Failed to load CPVs:", result.message);
+    cpvTree = undefined;
+  });
+  return cpvTree;
+}
 
 const CODE_SEARCH_LEVELS = 3;
 
