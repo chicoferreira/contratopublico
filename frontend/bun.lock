@@ -11,7 +11,7 @@
       },
       "devDependencies": {
         "@internationalized/date": "^3.12.4",
-        "@lucide/svelte": "^0.515.0",
+        "@lucide/svelte": "^1.72.0",
         "@sveltejs/adapter-auto": "^6.1.1",
         "@sveltejs/adapter-node": "^5.5.8",
         "@sveltejs/kit": "^2.70.4",
@@ -134,7 +134,7 @@
 
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.29", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-uw6guiW/gcAGPDhLmd77/6lW8QLeiV5RUTsAX46Db6oLhGaVj4lhnPwb184s1bkc8kdVg/+h988dro8GRDpmYQ=="],
 
-    "@lucide/svelte": ["@lucide/svelte@0.515.0", "", { "peerDependencies": { "svelte": "^5" } }, "sha512-CEAyqcZmNBfYzVgaRmK2RFJP5tnbXxekRyDk0XX/eZQRfsJmkDvmQwXNX8C869BgNeryzmrRyjHhUL6g9ZOHNA=="],
+    "@lucide/svelte": ["@lucide/svelte@1.72.0", "", { "peerDependencies": { "svelte": "^5" } }, "sha512-DRwtZ5p/m5ZRsNlfCzELJRDzd2z19mc76eMs8rwllx/JWfvykmLoTFs3RyzFN519ldQxHt8Jxum/LKukgzuTLQ=="],
 
     "@polka/url": ["@polka/url@1.0.0-next.29", "", {}, "sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww=="],
 

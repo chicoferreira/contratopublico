@@ -1,5 +1,5 @@
 <script>
-  import { Github, Bug, Lightbulb } from "@lucide/svelte";
+  import { Bug, CodeXml, Lightbulb } from "@lucide/svelte";
   import Link from "./Link.svelte";
   import Separator from "$lib/components/ui/separator/separator.svelte";
 
@@ -31,7 +31,7 @@
 
       <div class="flex flex-col items-center gap-3 sm:flex-row sm:gap-4">
         <div class="inline-flex items-center gap-2">
-          <Github class="text-muted-foreground h-4 w-4" />
+          <CodeXml class="text-muted-foreground h-4 w-4" />
           <Link
             url="https://github.com/chicoferreira/contratopublico"
             class="!text-muted-foreground hover:!text-primary !transition-colors"
