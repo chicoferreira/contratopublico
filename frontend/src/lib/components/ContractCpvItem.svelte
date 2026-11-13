@@ -1,20 +1,5 @@
-<script lang="ts" module>
-  import { fetchCpvs } from "$lib";
-  import { buildCpvTree, cpvPath, type CpvTree } from "$lib/cpv";
-
-  let cachedTree: CpvTree | undefined;
-  let loading: Promise<void> | undefined;
-
-  function loadCpvTree() {
-    loading ??= fetchCpvs().then((result) => {
-      if (result.ok) cachedTree = buildCpvTree(result.data);
-      else loading = undefined;
-    });
-    return loading;
-  }
-</script>
-
 <script lang="ts">
+  import { cpvPath, loadCpvTree, type CpvTree } from "$lib/cpv";
   import { Tag } from "@lucide/svelte";
   import { onMount } from "svelte";
   import * as Breadcrumb from "$lib/components/ui/breadcrumb";
@@ -33,12 +18,11 @@
     ranges: Record<string, MatchingRange[]>;
   } = $props();
 
-  let tree = $state.raw(cachedTree);
+  let tree = $state.raw<CpvTree>();
   let picked = $state<string>();
 
   onMount(async () => {
-    if (!tree) await loadCpvTree();
-    tree = cachedTree;
+    tree = await loadCpvTree();
   });
 
   const path = $derived(tree ? cpvPath(tree, cpv.code) : [cpv.code]);
