@@ -16,7 +16,7 @@
   import FiltersComponent from "$lib/components/filter/FiltersComponent.svelte";
   import FiltersDropdown from "$lib/components/filter/FiltersDropdown.svelte";
   import ContractsFound from "$lib/components/ContractsFound.svelte";
-  import StatisticsInsights from "$lib/components/StatisticsInsights.svelte";
+  import Insights from "$lib/components/Insights.svelte";
   import HeadMeta from "$lib/components/HeadMeta.svelte";
   import { DEFAULT_DESCRIPTION, SITE_NAME } from "$lib/meta";
 
@@ -191,7 +191,7 @@
       <div class="text-2xl font-semibold">
         Procura por contratos públicos celebrados em Portugal
       </div>
-      <StatisticsInsights {statistics} />
+      <Insights {statistics} />
     </div>
     <Search bind:searchTerm={query} />
 
