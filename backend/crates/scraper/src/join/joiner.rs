@@ -377,7 +377,14 @@ fn parse_contract_type(value: &str) -> anyhow::Result<ContractType> {
         "Empreitadas de obras públicas" => ContractType::PublicWorks,
         "Locação de bens móveis" => ContractType::GoodsLease,
         "Sociedade" => ContractType::Partnership,
-        "Outros" | "Outros Tipos (Não Preenchido)" => ContractType::Other,
+        "Outros" => ContractType::Other,
+        // The portal has more details of the type in parentheses. Seen so far:
+        // "Outros Tipos (Não Preenchido)"
+        // "Outros Tipos (Exploração de atividade comercial)"
+        // "Outros Tipos (Concessão de exploração de bens do domínio público)"
+        // "Outros Tipos (Prestação do Serviço Universal)"
+        // We may want to come back to this and keep the detail so its shown to the user.
+        value if value.starts_with("Outros Tipos (") => ContractType::Other,
         _ => anyhow::bail!("Unknown contract type: {value}"),
     })
 }
