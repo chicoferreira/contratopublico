@@ -65,7 +65,7 @@
     </div>
   </DropdownMenu.CheckboxItem>
   <DropdownMenu.Item
-    class="mt-1 cursor-pointer gap-1 px-1.5 py-1"
+    class="h-8 cursor-pointer gap-1 px-1.5 py-0"
     closeOnSelect={false}
     aria-expanded={open}
     aria-label="{open ? 'Esconder' : 'Mostrar'} {children ? 'variantes' : 'descrição'} de {label}"
