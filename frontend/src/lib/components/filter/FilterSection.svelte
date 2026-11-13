@@ -31,7 +31,7 @@
       <NewBadge {addedDate} link={false} />
       {#if hasActiveFilters}
         <div transition:fade={{ duration: 100 }}>
-          <Badge variant="secondary" class="hidden md:block">Com filtros</Badge>
+          <Badge variant="secondary" class="hidden md:inline-flex">Com filtros</Badge>
         </div>
       {/if}
     </div>
