@@ -3,12 +3,14 @@ export type ChangelogRef = { pr: number } | { issue: number } | { commit: string
 export interface ChangelogEntry {
   date: string;
   html: string;
+  announcement?: string;
   refs: ChangelogRef[];
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-13",
+    announcement: "É agora possível filtrar contratos por código CPV.",
     html: "É agora possível filtrar os contratos por código CPV, pesquisando pela designação ou pelo código numa árvore com todos os CPVs.",
     refs: [{ issue: 47 }, { pr: 83 }],
   },
@@ -19,6 +21,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   },
   {
     date: "2026-11-09",
+    announcement: "É agora possível filtrar contratos por tipo de procedimento e nível de concorrência.",
     html: "É agora possível filtrar os contratos por tipo de procedimento ou por nível de concorrência.",
     refs: [{ pr: 81 }],
   },
@@ -29,6 +32,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   },
   {
     date: "2026-11-07",
+    announcement: "É agora possível filtrar contratos por tipo de contrato.",
     html: "Os tipos de contrato agora aparecem como etiquetas na página de pesquisa e é possível filtrar por eles.",
     refs: [{ issue: 32 }, { pr: 80 }],
   },

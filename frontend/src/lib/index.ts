@@ -43,6 +43,12 @@ export const MAX_QUERY_LENGTH = 512;
 export const MAX_ENTITY_FILTER_LENGTH = 256;
 export const MAX_CPV_FILTERS = 50;
 
+const RECENT_FEATURE_DAYS = 30;
+
+export function isRecentFeature(featureAddedDate: string) {
+  return Date.now() < Date.parse(featureAddedDate) + RECENT_FEATURE_DAYS * 24 * 60 * 60 * 1000;
+}
+
 export const DEFAULT_SEARCH_REQUEST = {
   query: "",
   sort: {
