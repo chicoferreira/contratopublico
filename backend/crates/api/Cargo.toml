@@ -8,6 +8,7 @@ axum = { workspace = true, features = ["macros"] }
 axum-extra = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+serde_with = { workspace = true }
 tokio = { workspace = true }
 tracing-subscriber = { workspace = true }
 meilisearch-sdk = { workspace = true }

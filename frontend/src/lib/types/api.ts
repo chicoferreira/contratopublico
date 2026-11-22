@@ -77,6 +77,12 @@ export interface Entity {
 
 export type CpvList = Record<string, string>;
 
+export interface LocationNode {
+  id: string;
+  label: string;
+  children: LocationNode[];
+}
+
 export interface Cpv {
   code: string;
   designation: string;
@@ -158,6 +164,7 @@ export interface Filters {
   contractTypes?: ContractType[];
   procedureTypes?: ProcedureType[];
   cpvs?: string[];
+  locations?: string[];
 }
 
 export interface MatchingRanges {

@@ -22,6 +22,7 @@ mod contract;
 mod error;
 mod extractors;
 mod filter;
+mod locations;
 mod metrics;
 mod rate_limit;
 mod router;
