@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { cpvPath, loadCpvTree, type CpvTree } from "$lib/cpv";
+  import { loadCpvTree } from "$lib/cpv";
+  import { treePath, type Tree } from "$lib/tree";
   import { Tag } from "@lucide/svelte";
   import { onMount } from "svelte";
   import * as Breadcrumb from "$lib/components/ui/breadcrumb";
@@ -18,14 +19,15 @@
     ranges: Record<string, MatchingRange[]>;
   } = $props();
 
-  let tree = $state.raw<CpvTree>();
+  let tree = $state.raw<Tree>();
   let picked = $state<string>();
 
   onMount(async () => {
     tree = await loadCpvTree();
   });
 
-  const path = $derived(tree ? cpvPath(tree, cpv.code) : [cpv.code]);
+  const node = $derived(tree?.nodes.get(cpv.code));
+  const path = $derived(node ? treePath(node).map((step) => step.id) : [cpv.code]);
   const selected = $derived(picked ?? cpv.code);
   const isOwn = $derived(selected === cpv.code);
 </script>
@@ -62,6 +64,6 @@
   {#if isOwn}
     <Highlighted content={cpv.designation} ranges={ranges["cpvs.designation"]} {index} />
   {:else}
-    {tree?.names[selected]}
+    {tree?.nodes.get(selected)?.name}
   {/if}
 </InfoPopoverItem>
