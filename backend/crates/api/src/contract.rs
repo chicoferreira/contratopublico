@@ -1,8 +1,10 @@
 use chrono::NaiveDate;
-use common::{Contract, ContractType, Cpv, Currency, Document, Entity, ProcedureType};
+use common::{
+    Contract, ContractType, Cpv, Currency, DetailedExecutionPlace, Document, Entity, ProcedureType,
+};
 use serde::Serialize;
 
-/// A contract as shown on its page, with CPV designations.
+/// A contract as shown on its page, with CPV designations and execution place labels.
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ContractDetails {
@@ -21,7 +23,7 @@ pub struct ContractDetails {
     pub non_written_contract_justification_types: Vec<String>,
     pub contract_types: Vec<ContractType>,
     pub execution_deadline_days: usize,
-    pub execution_places: Vec<String>,
+    pub execution_places: Vec<DetailedExecutionPlace>,
     pub contract_fundamentation_type: String,
     pub contestants: Vec<Entity>,
     pub invitees: Vec<Entity>,
@@ -61,7 +63,11 @@ impl From<Contract> for ContractDetails {
                 .non_written_contract_justification_types,
             contract_types: contract.contract_types,
             execution_deadline_days: contract.execution_deadline_days,
-            execution_places: contract.execution_places,
+            execution_places: contract
+                .execution_places
+                .into_iter()
+                .map(DetailedExecutionPlace::from)
+                .collect(),
             contract_fundamentation_type: contract.contract_fundamentation_type,
             contestants: contract.contestants,
             invitees: contract.invitees,

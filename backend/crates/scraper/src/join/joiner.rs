@@ -2,7 +2,10 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 
 use anyhow::Context;
 use chrono::NaiveDate;
-use common::{Contract, ContractType, Cpv, Currency, Document, Entity, ProcedureType};
+use common::{
+    Contract, ContractType, Cpv, Currency, Document, Entity, ProcedureType,
+    location::{Country, ExecutionPlace, Municipality, Region},
+};
 use itertools::Itertools;
 
 use crate::sources::{
@@ -13,6 +16,11 @@ use crate::sources::{
 
 const DIRECT_AWARD_NOT_APPLICABLE: &str = "Não aplicável";
 const FRAMEWORK_AGREEMENT_NOT_APPLICABLE: &str = "Não aplicável.";
+const EXECUTION_PLACE_PLACEHOLDERS: [&str; 3] = [
+    "Todos",
+    "Distrito não determinado",
+    "Concelho não determinado",
+];
 
 pub fn join_contract(sources: Sources) -> anyhow::Result<Contract> {
     Ok(Contract {
@@ -70,10 +78,10 @@ pub fn join_contract(sources: Sources) -> anyhow::Result<Contract> {
             |c| parse_api_execution_deadline(c.execution_deadline_days),
             |c| parse_portal_execution_deadline(&c.execution_deadline),
         )?,
-        execution_places: sources.api_first(
-            |c| api_list(&c.execution_places),
-            |c| parse_portal_list(&c.execution_place, "<BR/>"),
-        ),
+        execution_places: sources.try_api_first(
+            |c| parse_execution_places(api_list(&c.execution_places)),
+            |c| parse_execution_places(parse_portal_list(&c.execution_place, "<BR/>")),
+        )?,
         contract_fundamentation_type: sources.api_first(
             |c| c.contract_fundamentation_type.to_string(),
             |c| c.contract_fundamentation_type.to_string(),
@@ -389,6 +397,44 @@ fn parse_contract_type(value: &str) -> anyhow::Result<ContractType> {
     })
 }
 
+fn parse_execution_places(values: Vec<String>) -> anyhow::Result<Vec<ExecutionPlace>> {
+    values
+        .iter()
+        .map(|value| parse_execution_place(value))
+        .process_results(|places| places.unique().collect())
+}
+
+fn parse_execution_place(value: &str) -> anyhow::Result<ExecutionPlace> {
+    let parts = value
+        .split(", ")
+        // "Portugal, Porto, Todos" should mean the same as "Portugal, Porto"
+        .filter(|part| !EXECUTION_PLACE_PLACEHOLDERS.contains(part))
+        .collect_vec();
+
+    find_execution_place(&parts).with_context(|| format!("Unknown execution place: {value}"))
+}
+
+fn find_execution_place(parts: &[&str]) -> Option<ExecutionPlace> {
+    match parts {
+        [country] => {
+            let country = Country::from_label(country)?;
+            Some(ExecutionPlace::Country(country))
+        }
+        [country, region] => {
+            let country = Country::from_label(country)?;
+            let region = Region::from_label(country, region)?;
+            Some(ExecutionPlace::Region(region))
+        }
+        [country, region, municipality] => {
+            let country = Country::from_label(country)?;
+            let region = Region::from_label(country, region)?;
+            let municipality = Municipality::from_label(region, municipality)?;
+            Some(ExecutionPlace::Municipality(municipality))
+        }
+        _ => None,
+    }
+}
+
 fn api_entities(entities: &Option<Vec<BaseApiEntity>>) -> Vec<Entity> {
     entities
         .iter()
@@ -504,4 +550,122 @@ fn parse_portal_cpvs(codes: &str) -> anyhow::Result<Vec<Cpv>> {
         .iter()
         .map(|code| parse_cpv(code))
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parses_every_place_from_its_labels() {
+        for &place in ExecutionPlace::ALL {
+            let text = match place {
+                ExecutionPlace::Country(country) => country.label().to_string(),
+                ExecutionPlace::Region(region) => {
+                    format!("{}, {}", region.country().label(), region.label())
+                }
+                ExecutionPlace::Municipality(municipality) => format!(
+                    "{}, {}, {}",
+                    municipality.region().country().label(),
+                    municipality.region().label(),
+                    municipality.label()
+                ),
+            };
+            assert_eq!(parse_execution_place(&text).unwrap(), place, "{text}");
+        }
+    }
+
+    #[test]
+    fn parses_diacritics_aliases_and_placeholders() {
+        #[rustfmt::skip]
+        let cases = [
+            ("República Checa", "Chéquia"),
+            ("Centro-Africana (República)", "República Centro-Africana"),
+            ("Antárctica", "Antártida"),
+            ("Egipto", "Egito"),
+            ("Emiratos Árabes Unidos", "Emirados Árabes Unidos"),
+            ("Moldova", "Moldávia"),
+            ("Niger", "Níger"),
+            ("Quirguizistão", "Quirguistão"),
+            ("São Martinho (parte francesa)", "São Martinho"),
+            ("Coreia (República Popular Democrática da)", "Coreia do Norte"),
+            ("Coreia (República da)", "Coreia do Sul"),
+            ("Macedónia (Antiga República Jugoslava da)", "Macedónia do Norte"),
+            ("Rússia (Federação da)", "Rússia"),
+            ("Taiwan (Província da China)", "Taiwan"),
+            ("Bangladexe", "Bangladesh"),
+            ("Burquina Fasso", "Burkina Faso"),
+            ("Salvador", "El Salvador"),
+            ("Ilhas Falkland", "Ilhas Falkland (Malvinas)"),
+            ("Ilhas Feroe", "Ilhas Faroé"),
+            ("Ilhas Virgens", "Ilhas Virgens Americanas"),
+            ("Ilhas Virgens (Estados Unidos)", "Ilhas Virgens Americanas"),
+            ("Koweit", "Kuwait"),
+            ("Mianmar/Birmânia", "Myanmar (Birmânia)"),
+            ("Congo-Kinshasa", "República Democrática do Congo"),
+            ("Congo-Brazzaville", "República do Congo"),
+            ("San Marino", "São Marinho"),
+            ("Seychelles", "Seicheles"),
+            ("Seri Lanca", "Sri Lanka"),
+            ("Território Britânicodo Oceano Índico", "Território Britânico do Oceano Índico"),
+            ("Santa Sé", "Vaticano"),
+            ("Suiça", "Suíça"),
+            ("Timor Leste", "Timor-Leste"),
+            ("Timor 'PORT'", "Timor-Leste"),
+            ("Portugal, Consulados situados no estrangeiro", "Portugal, Consulados no estrangeiro"),
+            ("Portugal, Consulado situados no estrangeiro", "Portugal, Consulados no estrangeiro"),
+            ("Portugal, Aveiro, Oliveira de Azemeis", "Portugal, Aveiro, Oliveira de Azeméis"),
+            ("Portugal, Beja, Almodovar", "Portugal, Beja, Almodôvar"),
+            ("Portugal, Braganca", "Portugal, Bragança"),
+            ("Portugal, Braganca, Alfandega da Fé", "Portugal, Bragança, Alfândega da Fé"),
+            ("Portugal, Braganca, Freixo Espada a Cinta", "Portugal, Bragança, Freixo de Espada à Cinta"),
+            ("Portugal, Faro, Vila Real Sto Antonio", "Portugal, Faro, Vila Real de Santo António"),
+            ("Portugal, Guarda, Fig. Castelo Rodrigo", "Portugal, Guarda, Figueira de Castelo Rodrigo"),
+            ("Portugal, Guarda, Meda", "Portugal, Guarda, Mêda"),
+            ("Portugal, Guarda, Vila Nova de Foz Coa", "Portugal, Guarda, Vila Nova de Foz Côa"),
+            ("Portugal, Leiria, Pedrogão Grande", "Portugal, Leiria, Pedrógão Grande"),
+            ("Portugal, Região Autónoma da Madeira", "Portugal, Madeira"),
+            ("Portugal, Região Autónoma dos Açores", "Portugal, Açores"),
+            ("Portugal, Região Autónoma dos Açores, Angra do Heroismo", "Portugal, Açores, Angra do Heroísmo"),
+            ("Portugal, Santarém, Constancia", "Portugal, Santarém, Constância"),
+            ("Portugal, Santarém, Ferreira do Zezere", "Portugal, Santarém, Ferreira do Zêzere"),
+            ("Portugal, Setúbal, Grandola", "Portugal, Setúbal, Grândola"),
+            ("Portugal, Vila Real, Sta Marta de Penaguião", "Portugal, Vila Real, Santa Marta de Penaguião"),
+            ("Portugal, Porto, Todos", "Portugal, Porto"),
+            ("Portugal, Distrito não determinado, Concelho não determinado", "Portugal"),
+        ];
+        for (base, expected) in cases {
+            assert_eq!(
+                parse_execution_place(base).unwrap(),
+                parse_execution_place(expected).unwrap(),
+                "{base}"
+            );
+        }
+    }
+
+    #[test]
+    fn deduplicates_places_after_parsing() {
+        let values = vec![
+            "Portugal, Distrito não determinado, Concelho não determinado".to_string(),
+            "Portugal".to_string(),
+        ];
+        assert_eq!(
+            parse_execution_places(values).unwrap(),
+            [ExecutionPlace::Country(Country::Portugal)]
+        );
+    }
+
+    #[test]
+    fn rejects_unknown_places() {
+        for value in [
+            "",
+            "Atlântida",
+            "Espanha, Lisboa",
+            "Portugal, Atlântida",
+            "Portugal, Lisboa, Meda",
+            "Portugal, Lisboa, Oeiras, Algés",
+        ] {
+            assert!(parse_execution_place(value).is_err(), "{value}");
+        }
+    }
 }

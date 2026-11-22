@@ -1,8 +1,11 @@
 use anyhow::Context;
 use chrono::NaiveDate;
-use sqlx::{PgConnection, PgPool};
+use sqlx::{PgConnection, PgPool, types::Json};
 
-use crate::{Contract, ContractType, Cpv, Currency, Document, Entity, ProcedureType};
+use crate::{
+    Contract, ContractType, Cpv, Currency, Document, Entity, ProcedureType,
+    location::ExecutionPlace,
+};
 
 struct ContractMainRow {
     id: i64,
@@ -18,7 +21,7 @@ struct ContractMainRow {
     non_written_contract_justification_types: Vec<String>,
     contract_types: Vec<ContractType>,
     execution_deadline_days: i32,
-    execution_places: Vec<String>,
+    execution_places: Json<Vec<ExecutionPlace>>,
     contract_fundamentation_type: String,
     contracting_procedure_url: Option<String>,
     announcement_id: Option<i64>,
@@ -121,7 +124,8 @@ impl ContractDatabase {
                 signing_date, object_brief_description, initial_contractual_price, description,
                 cpvs, regime, contract_status, non_written_contract_justification_types,
                 contract_types AS "contract_types: Vec<ContractType>", execution_deadline_days,
-                execution_places, contract_fundamentation_type, contracting_procedure_url,
+                execution_places AS "execution_places: Json<Vec<ExecutionPlace>>",
+                contract_fundamentation_type, contracting_procedure_url,
                 announcement_id, direct_award_fundamentation_type, observations,
                 end_of_contract_type, close_date, total_effective_price, causes_deadline_change,
                 causes_price_change, estimated_base_price, award_decision_date,
@@ -235,7 +239,7 @@ impl ContractDatabase {
             non_written_contract_justification_types: main.non_written_contract_justification_types,
             contract_types: main.contract_types,
             execution_deadline_days: main.execution_deadline_days as usize,
-            execution_places: main.execution_places,
+            execution_places: main.execution_places.0,
             contract_fundamentation_type: main.contract_fundamentation_type,
             contestants,
             invitees,
@@ -352,7 +356,7 @@ async fn insert_contract(tx: &mut PgConnection, contract: &Contract) -> Result<(
             &contract.non_written_contract_justification_types,
             &contract.contract_types as &[ContractType],
             contract.execution_deadline_days as i32,
-            &contract.execution_places,
+            Json(&contract.execution_places) as _,
             contract.contract_fundamentation_type,
             contract.contracting_procedure_url,
             contract.announcement_id.map(|id| id as i64),
@@ -438,6 +442,7 @@ mod tests {
     use crate::{
         Contract, ContractType, Cpv, Currency, Document, Entity, ProcedureType,
         db::ContractDatabase,
+        location::{Country, ExecutionPlace, Municipality},
     };
 
     #[sqlx::test(migrations = "../../migrations")]
@@ -466,7 +471,10 @@ mod tests {
             non_written_contract_justification_types: vec!["Emergency".to_string()],
             contract_types: vec![ContractType::GoodsAcquisition, ContractType::Other],
             execution_deadline_days: 90,
-            execution_places: vec!["Lisbon, Portugal".to_string()],
+            execution_places: vec![
+                ExecutionPlace::Municipality(Municipality::Oeiras),
+                ExecutionPlace::Country(Country::Spain),
+            ],
             contract_fundamentation_type: "Legal basis".to_string(),
             contestants: vec![],
             invitees: vec![],

@@ -58,7 +58,7 @@ CREATE TABLE contracts (
     non_written_contract_justification_types TEXT[] NOT NULL,
     contract_types contract_type[] NOT NULL,
     execution_deadline_days INTEGER NOT NULL,
-    execution_places TEXT[] NOT NULL,
+    execution_places JSONB NOT NULL,
     contract_fundamentation_type TEXT NOT NULL,
     contracting_procedure_url TEXT,
     announcement_id BIGINT,
