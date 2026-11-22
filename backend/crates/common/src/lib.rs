@@ -9,8 +9,7 @@ pub mod db;
 pub mod searchdb;
 pub mod statistics;
 
-#[derive(Debug, Deserialize, Default, Serialize, Clone, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct Contract {
     pub id: u64,
     pub procedure_type: Option<ProcedureType>,

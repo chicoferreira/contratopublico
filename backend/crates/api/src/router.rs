@@ -15,7 +15,7 @@ use axum_extra::{
     TypedHeader,
     headers::{CacheControl, ContentType},
 };
-use common::{Contract, statistics::Statistics};
+use common::statistics::Statistics;
 use garde::Validate;
 use governor::Quota;
 use serde::Deserialize;
@@ -23,6 +23,7 @@ use serde::Deserialize;
 use crate::{
     access_log,
     blocklist::{Blocklist, blocklist_layer},
+    contract::ContractDetails,
     error::AppError,
     extractors::{Json, ValidJson},
     filter::Filters,
@@ -120,8 +121,8 @@ pub async fn search(
 pub async fn contract(
     State(state): State<AppState>,
     Path(id): Path<u64>,
-) -> Result<Json<Option<Contract>>, AppError> {
-    let contract = state.get_contract(id).await?;
+) -> Result<Json<Option<ContractDetails>>, AppError> {
+    let contract = state.get_contract(id).await?.map(ContractDetails::from);
 
     Ok(Json(contract))
 }
