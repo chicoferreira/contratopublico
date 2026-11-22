@@ -7,7 +7,7 @@
     $props();
 </script>
 
-<Badge variant="secondary" class="border-border h-6 pr-1">
+<Badge variant="secondary" class="border-border h-6 max-w-full pr-1">
   {@render children()}
   <button
     type="button"

@@ -43,6 +43,7 @@ async function apiFetch<T>(
 export const MAX_QUERY_LENGTH = 512;
 export const MAX_ENTITY_FILTER_LENGTH = 256;
 export const MAX_CPV_FILTERS = 50;
+export const MAX_LOCATION_FILTERS = 50;
 
 const RECENT_FEATURE_DAYS = 30;
 
@@ -124,6 +125,7 @@ export function parseSearchRequestFromParams(
   addParam("contractTypes", (v) => knownValues(v, CONTRACT_TYPES));
   addParam("procedureTypes", (v) => knownValues(v, PROCEDURE_TYPES));
   addParam("cpvs", (v) => v.split(",").slice(0, MAX_CPV_FILTERS));
+  addParam("locations", (v) => v.split(",").slice(0, MAX_LOCATION_FILTERS));
 
   return { query, sort, filters, page };
 }
