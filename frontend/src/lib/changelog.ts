@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-11-22",
+    announcement: "É agora possível filtrar contratos por local de execução.",
+    html: "É agora possível filtrar os contratos por local de execução numa árvore com todos os locais.",
+    refs: [{ issue: 52 }, { pr: 86 }],
+  },
+  {
+    date: "2026-11-22",
+    html: "A etiqueta do local de execução e a sua explicação foram redesenhadas, e a etiqueta mostra agora o local de forma mais clara.",
+    refs: [{ pr: 86 }],
+  },
+  {
     date: "2026-11-13",
     announcement: "É agora possível filtrar contratos por código CPV.",
     html: "É agora possível filtrar os contratos por código CPV, pesquisando pela designação ou pelo código numa árvore com todos os CPVs.",
