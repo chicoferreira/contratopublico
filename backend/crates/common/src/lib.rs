@@ -6,6 +6,7 @@ pub use cpv::CPV_DESIGNATIONS;
 
 mod cpv;
 pub mod db;
+pub mod location;
 pub mod searchdb;
 pub mod statistics;
 
