@@ -41,7 +41,7 @@
       {@render name()}
     {/snippet}
     {#if procedureType.baseName}
-      <p class="text-muted-foreground/60 text-[11px]" title="Nome original no Portal BASE">
+      <p class="text-muted-foreground/60 text-xs" title="Nome original no Portal BASE">
         Nome no Portal BASE: «{procedureType.baseName}»
       </p>
     {/if}
