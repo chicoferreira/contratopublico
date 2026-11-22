@@ -1,5 +1,7 @@
 <script lang="ts">
+  import { buildSearchParams, DEFAULT_SEARCH_REQUEST } from "$lib";
   import { loadLocationTree } from "$lib/locations";
+  import Link from "./Link.svelte";
   import { MapPin } from "@lucide/svelte";
   import { onMount, type Snippet } from "svelte";
   import * as Breadcrumb from "$lib/components/ui/breadcrumb";
@@ -24,6 +26,11 @@
   onMount(async () => {
     tree = await loadLocationTree();
   });
+
+  const placeId = $derived((place.municipality ?? place.region ?? place.country).id);
+  const contractsUrl = $derived(
+    `/?${buildSearchParams({ ...DEFAULT_SEARCH_REQUEST, filters: { locations: [placeId] } })}`,
+  );
 
   const municipalityCount = $derived(
     place.region ? tree?.nodes.get(place.region.id)?.children.length : undefined,
@@ -83,4 +90,4 @@
 {#if total > 1}
   <p>É um dos {total} locais de execução deste contrato.</p>
 {/if}
-<!-- TODO: link to the contracts in this place in a new tab, building the URL with buildSearchParams once the location filter exists -->
+<Link url={contractsUrl}>Ver contratos neste local</Link>
