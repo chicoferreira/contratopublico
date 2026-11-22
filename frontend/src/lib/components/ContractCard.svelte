@@ -7,8 +7,8 @@
   import ContractTypeBadge from "./ContractTypeBadge.svelte";
   import ContractPrice from "./ContractPrice.svelte";
   import ContractNifDescriptionPopover from "./ContractNifDescriptionPopover.svelte";
-  import ContractCpvPopover from "./ContractCpvPopover.svelte";
-  import ContractPlacePopover from "./ContractPlacePopover.svelte";
+  import ContractCpvBadge from "./ContractCpvBadge.svelte";
+  import ContractPlaceBadge from "./ContractPlaceBadge.svelte";
   import { getBaseGovContractUrl } from "$lib";
   import { formatDate } from "$lib/utils";
 
@@ -55,12 +55,16 @@
               ranges={contract.matchingRanges["contractTypeLabels"]} />
           {/each}
 
-          {#each contract.executionPlaces as place, index (`${place}-${index}`)}
-            <ContractPlacePopover {place} ranges={contract.matchingRanges["executionPlaces"]} />
+          {#each contract.executionPlaces as place, index (index)}
+            <ContractPlaceBadge
+              {place}
+              {index}
+              total={contract.executionPlaces.length}
+              ranges={contract.matchingRanges} />
           {/each}
 
           {#each contract.cpvs as cpv, index (cpv.code)}
-            <ContractCpvPopover {cpv} {index} ranges={contract.matchingRanges} />
+            <ContractCpvBadge {cpv} {index} ranges={contract.matchingRanges} />
           {/each}
         </div>
       </div>

@@ -3,6 +3,7 @@ import {
   type CpvList,
   type Filters,
   type GetContractResponse,
+  type LocationNode,
   type SearchContractsRequest,
   type SearchContractsResponse,
   type Statistics,
@@ -160,6 +161,10 @@ export function fetchStatistics(fetchFn = fetch): Promise<ApiResult<Statistics>>
 
 export function fetchCpvs(fetchFn = fetch): Promise<ApiResult<CpvList>> {
   return apiFetch(fetchFn, `/api/cpvs`);
+}
+
+export function fetchLocations(fetchFn = fetch): Promise<ApiResult<LocationNode[]>> {
+  return apiFetch(fetchFn, `/api/locations`);
 }
 
 export function getBaseGovContractUrl(contractId: number) {
