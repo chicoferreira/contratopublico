@@ -3,7 +3,8 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use anyhow::Context;
 use chrono::NaiveDate;
 use common::{
-    Contract, ContractType, Cpv, Currency, Document, Entity, ProcedureType,
+    Contract, ContractType, Currency, Document, Entity, ProcedureType,
+    cpv::CpvCode,
     location::{Country, ExecutionPlace, Municipality, Region},
 };
 use itertools::Itertools;
@@ -311,7 +312,7 @@ fn optional_currency(euros: f64) -> Option<Currency> {
     (euros != 0.0).then(|| euros_to_currency(euros))
 }
 
-fn api_cpvs(cpvs: &Option<Vec<BaseApiCpv>>) -> anyhow::Result<Vec<Cpv>> {
+fn api_cpvs(cpvs: &Option<Vec<BaseApiCpv>>) -> anyhow::Result<Vec<CpvCode>> {
     cpvs.iter()
         .flatten()
         .unique_by(|cpv| &cpv.code)
@@ -319,9 +320,9 @@ fn api_cpvs(cpvs: &Option<Vec<BaseApiCpv>>) -> anyhow::Result<Vec<Cpv>> {
         .collect()
 }
 
-fn parse_cpv(code: &str) -> anyhow::Result<Cpv> {
+fn parse_cpv(code: &str) -> anyhow::Result<CpvCode> {
     let code = code.trim();
-    Cpv::from_code(code).ok_or_else(|| anyhow::anyhow!("Unknown CPV code: {code}"))
+    CpvCode::parse(code).ok_or_else(|| anyhow::anyhow!("Unknown CPV code: {code}"))
 }
 
 fn api_list(list: &Option<Vec<Text>>) -> Vec<String> {
@@ -545,7 +546,7 @@ fn parse_portal_list(list: &str, separator: &str) -> Vec<String> {
         .collect()
 }
 
-fn parse_portal_cpvs(codes: &str) -> anyhow::Result<Vec<Cpv>> {
+fn parse_portal_cpvs(codes: &str) -> anyhow::Result<Vec<CpvCode>> {
     parse_portal_list(codes, " | ")
         .iter()
         .map(|code| parse_cpv(code))

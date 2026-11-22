@@ -52,7 +52,7 @@ CREATE TABLE contracts (
     object_brief_description TEXT NOT NULL,
     initial_contractual_price BIGINT NOT NULL, -- Currency in cents
     description TEXT,
-    cpvs TEXT[] NOT NULL,
+    cpvs JSONB NOT NULL,
     regime TEXT,
     contract_status TEXT,
     non_written_contract_justification_types TEXT[] NOT NULL,

@@ -2,11 +2,10 @@ use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 use sqlx::Type;
 
+use cpv::CpvCode;
 use location::{Country, ExecutionPlace, Municipality, Region};
 
-pub use cpv::CPV_DESIGNATIONS;
-
-mod cpv;
+pub mod cpv;
 pub mod db;
 pub mod location;
 pub mod searchdb;
@@ -23,7 +22,7 @@ pub struct Contract {
     pub description: Option<String>,
     pub contracting: Vec<Entity>,
     pub contracted: Vec<Entity>,
-    pub cpvs: Vec<Cpv>,
+    pub cpvs: Vec<CpvCode>,
     pub regime: Option<String>,
     pub contract_status: Option<String>,
     pub non_written_contract_justification_types: Vec<String>,
@@ -152,25 +151,12 @@ pub struct Cpv {
     pub designation: String,
 }
 
-impl Cpv {
-    pub fn from_code(code: &str) -> Option<Self> {
-        CPV_DESIGNATIONS.get(code).map(|designation| Cpv {
-            code: code.to_string(),
-            designation: designation.to_string(),
-        })
-    }
-
-    /// Returns the prefix matching this code and its descendants.
-    /// - `30000000-9` -> `30`
-    /// - `33600000-6` -> `336`
-    /// - `30192121-5` -> `30192121`
-    /// - `50000000-5` -> `50`
-    ///
-    /// See <https://ted.europa.eu/en/simap/cpv> for the CPV code structure.
-    pub fn stem(&self) -> &str {
-        let digits = &self.code[..8];
-        let stem_len = digits.trim_end_matches('0').len();
-        &digits[..stem_len.max(2)]
+impl From<CpvCode> for Cpv {
+    fn from(code: CpvCode) -> Self {
+        Cpv {
+            code: code.inner().to_string(),
+            designation: code.designation().to_string(),
+        }
     }
 }
 
@@ -282,7 +268,7 @@ impl From<Contract> for SearchableContract {
             initial_contractual_price: contract.initial_contractual_price,
             contracting: contract.contracting,
             contracted: contract.contracted,
-            cpvs: contract.cpvs,
+            cpvs: contract.cpvs.into_iter().map(Cpv::from).collect(),
             regime: contract.regime,
             contract_type_labels: contract
                 .contract_types
