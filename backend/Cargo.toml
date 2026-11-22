@@ -17,6 +17,7 @@ tower = "0.5"
 log = "0.4.27"
 reqwest = { version = "0.12.20", features = ["json", "socks", "stream"] }
 serde_json = "1.0.140"
+serde_with = { version = "3.14.1", default-features = false, features = ["alloc", "macros"] }
 meilisearch-sdk = "0.28.0"
 thiserror = "2.0.17"
 clap = { version = "4.5.41", features = ["derive", "env"] }

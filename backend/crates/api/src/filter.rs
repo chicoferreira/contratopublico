@@ -1,10 +1,12 @@
 use chrono::NaiveDate;
-use common::{ContractType, ProcedureType, cpv::CpvCode};
+use common::{ContractType, ProcedureType, cpv::CpvCode, location::ExecutionPlace};
 use garde::Validate;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use serde_with::{VecSkipError, serde_as};
 
+#[serde_as]
 #[derive(Debug, Deserialize, Default, Validate)]
 #[serde(rename_all = "camelCase")]
 #[garde(allow_unvalidated)]
@@ -37,9 +39,16 @@ pub struct Filters {
     #[serde(default)]
     #[garde(length(max = 22))]
     pub procedure_types: Vec<ProcedureType>,
+    // Unknown CPVs and locations are skipped instead of erroring. Users can edit the filters in
+    // the URL, and rejecting them would force the frontend to handle that error, which we don't.
     #[serde(default)]
+    #[serde_as(as = "VecSkipError<_>")]
     #[garde(length(max = 50))]
-    pub cpvs: Vec<String>,
+    pub cpvs: Vec<CpvCode>,
+    #[serde(default)]
+    #[serde_as(as = "VecSkipError<_>")]
+    #[garde(length(max = 50))]
+    pub locations: Vec<ExecutionPlace>,
 }
 
 impl Filters {
@@ -54,6 +63,9 @@ impl Filters {
             "contractTypes",
             "procedureType",
             "cpvs.code",
+            "executionPlaces.country.id",
+            "executionPlaces.region.id",
+            "executionPlaces.municipality.id",
         ]
     }
 
@@ -110,16 +122,28 @@ impl Filters {
         if !self.procedure_types.is_empty() {
             filters.push(Self::in_filter("procedureType", &self.procedure_types));
         }
-        // Unknown codes are skipped instead of erroring. Users can edit the filters in the URL,
-        // and rejecting them would force the frontend to handle that error, which we don't.
         let cpv_filter = self
             .cpvs
             .iter()
-            .filter_map(|code| CpvCode::parse(code))
             .map(|cpv| format!("cpvs.code STARTS WITH '{}'", cpv.stem()))
             .join(" OR ");
         if !cpv_filter.is_empty() {
             filters.push(cpv_filter);
+        }
+        let location_filter = self
+            .locations
+            .iter()
+            .map(|place| {
+                let level = match place {
+                    ExecutionPlace::Country(_) => "country",
+                    ExecutionPlace::Region(_) => "region",
+                    ExecutionPlace::Municipality(_) => "municipality",
+                };
+                format!("executionPlaces.{level}.id = {}", json!(place))
+            })
+            .join(" OR ");
+        if !location_filter.is_empty() {
+            filters.push(location_filter);
         }
 
         filters

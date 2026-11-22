@@ -27,6 +27,7 @@ use crate::{
     error::AppError,
     extractors::{Json, ValidJson},
     filter::Filters,
+    locations::location_tree,
     metrics,
     rate_limit::RateLimitLayer,
     sort::SortBy,
@@ -52,6 +53,7 @@ pub fn router(app_state: AppState, blocklist: Arc<Blocklist>) -> Router {
         )
         .route("/api/statistics", get(statistics))
         .route("/api/cpvs", get(cpvs))
+        .route("/api/locations", get(locations))
         .layer(DefaultBodyLimit::max(MAX_BODY_SIZE))
         .route_layer(middleware::from_fn_with_state(blocklist, blocklist_layer))
         .route_layer(middleware::from_fn(metrics::track_metrics_layer))
@@ -69,6 +71,18 @@ pub async fn cpvs() -> impl IntoResponse {
     static CPVS_JSON: LazyLock<String> =
         LazyLock::new(|| serde_json::to_string(&cpv::CPV_DESIGNATIONS).unwrap());
 
+    cached_json(&CPVS_JSON)
+}
+
+#[axum::debug_handler]
+pub async fn locations() -> impl IntoResponse {
+    static LOCATIONS_JSON: LazyLock<String> =
+        LazyLock::new(|| serde_json::to_string(&location_tree()).unwrap());
+
+    cached_json(&LOCATIONS_JSON)
+}
+
+fn cached_json(json: &'static str) -> impl IntoResponse {
     let cache_control = CacheControl::new()
         .with_public()
         .with_max_age(Duration::from_hours(30 * 24));
@@ -76,7 +90,7 @@ pub async fn cpvs() -> impl IntoResponse {
     (
         TypedHeader(ContentType::json()),
         TypedHeader(cache_control),
-        CPVS_JSON.as_str(),
+        json,
     )
 }
 
