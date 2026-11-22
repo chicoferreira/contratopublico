@@ -18,6 +18,7 @@ use tracing_subscriber::EnvFilter;
 
 mod access_log;
 mod blocklist;
+mod contract;
 mod error;
 mod extractors;
 mod filter;
