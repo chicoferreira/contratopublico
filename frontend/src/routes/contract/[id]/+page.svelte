@@ -70,19 +70,25 @@
     return `${SITE_NAME} - Não encontrado`;
   });
 
+  const executionPlaces = $derived(
+    contract?.executionPlaces.map(({ country, region, municipality }) =>
+      [country.label, region?.label, municipality?.label].filter(Boolean).join(", "),
+    ) ?? [],
+  );
+
   const metaDescription = $derived.by(() => {
     if (contract) {
       const description = contract.description || contract.objectBriefDescription;
-      const placesLine = contract.executionPlaces.join(", ");
+      const placesLine = executionPlaces.join(", ");
       const placesLineStr = placesLine ? ` (${placesLine.slice(0, 200)})` : "";
       return `Contrato #${contract.id} - ${description}${placesLineStr}`;
     }
     return DEFAULT_DESCRIPTION;
   });
 
-  const executionPlacesCount = $derived(contract?.executionPlaces.length ?? 0);
-  const firstExecutionPlace = $derived(contract?.executionPlaces[0] ?? "—");
-  const remainingExecutionPlaces = $derived(contract?.executionPlaces.slice(1) ?? []);
+  const executionPlacesCount = $derived(executionPlaces.length);
+  const firstExecutionPlace = $derived(executionPlaces[0] ?? "—");
+  const remainingExecutionPlaces = $derived(executionPlaces.slice(1));
   const executionPlacesToggleLabel = $derived(
     executionPlacesOpen
       ? "Mostrar menos"
@@ -179,7 +185,7 @@
                 {#if open}
                   <div {...props} transition:slide={{ duration: 220 }}>
                     <div class="space-y-0.5 pt-0.5" transition:blur={{ duration: 180 }}>
-                      {#each remainingExecutionPlaces as place (`${place}`)}
+                      {#each remainingExecutionPlaces as place, index (index)}
                         <p
                           title={place}
                           class="text-lg font-semibold"

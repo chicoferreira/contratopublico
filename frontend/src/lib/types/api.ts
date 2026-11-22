@@ -14,7 +14,7 @@ export interface Contract {
   nonWrittenContractJustificationTypes: string[];
   contractTypes: ContractType[];
   executionDeadlineDays: number;
-  executionPlaces: string[];
+  executionPlaces: DetailedExecutionPlace[];
   contractFundamentationType: string;
   contestants: Entity[];
   invitees: Entity[];
@@ -77,6 +77,17 @@ export interface Entity {
 
 export type CpvList = Record<string, string>;
 
+export interface DetailedExecutionPlace {
+  country: ExecutionPlacePart;
+  region: ExecutionPlacePart | null;
+  municipality: ExecutionPlacePart | null;
+}
+
+export interface ExecutionPlacePart {
+  id: string;
+  label: string;
+}
+
 export interface LocationNode {
   id: string;
   label: string;
@@ -124,7 +135,7 @@ export interface SearchableContract {
   regime: string | null;
   contractTypes: ContractType[];
   contractTypeLabels: string[];
-  executionPlaces: string[];
+  executionPlaces: DetailedExecutionPlace[];
   contractFundamentationType: string;
   contestants: Entity[];
   invitees: Entity[];
