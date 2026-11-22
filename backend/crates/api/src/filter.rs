@@ -1,5 +1,5 @@
 use chrono::NaiveDate;
-use common::{ContractType, Cpv, ProcedureType};
+use common::{ContractType, ProcedureType, cpv::CpvCode};
 use garde::Validate;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -110,12 +110,12 @@ impl Filters {
         if !self.procedure_types.is_empty() {
             filters.push(Self::in_filter("procedureType", &self.procedure_types));
         }
-        // Unknown codes are skipped. Users can edit the filters in the URL,
+        // Unknown codes are skipped instead of erroring. Users can edit the filters in the URL,
         // and rejecting them would force the frontend to handle that error, which we don't.
         let cpv_filter = self
             .cpvs
             .iter()
-            .filter_map(|code| Cpv::from_code(code))
+            .filter_map(|code| CpvCode::parse(code))
             .map(|cpv| format!("cpvs.code STARTS WITH '{}'", cpv.stem()))
             .join(" OR ");
         if !cpv_filter.is_empty() {

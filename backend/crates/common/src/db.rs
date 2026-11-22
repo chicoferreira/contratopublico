@@ -3,7 +3,7 @@ use chrono::NaiveDate;
 use sqlx::{PgConnection, PgPool, types::Json};
 
 use crate::{
-    Contract, ContractType, Cpv, Currency, Document, Entity, ProcedureType,
+    Contract, ContractType, CpvCode, Currency, Document, Entity, ProcedureType,
     location::ExecutionPlace,
 };
 
@@ -15,7 +15,7 @@ struct ContractMainRow {
     object_brief_description: String,
     initial_contractual_price: i64,
     description: Option<String>,
-    cpvs: Vec<String>,
+    cpvs: Json<Vec<CpvCode>>,
     regime: Option<String>,
     contract_status: Option<String>,
     non_written_contract_justification_types: Vec<String>,
@@ -122,7 +122,8 @@ impl ContractDatabase {
             SELECT
                 id, procedure_type AS "procedure_type: ProcedureType", publication_date,
                 signing_date, object_brief_description, initial_contractual_price, description,
-                cpvs, regime, contract_status, non_written_contract_justification_types,
+                cpvs AS "cpvs: Json<Vec<CpvCode>>", regime, contract_status,
+                non_written_contract_justification_types,
                 contract_types AS "contract_types: Vec<ContractType>", execution_deadline_days,
                 execution_places AS "execution_places: Json<Vec<ExecutionPlace>>",
                 contract_fundamentation_type, contracting_procedure_url,
@@ -214,14 +215,6 @@ impl ContractDatabase {
         let contestants: Vec<Entity> = contestants_rows.into_iter().map(Into::into).collect();
         let invitees: Vec<Entity> = invitees_rows.into_iter().map(Into::into).collect();
         let documents: Vec<Document> = documents_rows.into_iter().map(Into::into).collect();
-        let cpvs = main
-            .cpvs
-            .iter()
-            .map(|code| {
-                Cpv::from_code(code)
-                    .ok_or_else(|| sqlx::Error::Decode(format!("Unknown CPV code: {code}").into()))
-            })
-            .collect::<Result<_, _>>()?;
 
         Ok(Some(Contract {
             id: main.id as u64,
@@ -233,7 +226,7 @@ impl ContractDatabase {
             description: main.description,
             contracting,
             contracted,
-            cpvs,
+            cpvs: main.cpvs.0,
             regime: main.regime,
             contract_status: main.contract_status,
             non_written_contract_justification_types: main.non_written_contract_justification_types,
@@ -324,8 +317,6 @@ async fn insert_contract(tx: &mut PgConnection, contract: &Contract) -> Result<(
         .await?;
     }
 
-    let cpvs: Vec<&str> = contract.cpvs.iter().map(|cpv| cpv.code.as_str()).collect();
-
     sqlx::query!(
             r#"
             INSERT INTO contracts (
@@ -350,7 +341,7 @@ async fn insert_contract(tx: &mut PgConnection, contract: &Contract) -> Result<(
             contract.object_brief_description,
             contract.initial_contractual_price.0 as i64,
             contract.description,
-            &cpvs as &[&str],
+            Json(&contract.cpvs) as _,
             contract.regime,
             contract.contract_status,
             &contract.non_written_contract_justification_types,
@@ -440,7 +431,7 @@ mod tests {
     use sqlx::PgPool;
 
     use crate::{
-        Contract, ContractType, Cpv, Currency, Document, Entity, ProcedureType,
+        Contract, ContractType, CpvCode, Currency, Document, Entity, ProcedureType,
         db::ContractDatabase,
         location::{Country, ExecutionPlace, Municipality},
     };
@@ -465,7 +456,7 @@ mod tests {
                 nif: "987654321".to_string(),
                 description: "Test Contracted Entity".to_string(),
             }],
-            cpvs: vec![Cpv::from_code("72000000-5").unwrap()],
+            cpvs: vec![CpvCode::parse("72000000-5").unwrap()],
             regime: Some("Public".to_string()),
             contract_status: Some("Active".to_string()),
             non_written_contract_justification_types: vec!["Emergency".to_string()],

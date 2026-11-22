@@ -15,7 +15,7 @@ use axum_extra::{
     TypedHeader,
     headers::{CacheControl, ContentType},
 };
-use common::statistics::Statistics;
+use common::{cpv, statistics::Statistics};
 use garde::Validate;
 use governor::Quota;
 use serde::Deserialize;
@@ -67,7 +67,7 @@ pub async fn statistics(State(state): State<AppState>) -> Result<Json<Statistics
 #[axum::debug_handler]
 pub async fn cpvs() -> impl IntoResponse {
     static CPVS_JSON: LazyLock<String> =
-        LazyLock::new(|| serde_json::to_string(&common::CPV_DESIGNATIONS).unwrap());
+        LazyLock::new(|| serde_json::to_string(&cpv::CPV_DESIGNATIONS).unwrap());
 
     let cache_control = CacheControl::new()
         .with_public()

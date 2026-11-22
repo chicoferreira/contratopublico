@@ -56,7 +56,7 @@ impl From<Contract> for ContractDetails {
             description: contract.description,
             contracting: contract.contracting,
             contracted: contract.contracted,
-            cpvs: contract.cpvs,
+            cpvs: contract.cpvs.into_iter().map(Cpv::from).collect(),
             regime: contract.regime,
             contract_status: contract.contract_status,
             non_written_contract_justification_types: contract

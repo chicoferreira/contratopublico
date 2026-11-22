@@ -42,7 +42,7 @@
         "Text",
         "Int8",
         "Text",
-        "TextArray",
+        "Jsonb",
         "Text",
         "Text",
         "TextArray",

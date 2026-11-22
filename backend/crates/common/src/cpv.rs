@@ -1,3 +1,43 @@
+use serde::{Deserialize, Deserializer, Serialize, de::Error};
+
+/// A CPV code that exists in [CPV_DESIGNATIONS].
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+pub struct CpvCode(&'static str);
+
+impl<'de> Deserialize<'de> for CpvCode {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let code = <&str>::deserialize(deserializer)?;
+        Self::parse(code).ok_or_else(|| D::Error::custom(format!("Unknown CPV code: {code}")))
+    }
+}
+
+impl CpvCode {
+    pub fn parse(code: &str) -> Option<Self> {
+        CPV_DESIGNATIONS.get_key(code).copied().map(CpvCode)
+    }
+
+    pub fn inner(self) -> &'static str {
+        self.0
+    }
+
+    pub fn designation(self) -> &'static str {
+        CPV_DESIGNATIONS[self.0]
+    }
+
+    /// Returns the prefix matching this code and its descendants.
+    /// - `30000000-9` -> `30`
+    /// - `33600000-6` -> `336`
+    /// - `30192121-5` -> `30192121`
+    /// - `50000000-5` -> `50`
+    ///
+    /// See <https://ted.europa.eu/en/simap/cpv> for the CPV code structure.
+    pub fn stem(self) -> &'static str {
+        let digits = &self.0[..8];
+        let stem_len = digits.trim_end_matches('0').len();
+        &digits[..stem_len.max(2)]
+    }
+}
+
 pub static CPV_DESIGNATIONS: phf::Map<&str, &str> = phf::phf_map! {
     "03000000-1" => "Produtos da agricultura, da pesca, da silvicultura e afins",
     "03100000-2" => "Produtos agrícolas e hortofrutícolas",
