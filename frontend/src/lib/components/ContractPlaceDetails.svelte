@@ -3,7 +3,8 @@
   import { MapPin } from "@lucide/svelte";
   import { onMount, type Snippet } from "svelte";
   import * as Breadcrumb from "$lib/components/ui/breadcrumb";
-  import type { DetailedExecutionPlace, LocationNode } from "$lib/types/api";
+  import type { Tree } from "$lib/tree";
+  import type { DetailedExecutionPlace } from "$lib/types/api";
   import InfoPopoverItem from "./InfoPopoverItem.svelte";
 
   let {
@@ -18,15 +19,14 @@
     label: Snippet<[keyof DetailedExecutionPlace]>;
   } = $props();
 
-  let tree = $state.raw<LocationNode[]>();
+  let tree = $state.raw<Tree>();
 
   onMount(async () => {
     tree = await loadLocationTree();
   });
 
   const municipalityCount = $derived(
-    tree?.flatMap((country) => country.children).find((region) => region.id === place.region?.id)
-      ?.children.length,
+    place.region ? tree?.nodes.get(place.region.id)?.children.length : undefined,
   );
 </script>
 

@@ -9,6 +9,7 @@
     Funnel,
     Lightbulb,
     CalendarDays,
+    MapPin,
     Shapes,
   } from "@lucide/svelte";
   import type { Filters } from "$lib/types/api";
@@ -17,6 +18,7 @@
   import FilterCpvs from "./FilterCpvs.svelte";
   import FilterDate from "./FilterDate.svelte";
   import FilterInput from "./FilterInput.svelte";
+  import FilterLocations from "./FilterLocations.svelte";
   import FilterProcedureTypes from "./FilterProcedureTypes.svelte";
   import FilterSection from "./FilterSection.svelte";
   import { fade } from "svelte/transition";
@@ -267,6 +269,17 @@
           maxlength={MAX_ENTITY_FILTER_LENGTH}
           placeholder="Ex: Empresa XPTO, Lda. ou 123456789" />
       </div>
+    </FilterSection>
+
+    <Separator />
+
+    <FilterSection
+      title="Local de Execução"
+      IconComponent={MapPin}
+      filter={filters}
+      fields={["locations"]}
+      addedDate="2026-11-22">
+      <FilterLocations bind:value={filters.locations} />
     </FilterSection>
 
     <Separator />

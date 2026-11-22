@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { DetailedExecutionPlace, MatchingRange } from "$lib/types/api";
+  import { isDistrictId } from "$lib/locations";
   import { MapPin } from "@lucide/svelte";
   import Highlighted from "./Highlighted.svelte";
   import InfoBadge from "./InfoBadge.svelte";
@@ -17,7 +18,7 @@
     ranges: Record<string, MatchingRange[]>;
   } = $props();
 
-  const isDistrict = $derived(!!place.region?.id.endsWith("District"));
+  const isDistrict = $derived(place.region !== null && isDistrictId(place.region.id));
 </script>
 
 {#snippet label(level: keyof DetailedExecutionPlace)}

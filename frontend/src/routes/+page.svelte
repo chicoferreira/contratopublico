@@ -132,6 +132,7 @@
     filters.contractTypes;
     filters.procedureTypes;
     filters.cpvs;
+    filters.locations;
 
     if (buildSearchParams(snapshotRequest()).toString() === lastNavigatedSearch) {
       return;

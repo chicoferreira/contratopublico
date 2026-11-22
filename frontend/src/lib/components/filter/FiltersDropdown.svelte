@@ -31,6 +31,6 @@
       Filtros<span in:blur={{ duration: 200 }}>{@render extra()}</span>
     </p>
   {/key}
-  <NewBadge addedDate="2026-11-13" link={false} />
+  <NewBadge addedDate="2026-11-22" link={false} />
   <ChevronDown class="h-4 w-4 opacity-50 transition-transform" />
 </button>

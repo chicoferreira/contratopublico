@@ -21,7 +21,7 @@
 </script>
 
 <div class="space-y-2">
-  <div class="flex h-6 items-center gap-1">
+  <div class="flex h-6 items-center gap-2">
     <Label for={id} class="text-sm font-medium">{labelContent}</Label>
     <NewBadge {addedDate} />
     {#if active}
