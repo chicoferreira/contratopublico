@@ -2,6 +2,8 @@ use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 use sqlx::Type;
 
+use location::{Country, ExecutionPlace, Municipality, Region};
+
 pub use cpv::CPV_DESIGNATIONS;
 
 mod cpv;
@@ -27,7 +29,7 @@ pub struct Contract {
     pub non_written_contract_justification_types: Vec<String>,
     pub contract_types: Vec<ContractType>,
     pub execution_deadline_days: usize,
-    pub execution_places: Vec<String>,
+    pub execution_places: Vec<ExecutionPlace>,
     pub contract_fundamentation_type: String,
     pub contestants: Vec<Entity>,
     pub invitees: Vec<Entity>,
@@ -190,6 +192,48 @@ pub struct Document {
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, Default)]
 pub struct Currency(pub isize);
 
+/// An execution place with every level filled in.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DetailedExecutionPlace {
+    pub country: ExecutionPlacePart<Country>,
+    pub region: Option<ExecutionPlacePart<Region>>,
+    pub municipality: Option<ExecutionPlacePart<Municipality>>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ExecutionPlacePart<T> {
+    pub id: T,
+    pub label: String,
+}
+
+impl From<ExecutionPlace> for DetailedExecutionPlace {
+    fn from(place: ExecutionPlace) -> Self {
+        let (country, region, municipality) = match place {
+            ExecutionPlace::Country(country) => (country, None, None),
+            ExecutionPlace::Region(region) => (region.country(), Some(region), None),
+            ExecutionPlace::Municipality(municipality) => {
+                let region = municipality.region();
+                (region.country(), Some(region), Some(municipality))
+            }
+        };
+
+        DetailedExecutionPlace {
+            country: ExecutionPlacePart {
+                id: country,
+                label: country.label().to_string(),
+            },
+            region: region.map(|region| ExecutionPlacePart {
+                id: region,
+                label: region.label().to_string(),
+            }),
+            municipality: municipality.map(|municipality| ExecutionPlacePart {
+                id: municipality,
+                label: municipality.label().to_string(),
+            }),
+        }
+    }
+}
+
 /// The contract struct that will be saved in meilisearch
 /// with only important parameters for faster search
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -211,7 +255,7 @@ pub struct SearchableContract {
     pub contract_types: Vec<ContractType>,
     // The labels are stored as strings so they are still searchable
     pub contract_type_labels: Vec<String>,
-    pub execution_places: Vec<String>,
+    pub execution_places: Vec<DetailedExecutionPlace>,
     pub contract_fundamentation_type: String,
     pub contestants: Vec<Entity>,
     pub invitees: Vec<Entity>,
@@ -246,7 +290,11 @@ impl From<Contract> for SearchableContract {
                 .map(|contract_type| contract_type.label().to_string())
                 .collect(),
             contract_types: contract.contract_types,
-            execution_places: contract.execution_places,
+            execution_places: contract
+                .execution_places
+                .into_iter()
+                .map(DetailedExecutionPlace::from)
+                .collect(),
             contract_fundamentation_type: contract.contract_fundamentation_type,
             contestants: contract.contestants,
             invitees: contract.invitees,

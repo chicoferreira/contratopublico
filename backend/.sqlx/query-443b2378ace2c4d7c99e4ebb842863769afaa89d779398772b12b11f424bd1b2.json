@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT\n                id, procedure_type AS \"procedure_type: ProcedureType\", publication_date,\n                signing_date, object_brief_description, initial_contractual_price, description,\n                cpvs, regime, contract_status, non_written_contract_justification_types,\n                contract_types AS \"contract_types: Vec<ContractType>\", execution_deadline_days,\n                execution_places, contract_fundamentation_type, contracting_procedure_url,\n                announcement_id, direct_award_fundamentation_type, observations,\n                end_of_contract_type, close_date, total_effective_price, causes_deadline_change,\n                causes_price_change, estimated_base_price, award_decision_date,\n                framework_agreement_description, special_measures, ambient_criteria\n            FROM contracts\n            WHERE id = $1\n            ",
+  "query": "\n            SELECT\n                id, procedure_type AS \"procedure_type: ProcedureType\", publication_date,\n                signing_date, object_brief_description, initial_contractual_price, description,\n                cpvs, regime, contract_status, non_written_contract_justification_types,\n                contract_types AS \"contract_types: Vec<ContractType>\", execution_deadline_days,\n                execution_places AS \"execution_places: Json<Vec<ExecutionPlace>>\",\n                contract_fundamentation_type, contracting_procedure_url,\n                announcement_id, direct_award_fundamentation_type, observations,\n                end_of_contract_type, close_date, total_effective_price, causes_deadline_change,\n                causes_price_change, estimated_base_price, award_decision_date,\n                framework_agreement_description, special_measures, ambient_criteria\n            FROM contracts\n            WHERE id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -123,8 +123,8 @@
       },
       {
         "ordinal": 13,
-        "name": "execution_places",
-        "type_info": "TextArray"
+        "name": "execution_places: Json<Vec<ExecutionPlace>>",
+        "type_info": "Jsonb"
       },
       {
         "ordinal": 14,
@@ -239,5 +239,5 @@
       false
     ]
   },
-  "hash": "7e26d9a3cdde031065aa25cb4b0a9a2f1b6b09bbeb28b6341357ca21125791e7"
+  "hash": "443b2378ace2c4d7c99e4ebb842863769afaa89d779398772b12b11f424bd1b2"
 }

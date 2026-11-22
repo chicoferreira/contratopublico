@@ -71,7 +71,7 @@
           }
         },
         "Int4",
-        "TextArray",
+        "Jsonb",
         "Text",
         "Text",
         "Int8",
