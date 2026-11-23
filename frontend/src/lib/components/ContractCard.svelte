@@ -28,7 +28,7 @@
     <div class="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
       <div class="space-y-1">
         <a
-          class="text-base-content group inline-flex min-w-0 items-start gap-2 text-lg leading-tight font-semibold"
+          class="text-base-content group block min-w-0 text-lg leading-tight font-semibold text-pretty"
           href={"/contract/" + contract.id}
           title={`Ver detalhes do contrato #${contract.id}`}
           aria-label={`Ver detalhes do contrato #${contract.id}`}>
@@ -37,7 +37,7 @@
             {...renderHighlightedField("objectBriefDescription")} />
           <ExternalLink
             aria-hidden="true"
-            class="text-muted-foreground/80 group-hover:text-primary mt-0.75 h-4 w-4 shrink-0 transition-colors" />
+            class="text-muted-foreground/80 group-hover:text-primary inline h-4 w-4 align-[-0.125em] transition-colors" />
         </a>
         <div class="flex flex-wrap items-start gap-x-2 gap-y-1">
           {#if contract.procedureType}
