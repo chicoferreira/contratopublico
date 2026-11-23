@@ -47,12 +47,12 @@ impl RawContractDatabase {
         Self { pool }
     }
 
-    pub async fn save_contracts<T: Serialize + Sync>(
+    pub async fn save_contracts<'a, T: Serialize + Sync + 'a>(
         &self,
         source: ContractSource,
-        contracts: &[(u64, T)],
+        contracts: impl IntoIterator<Item = (u64, &'a T)>,
     ) -> Result<(), sqlx::Error> {
-        let (ids, data) = unzip_contracts(contracts.iter().map(|(id, contract)| (*id, contract)));
+        let (ids, data) = unzip_contracts(contracts);
 
         // Only update the row if the data changed, so the triggers don't queue unchanged contracts.
         sqlx::query(
@@ -311,14 +311,14 @@ mod tests {
 
         db.save_contracts(
             ContractSource::BaseApi,
-            &[
-                (1, json!({"v": 1})),
-                (2, json!({"v": 2})),
-                (3, json!({"v": 3})),
+            [
+                (1, &json!({"v": 1})),
+                (2, &json!({"v": 2})),
+                (3, &json!({"v": 3})),
             ],
         )
         .await?;
-        db.save_contracts(ContractSource::BasePortal, &[(1, json!({"p": 1}))])
+        db.save_contracts(ContractSource::BasePortal, [(1, &json!({"p": 1}))])
             .await?;
         sqlx::query("DELETE FROM join_queue").execute(&pool).await?;
         let mut listener = db.listen_portal_refetches().await?;
@@ -362,8 +362,9 @@ mod tests {
         let db = RawContractDatabase::new(pool);
         let (api, portal) = (ContractSource::BaseApi, ContractSource::BasePortal);
 
-        db.save_contracts(api, &[(1, 10), (2, 20), (4, 40)]).await?;
-        db.save_contracts(portal, &[(2, 200), (3, 300)]).await?;
+        db.save_contracts(api, [(1, &10), (2, &20), (4, &40)])
+            .await?;
+        db.save_contracts(portal, [(2, &200), (3, &300)]).await?;
         db.delete_contract(api, 1).await?;
 
         let queued = db.list_queued_before::<i64, i64>(4, 10).await?;
@@ -389,8 +390,8 @@ mod tests {
         let db = RawContractDatabase::new(pool.clone());
         let (api, portal) = (ContractSource::BaseApi, ContractSource::BasePortal);
 
-        db.save_contracts(api, &[(1, 10), (2, 20)]).await?;
-        db.save_contracts(portal, &[(2, 200), (3, 300)]).await?;
+        db.save_contracts(api, [(1, &10), (2, &20)]).await?;
+        db.save_contracts(portal, [(2, &200), (3, &300)]).await?;
         sqlx::query("DELETE FROM join_queue WHERE contract_id = 1")
             .execute(&pool)
             .await?;

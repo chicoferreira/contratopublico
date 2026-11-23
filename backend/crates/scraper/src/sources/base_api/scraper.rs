@@ -3,7 +3,6 @@ use std::str::FromStr;
 use anyhow::Context;
 use chrono::{Datelike, Utc};
 use cron::Schedule;
-use itertools::Itertools;
 use log::{error, info};
 
 use crate::sources::{ContractSource, base_api::client::BaseApiClient, db::RawContractDatabase};
@@ -60,8 +59,6 @@ pub async fn sync_all(
 
         info!("Fetched {} BASE API contracts of {year}", contracts.len());
 
-        // the API repeats a contract once per contracting entity
-        // snapshot only keeps one copy of each
         for batch in contracts.chunks(BATCH_SIZE) {
             snapshot
                 .add(batch.iter().map(|contract| (contract.id, contract)))
@@ -101,16 +98,10 @@ async fn sync_recent(
 
     info!("Fetched {} recent BASE API contracts", contracts.len());
 
-    // the API repeats a contract once per contracting entity, in identical copies
-    let contracts: Vec<_> = contracts
-        .into_iter()
-        .unique_by(|contract| contract.id)
-        .map(|contract| (contract.id, contract))
-        .collect();
-
     for batch in contracts.chunks(BATCH_SIZE) {
+        let contracts = batch.iter().map(|contract| (contract.id, contract));
         raw_contract_database
-            .save_contracts(ContractSource::BaseApi, batch)
+            .save_contracts(ContractSource::BaseApi, contracts)
             .await
             .context("Failed to save raw contracts in database")?;
     }

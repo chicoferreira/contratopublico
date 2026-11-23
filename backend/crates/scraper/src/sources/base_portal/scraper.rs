@@ -200,7 +200,7 @@ async fn fetch_and_save(
     };
 
     raw_contract_db
-        .save_contracts(ContractSource::BasePortal, &[(contract.id, contract)])
+        .save_contracts(ContractSource::BasePortal, [(contract.id, &contract)])
         .await
         .inspect_err(|_| metrics::contract_failed(ContractFailure::Save))
         .with_context(|| format!("Failed to save details for ID {id}"))?;
