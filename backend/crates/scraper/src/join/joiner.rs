@@ -24,6 +24,12 @@ const EXECUTION_PLACE_PLACEHOLDERS: [&str; 3] = [
 ];
 
 pub fn join_contract(sources: Sources) -> anyhow::Result<Contract> {
+    if let Some(api) = sources.get_api().filter(|api| !api.unknown.is_empty()) {
+        let id = api.id;
+        let fields = api.unknown.keys().collect_vec();
+        log::warn!("BASE API contract {id} has unknown fields: {fields:?}");
+    }
+
     Ok(Contract {
         id: sources.api_first(|c| c.id, |c| c.id),
         procedure_type: sources.try_api_first(
@@ -191,6 +197,13 @@ impl<'a> Sources<'a> {
             (Some(api), None) => Some(Self::Api(api)),
             (None, Some(portal)) => Some(Self::Portal(portal)),
             (None, None) => None,
+        }
+    }
+
+    fn get_api(&self) -> Option<&BaseApiContract> {
+        match self {
+            Self::Api(contract) | Self::Both(contract, _) => Some(contract),
+            Self::Portal(_) => None,
         }
     }
 

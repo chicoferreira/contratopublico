@@ -259,6 +259,10 @@ pub struct BaseApiContract {
     /// Example: false
     #[serde(rename = "ocorrencias")]
     pub occurrences: bool,
+
+    /// Fallback for unknown fields. If this is not empty, the joiner will warn about it.
+    #[serde(flatten)]
+    pub unknown: serde_json::Map<String, serde_json::Value>,
 }
 
 /// A contracting or contracted entity of a [`BaseApiContract`].
@@ -446,6 +450,10 @@ pub struct BaseApiModification {
     /// Example: 2024
     #[serde(rename = "Ano")]
     pub year: i32,
+
+    /// Fallback for unknown fields. If this is not empty, the joiner will warn about it.
+    #[serde(flatten)]
+    pub unknown: serde_json::Map<String, serde_json::Value>,
 }
 
 fn deserialize_u64<'de, D: Deserializer<'de>>(deserializer: D) -> Result<u64, D::Error> {
